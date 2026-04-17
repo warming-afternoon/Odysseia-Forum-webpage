@@ -62,13 +62,6 @@ export function LazyImage({
     });
   }, [threadId]);
 
-  // 监听图片是否已经在缓存中，如果是，则直接标记为已加载，避免闪烁
-  useLayoutEffect(() => {
-    if (imageRef.current?.complete && isInView) {
-      setIsLoaded(true);
-    }
-  }, [isInView]);
-
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {isImageDisabled ? (
@@ -95,17 +88,22 @@ export function LazyImage({
           {/* 实际图片 */}
           {isInView && (
             <img
+              key={currentSrc}
               ref={imageRef}
               src={currentSrc}
               alt={alt}
-              className={`h-full w-full object-cover transition-all duration-700 ease-out ${isLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.02] opacity-0 blur-sm'
+              className={`h-full w-full object-cover transition-all duration-[800ms] cubic-bezier(0.4, 0, 0.2, 1) ${isLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.03] opacity-0 blur-md'
                 }`}
-              onLoad={() => setIsLoaded(true)}
+              onLoad={() => {
+                // 使用 decode() 确保图片不仅加载完，且已完成解码可以立即显示
+                imageRef.current?.decode()
+                  .then(() => setIsLoaded(true))
+                  .catch(() => setIsLoaded(true)); // 回退
+              }}
               onError={() => {
                 if (!threadId) return;
                 reportBrokenThreadThumbnail({ threadId, channelId });
               }}
-              loading="lazy"
             />
           )}
         </>

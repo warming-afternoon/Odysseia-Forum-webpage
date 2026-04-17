@@ -1,5 +1,5 @@
-import { UserRound } from 'lucide-react';
 import type { User } from '@/features/auth/api/authApi';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 interface UserHeaderCardProps {
   user?: User;
@@ -16,7 +16,7 @@ export function UserHeaderCard({ user, subtitle, avatarUrl }: UserHeaderCardProp
     <div className="px-1">
       <div className="flex flex-col items-center text-center">
         <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[var(--od-bg-tertiary)] sm:h-20 sm:w-20">
-          <img src={avatar} alt={user?.username || 'user'} className="h-full w-full object-cover" />
+          <LazyImage src={avatar} alt={user?.username || 'user'} className="h-full w-full" />
           <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[var(--od-card)] bg-green-500" />
         </div>
         <div className="mt-4 min-w-0">
