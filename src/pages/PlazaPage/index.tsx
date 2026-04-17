@@ -16,6 +16,7 @@ import { usePreviewStore } from '@/features/search/store/previewStore';
 import { GUILD_ID } from '@/shared/config/channelCategories.private';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
 import { useCardGridClass } from '@/shared/hooks/useSettings';
+import defaultBannerImage from '@/assets/images/banners/banner.png';
 
 const railSortMap: Record<PlazaRailKey, string> = {
   latest: 'created_desc',
@@ -144,10 +145,23 @@ export function PlazaPage() {
                 }}
               />
             ) : (
-              <div className="py-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--od-text-tertiary)]">Featured Thread</p>
-                <p className="text-lg font-semibold text-[var(--od-text-primary)]">当前没有可展示的 Banner。</p>
-                <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">没关系呀，今天就先不摆头图了，我还是会继续把下面值得看的内容给你摊开。</p>
+              <div className="group relative overflow-hidden rounded-xl">
+                <div className="relative aspect-[21/9]">
+                  <img
+                    src={defaultBannerImage}
+                    alt="欢迎来到 Odysseia"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h2 className="mb-2 text-2xl font-bold text-white line-clamp-1">
+                      欢迎来到 类脑Odysseia
+                    </h2>
+                    <p className="text-sm text-gray-200 line-clamp-2">
+                      今天的头图位还空着呢，不过没关系，先往下逛逛看吧。
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

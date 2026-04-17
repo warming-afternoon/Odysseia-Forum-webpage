@@ -9,7 +9,7 @@ import type { UserSettings } from '@/shared/lib/settings';
 import defaultWinterBackground from '@/assets/images/background/winter.png';
 import defaultSpringBackground from '@/assets/images/background/spring.png';
 import defaultSpring2Background from '@/assets/images/background/spring2.png';
-import defaultBannerBackground from '@/assets/images/banners/adfd891a-f9f7-4f9d-8d7c-975fb32a7f0d.png';
+import defaultBannerBackground from '@/assets/images/banners/banner.png';
 
 type ThemeOption = {
   id: UserSettings['theme'];
