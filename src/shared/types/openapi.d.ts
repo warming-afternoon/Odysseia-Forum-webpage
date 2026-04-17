@@ -124,6 +124,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/authors/{author_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取作者详情与统计
+         * @description 根据作者ID获取作者信息及统计摘要。
+         */
+        get: operations["get_author_profile_v1_authors__author_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/preferences/users/{user_id}": {
         parameters: {
             query?: never;
@@ -133,12 +153,12 @@ export interface paths {
         };
         /**
          * 获取指定用户的搜索偏好
-         * @description 根据 Discord 用户 ID 和服务器 ID，获取该用户的完整搜索偏好设置。
+         * @description 获取用户的搜索偏好设置。固定使用配置的主服务器 ID。
          */
         get: operations["get_user_preferences_v1_preferences_users__user_id__get"];
         /**
          * 创建或更新用户搜索偏好
-         * @description 根据 Discord 用户 ID 和服务器 ID，创建或更新该用户的搜索偏好设置。
+         * @description 创建或更新用户的搜索偏好设置。固定使用配置的主服务器 ID。
          */
         put: operations["update_user_preferences_v1_preferences_users__user_id__put"];
         post?: never;
@@ -165,6 +185,26 @@ export interface paths {
          *     - return: 分页的搜索结果，包含帖子列表和总数
          */
         post: operations["execute_search_v1_search__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search/thread/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 按 Discord 帖子 ID 获取详情
+         * @description 用于 Banner 点击等场景；避免依赖当前页搜索结果是否已包含该帖。
+         */
+        get: operations["get_thread_detail_v1_search_thread__thread_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -271,6 +311,46 @@ export interface paths {
          *     注意：用户不能取消关注自己的帖子
          */
         delete: operations["remove_follow_v1_follows__thread_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/meta/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取频道目录与基础信息
+         * @description 返回指定频道的标签、虚拟映射及发帖统计量
+         */
+        get: operations["get_indexed_channels_with_tags_v1_meta_channels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/meta/main-guild": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取当前主服务器ID
+         * @description 返回配置文件中定义的主服务器 ID (Main Guild ID)
+         */
+        get: operations["get_main_guild_id_v1_meta_main_guild_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -641,6 +721,66 @@ export interface paths {
         patch: operations["update_booklist_item_v1_booklist_item_update__booklist_id___thread_id__patch"];
         trace?: never;
     };
+    "/v1/tags/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 聚合查询标签统计数据
+         * @description 一次性聚合获取指定范围内的所有标签使用统计情况
+         */
+        post: operations["stats_tags_v1_tags_stats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/discovery/rails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取广场轨道数据
+         * @description 一次性获取多条轨道数据并处理收藏标记
+         */
+        get: operations["get_discovery_rails_v1_discovery_rails_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/discovery/random": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取随机帖子
+         * @description 根据指定范围随机抽取帖子
+         */
+        get: operations["get_random_threads_v1_discovery_random_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -748,6 +888,63 @@ export interface components {
             avatar_url: string | null;
         };
         /**
+         * AuthorProfileResponse
+         * @description 作者档案详情及统计数据的响应模型。
+         */
+        AuthorProfileResponse: {
+            /**
+             * Id
+             * @description 作者的 Discord 用户 ID
+             */
+            id: string;
+            /**
+             * Name
+             * @description 作者的唯一用户名
+             */
+            name: string;
+            /**
+             * Global Name
+             * @description 作者的全局显示名称
+             */
+            global_name: string | null;
+            /**
+             * Display Name
+             * @description 作者的服务器内显示名称
+             */
+            display_name: string;
+            /**
+             * Avatar Url
+             * @description 作者头像的 URL
+             */
+            avatar_url: string | null;
+            /** @description 作者相关的统计摘要 */
+            stats: components["schemas"]["AuthorStats"];
+        };
+        /**
+         * AuthorStats
+         * @description 作者统计摘要的响应模型。
+         */
+        AuthorStats: {
+            /**
+             * Thread Count
+             * @description 发帖总数
+             * @default 0
+             */
+            thread_count: number;
+            /**
+             * Reaction Count
+             * @description 收到的总反应数
+             * @default 0
+             */
+            reaction_count: number;
+            /**
+             * Reply Count
+             * @description 收到的总回复数
+             * @default 0
+             */
+            reply_count: number;
+        };
+        /**
          * BannerApplicationRequest
          * @description Banner申请请求模型
          */
@@ -793,6 +990,12 @@ export interface components {
             cover_image_url: string;
             /** Channel Id */
             channel_id: number;
+            /**
+             * Guild Id
+             * @description 帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）
+             * @default 0
+             */
+            guild_id: number;
         };
         /**
          * BannerItem
@@ -807,6 +1010,11 @@ export interface components {
             cover_image_url: string;
             /** Channel Id */
             channel_id: string;
+            /**
+             * Guild Id
+             * @description 帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）
+             */
+            guild_id?: string;
         };
         /**
          * BooklistCreateResponse
@@ -1070,6 +1278,192 @@ export interface components {
              */
             title: string;
         };
+        /**
+         * ChannelDetail
+         * @description 频道的元数据模型
+         */
+        "ChannelDetail-Input": {
+            /**
+             * Guild Id
+             * @description 所属服务器的 Discord ID
+             */
+            guild_id: number;
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: number;
+            /**
+             * Name
+             * @description 频道名称
+             */
+            name: string;
+            /**
+             * Available Tags
+             * @description 该频道原生的可用标签
+             */
+            available_tags?: components["schemas"]["TagDetail"][];
+            /**
+             * Virtual Tags
+             * @description 映射到该频道的虚拟标签
+             */
+            virtual_tags?: components["schemas"]["VirtualTagDetail-Input"][];
+            /**
+             * Mapped Source Channels
+             * @description 虚拟标签的来源频道详细信息
+             */
+            mapped_source_channels?: components["schemas"]["MappedSourceChannelDetail-Input"][];
+            /**
+             * Real Thread Count
+             * @description 实际帖子数（频道内真实存在的帖子总数）
+             * @default 0
+             */
+            real_thread_count: number;
+            /**
+             * Virtual Thread Count
+             * @description 虚拟标签映射帖子数（来自映射频道的帖子总数）
+             * @default 0
+             */
+            virtual_thread_count: number;
+            /**
+             * Total Thread Count
+             * @description 总帖子数（实际帖子数 + 虚拟标签映射帖子数）
+             * @default 0
+             */
+            total_thread_count: number;
+        };
+        /**
+         * ChannelDetail
+         * @description 频道的元数据模型
+         */
+        "ChannelDetail-Output": {
+            /**
+             * Guild Id
+             * @description 所属服务器的 Discord ID
+             */
+            guild_id: string;
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: string;
+            /**
+             * Name
+             * @description 频道名称
+             */
+            name: string;
+            /**
+             * Available Tags
+             * @description 该频道原生的可用标签
+             */
+            available_tags?: components["schemas"]["TagDetail"][];
+            /**
+             * Virtual Tags
+             * @description 映射到该频道的虚拟标签
+             */
+            virtual_tags?: components["schemas"]["VirtualTagDetail-Output"][];
+            /**
+             * Mapped Source Channels
+             * @description 虚拟标签的来源频道详细信息
+             */
+            mapped_source_channels?: components["schemas"]["MappedSourceChannelDetail-Output"][];
+            /**
+             * Real Thread Count
+             * @description 实际帖子数（频道内真实存在的帖子总数）
+             * @default 0
+             */
+            real_thread_count: number;
+            /**
+             * Virtual Thread Count
+             * @description 虚拟标签映射帖子数（来自映射频道的帖子总数）
+             * @default 0
+             */
+            virtual_thread_count: number;
+            /**
+             * Total Thread Count
+             * @description 总帖子数（实际帖子数 + 虚拟标签映射帖子数）
+             * @default 0
+             */
+            total_thread_count: number;
+        };
+        /**
+         * ChannelTagInfo
+         * @description 标签在某个频道下的统计信息
+         */
+        "ChannelTagInfo-Input": {
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: number;
+            /**
+             * Tag Id
+             * @description 标签的 Discord ID（虚拟标签为 0）
+             */
+            tag_id: number;
+            /**
+             * Thread Count
+             * @description 该频道下包含此标签的帖子数量
+             */
+            thread_count: number;
+            /**
+             * Is Virtual
+             * @description 是否为虚拟映射标签
+             */
+            is_virtual: boolean;
+        };
+        /**
+         * ChannelTagInfo
+         * @description 标签在某个频道下的统计信息
+         */
+        "ChannelTagInfo-Output": {
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: string;
+            /**
+             * Tag Id
+             * @description 标签的 Discord ID（虚拟标签为 0）
+             */
+            tag_id: string;
+            /**
+             * Thread Count
+             * @description 该频道下包含此标签的帖子数量
+             */
+            thread_count: number;
+            /**
+             * Is Virtual
+             * @description 是否为虚拟映射标签
+             */
+            is_virtual: boolean;
+        };
+        /**
+         * DiscoveryRailsResponse
+         * @description 广场多轨道聚合响应体
+         */
+        DiscoveryRailsResponse: {
+            /**
+             * Latest
+             * @description 最新发布
+             */
+            latest: components["schemas"]["ThreadDetail"][];
+            /**
+             * Reaction Surge
+             * @description 近期点赞飙升
+             */
+            reaction_surge: components["schemas"]["ThreadDetail"][];
+            /**
+             * Discussion Surge
+             * @description 近期讨论飙升
+             */
+            discussion_surge: components["schemas"]["ThreadDetail"][];
+            /**
+             * Collection Surge
+             * @description 近期收藏飙升
+             */
+            collection_surge: components["schemas"]["ThreadDetail"][];
+        };
         /** FetchImageItem */
         FetchImageItem: {
             /**
@@ -1111,6 +1505,70 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * MappedSourceChannelDetail
+         * @description 虚拟标签映射来源频道的详细信息
+         */
+        "MappedSourceChannelDetail-Input": {
+            /**
+             * Guild Id
+             * @description 所属服务器的 Discord ID
+             */
+            guild_id: number;
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: number;
+            /**
+             * Channel Name
+             * @description 频道名称
+             */
+            channel_name: string;
+            /**
+             * Available Tags
+             * @description 该频道原生的可用标签
+             */
+            available_tags?: components["schemas"]["TagDetail"][];
+            /**
+             * Real Thread Count
+             * @description 该频道的实际有效帖子数
+             * @default 0
+             */
+            real_thread_count: number;
+        };
+        /**
+         * MappedSourceChannelDetail
+         * @description 虚拟标签映射来源频道的详细信息
+         */
+        "MappedSourceChannelDetail-Output": {
+            /**
+             * Guild Id
+             * @description 所属服务器的 Discord ID
+             */
+            guild_id: string;
+            /**
+             * Channel Id
+             * @description 频道的 Discord ID
+             */
+            channel_id: string;
+            /**
+             * Channel Name
+             * @description 频道名称
+             */
+            channel_name: string;
+            /**
+             * Available Tags
+             * @description 该频道原生的可用标签
+             */
+            available_tags?: components["schemas"]["TagDetail"][];
+            /**
+             * Real Thread Count
+             * @description 该频道的实际有效帖子数
+             * @default 0
+             */
+            real_thread_count: number;
         };
         /** PaginatedResponse[BooklistDetail] */
         PaginatedResponse_BooklistDetail_: {
@@ -1310,7 +1768,7 @@ export interface components {
              */
             offset: number;
             /** Results */
-            results: components["schemas"]["ThreadDetail-Output"][];
+            results: components["schemas"]["ThreadDetail"][];
             /**
              * Available Tags
              * @description 当搜索单个频道时返回该频道的可用标签列表，全频道搜索时返回空列表
@@ -1334,91 +1792,106 @@ export interface components {
             unread_count: number;
         };
         /**
-         * ThreadDetail
-         * @description API 响应中单个帖子的详细信息模型
+         * TagDetail
+         * @description 标签的基础信息模型
          */
-        "ThreadDetail-Input": {
+        TagDetail: {
             /**
-             * Thread Id
-             * @description 帖子的 Discord ID
+             * Tag Id
+             * @description 标签的 Discord ID
              */
-            thread_id: number;
+            tag_id: number;
+            /**
+             * Name
+             * @description 标签名称
+             */
+            name: string;
+        };
+        /**
+         * TagStatItem
+         * @description 标签维度的聚合统计项
+         */
+        "TagStatItem-Input": {
+            /**
+             * Tag Name
+             * @description 标签名称
+             */
+            tag_name: string;
+            /**
+             * Total Thread Count
+             * @description 该标签下的总帖子数(跨频道累加)
+             */
+            total_thread_count: number;
+            /**
+             * Channel Info
+             * @description 按频道分桶的详细统计数据
+             */
+            channel_info: components["schemas"]["ChannelTagInfo-Input"][];
+        };
+        /**
+         * TagStatItem
+         * @description 标签维度的聚合统计项
+         */
+        "TagStatItem-Output": {
+            /**
+             * Tag Name
+             * @description 标签名称
+             */
+            tag_name: string;
+            /**
+             * Total Thread Count
+             * @description 该标签下的总帖子数(跨频道累加)
+             */
+            total_thread_count: number;
+            /**
+             * Channel Info
+             * @description 按频道分桶的详细统计数据
+             */
+            channel_info: components["schemas"]["ChannelTagInfo-Output"][];
+        };
+        /**
+         * TagStatsRequest
+         * @description 获取标签聚合统计信息的请求体
+         */
+        TagStatsRequest: {
             /**
              * Guild Id
-             * @description 帖子所属的 Discord 服务器 ID
-             * @default 0
+             * @description 服务器的 Discord ID
              */
-            guild_id: number;
+            guild_id?: number | null;
             /**
-             * Channel Id
-             * @description 帖子所在频道的 Discord ID
+             * Channel Ids
+             * @description 指定频道 ID 列表
              */
-            channel_id: number;
+            channel_ids?: number[] | null;
             /**
-             * Title
-             * @description 帖子标题
+             * Include Virtual
+             * @description 是否包含虚拟映射标签的统计
+             * @default true
              */
-            title: string;
-            /** @description 帖子作者的详细信息 */
-            author: components["schemas"]["AuthorDetail-Input"] | null;
+            include_virtual: boolean;
+        };
+        /**
+         * TagStatsResponse
+         * @description 标签聚合统计的完整响应体
+         */
+        TagStatsResponse: {
             /**
-             * Created At
-             * Format: date-time
-             * @description 帖子创建时间
+             * Total Threads
+             * @description 检索范围内的有效帖子总数
              */
-            created_at: string;
+            total_threads: number;
             /**
-             * Last Active At
-             * @description 帖子最后活跃时间
+             * Items
+             * @description 各个标签的聚合统计列表
              */
-            last_active_at: string | null;
-            /**
-             * Reaction Count
-             * @description 帖子点赞数
-             */
-            reaction_count: number;
-            /**
-             * Reply Count
-             * @description 帖子回复数
-             */
-            reply_count: number;
-            /**
-             * Display Count
-             * @description 在搜索结果中的展示次数
-             */
-            display_count: number;
-            /**
-             * First Message Excerpt
-             * @description 帖子首条消息摘要
-             */
-            first_message_excerpt: string | null;
-            /**
-             * Thumbnail Urls
-             * @description 帖子首楼图片 URL 列表（按出现顺序）
-             */
-            thumbnail_urls?: string[];
-            /**
-             * Tags
-             * @description 帖子关联的标签列表
-             */
-            tags: string[];
-            /**
-             * Virtual Tags
-             * @description 帖子匹配的虚拟映射标签名列表
-             */
-            virtual_tags?: string[];
-            /**
-             * Collected Flag
-             * @description 当前用户是否收藏了此帖
-             * @default false
-             */
-            collected_flag: boolean;
+            items: components["schemas"]["TagStatItem-Output"][];
         };
         /**
          * ThreadDetail
          * @description API 响应中单个帖子的详细信息模型
          */
-        "ThreadDetail-Output": {
+        ThreadDetail: {
             /**
              * Thread Id
              * @description 帖子的 Discord ID
@@ -1692,6 +2165,38 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /**
+         * VirtualTagDetail
+         * @description 虚拟标签详细信息模型
+         */
+        "VirtualTagDetail-Input": {
+            /**
+             * Tag Name
+             * @description 虚拟标签名称
+             */
+            tag_name: string;
+            /**
+             * Source Channel Ids
+             * @description 此虚拟标签的来源频道 ID 列表
+             */
+            source_channel_ids: number[];
+        };
+        /**
+         * VirtualTagDetail
+         * @description 虚拟标签详细信息模型
+         */
+        "VirtualTagDetail-Output": {
+            /**
+             * Tag Name
+             * @description 虚拟标签名称
+             */
+            tag_name: string;
+            /**
+             * Source Channel Ids
+             * @description 此虚拟标签的来源频道 ID 列表
+             */
+            source_channel_ids: string[];
+        };
     };
     responses: never;
     parameters: never;
@@ -1843,12 +2348,40 @@ export interface operations {
             };
         };
     };
+    get_author_profile_v1_authors__author_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorProfileResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_user_preferences_v1_preferences_users__user_id__get: {
         parameters: {
-            query?: {
-                /** @description 服务器ID，默认为0 */
-                guild_id?: number | null;
-            };
+            query?: never;
             header?: never;
             path: {
                 user_id: number;
@@ -1879,10 +2412,7 @@ export interface operations {
     };
     update_user_preferences_v1_preferences_users__user_id__put: {
         parameters: {
-            query?: {
-                /** @description 服务器ID，默认为0 */
-                guild_id?: number | null;
-            };
+            query?: never;
             header?: never;
             path: {
                 user_id: number;
@@ -1935,6 +2465,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_thread_detail_v1_search_thread__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadDetail"];
                 };
             };
             /** @description Validation Error */
@@ -2078,6 +2639,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_indexed_channels_with_tags_v1_meta_channels_get: {
+        parameters: {
+            query?: {
+                /** @description 要查询的特定频道ID列表 */
+                channel_ids?: number[] | null;
+                /** @description 按服务器ID过滤频道 */
+                guild_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelDetail-Output"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_main_guild_id_v1_meta_main_guild_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
@@ -2604,6 +3219,115 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BooklistItemDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stats_tags_v1_tags_stats_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagStatsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagStatsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_discovery_rails_v1_discovery_rails_get: {
+        parameters: {
+            query?: {
+                /** @description 每条轨道返回的数量 */
+                limit?: number;
+                /** @description 统计时间跨度(天数) */
+                days?: number;
+                /** @description 是否应用当前用户的过滤偏好 */
+                apply_preferences?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryRailsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_random_threads_v1_discovery_random_get: {
+        parameters: {
+            query?: {
+                /** @description 抽取数量 */
+                limit?: number;
+                /** @description 频道筛选范围 */
+                channel_ids?: number[] | null;
+                /** @description 包含的标签名 */
+                include_tags?: string[] | null;
+                /** @description 必须排除的标签名 */
+                exclude_tags?: string[] | null;
+                /** @description 标签逻辑，'and' 表示必须包含所有标签，'or' 表示包含任意标签 */
+                tag_logic?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadDetail"][];
                 };
             };
             /** @description Validation Error */
