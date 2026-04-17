@@ -65,6 +65,7 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   );
 
   const effectiveSortMethod = discoveryPreferencePatch?.sort_method || sortMethod;
+  
   const effectivePerPage = discoveryPreferencePatch?.limit || perPage;
   const effectiveChannelIds = selectedChannel ? [selectedChannel] : discoveryPreferencePatch?.channel_ids;
   const effectiveIncludeTags = includeTags.length > 0 ? includeTags : discoveryPreferencePatch?.include_tags || [];
@@ -76,7 +77,7 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     }
   }, [query, selectedChannel, hasExplicitFilters]);
 
-  const queryState = useInfiniteQuery<any, Error, any, any, number>({
+  const queryState = useInfiniteQuery<any, Error, any, any, any>({
     queryKey: searchKeys.results({
       ...params,
       effectiveChannelIds,
@@ -96,39 +97,57 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
         tag_logic: tagLogic,
         sort_method: effectiveSortMethod,
         limit: effectivePerPage,
-        offset: Number(pageParam) || 0,
+        // 当使用 exclude_thread_ids 时，必须将 offset 设为 0，
+        // 否则会导致后端在排除后的集合基础上再次进行偏移，产生跳页 Bug。
+        offset: 0,
+        exclude_thread_ids: typeof pageParam === 'object' ? (pageParam as any).exclude_thread_ids : [],
         created_after: timeFrom || undefined,
         created_before: timeTo || undefined,
       }),
     getNextPageParam: (lastPage, allPages) => {
-      const loadedCount = allPages.reduce(
-        (sum: number, page: Awaited<ReturnType<typeof searchApi.search>>) => sum + (page.results?.length || 0),
-        0,
-      );
-      return loadedCount < (lastPage.total || 0) ? loadedCount : undefined;
+      const excludeIds = allPages.flatMap((page: any) => 
+        (page.results || []).map((t: any) => t.thread_id)
+      ).filter(Boolean);
+
+      // 【注意】适配后端特有的“余量总计”逻辑：
+      // 这里的 total 是指排除掉已加载项后，数据库里还剩下多少。
+      // 只要余量 > 0，就说明还没到底，可以继续“拉黑”翻页。
+      return (lastPage.total || 0) > 0 
+        ? { offset: 0, exclude_thread_ids: excludeIds } 
+        : undefined;
     },
     staleTime: 30 * 1000,
   });
 
   const results = useMemo<Thread[]>(() => {
-    const mergedResults =
-      (queryState.data?.pages.flatMap(
-        (page: Awaited<ReturnType<typeof searchApi.search>>) => page.results || [],
-      ) || []) as Thread[];
+    const pages = queryState.data?.pages || [];
+    const mergedResults = pages.flatMap(
+      (page: any) => page.results || [],
+    ) as Thread[];
 
     const uniqueResults = new Map<string, Thread>();
     for (const thread of mergedResults) {
       if (!thread?.thread_id) continue;
-      if (!uniqueResults.has(thread.thread_id)) {
-        uniqueResults.set(thread.thread_id, thread);
+      // 强制转 String，防止 Map 键值类型不匹配导致合并失败
+      const key = String(thread.thread_id);
+      if (!uniqueResults.has(key)) {
+        uniqueResults.set(key, thread);
       }
     }
 
-    return Array.from(uniqueResults.values());
+    const finalResults = Array.from(uniqueResults.values());
+    
+    // --- 调试埋点 ---
+    if (finalResults.length > 0) {
+      console.log(`%c[React状态] 当前已合成了 ${finalResults.length} 个唯一帖子 (总回包数据: ${mergedResults.length})`, "color: #ec4899; font-weight: bold;");
+    }
+    
+    return finalResults;
   }, [queryState.data]);
 
   const totalResults = Number(queryState.data?.pages?.[0]?.total || 0);
 
+  const lastFetchTimeRef = useRef<number>(0);
   useEffect(() => {
     const target = loadMoreRef.current;
     if (!target || !queryState.hasNextPage) return;
@@ -136,15 +155,20 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && queryState.hasNextPage && !queryState.isFetchingNextPage) {
-          queryState.fetchNextPage();
+          const now = Date.now();
+          // 强力节流：1秒钟内只准发起一次翻页请求，给 UI 渲染和去重留足时间
+          if (now - lastFetchTimeRef.current > 1000) {
+            lastFetchTimeRef.current = now;
+            queryState.fetchNextPage();
+          }
         }
       },
-      { rootMargin: '300px 0px' },
+      { rootMargin: '200px 0px' },
     );
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [queryState.fetchNextPage, queryState.hasNextPage, queryState.isFetchingNextPage, results.length]);
+  }, [queryState.fetchNextPage, queryState.hasNextPage, queryState.isFetchingNextPage]);
 
   const hasSearchFilters = !!query || hasExplicitFilters;
   const isPreferenceFilteredBrowse =

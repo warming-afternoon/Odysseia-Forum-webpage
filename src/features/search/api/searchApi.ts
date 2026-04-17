@@ -28,6 +28,9 @@ export interface SearchUIRequest {
   guild_id?: number;
   search_by_collection?: boolean;
   author_name?: string;
+  // 【权宜之计】排除已展示的帖子 ID 列表。
+  // 由于 Discord ID 存在 64 位整数溢出问题，前端统一使用字符串存储和传递。
+  exclude_thread_ids?: string[];
 }
 
 export interface SearchSuggestionAuthor {
@@ -163,12 +166,15 @@ function buildSearchRequest(params: SearchUIRequest): ApiSearchParams {
     sort_order: 'desc',
     limit: params.limit || 24,
     offset: params.offset || 0,
-    exclude_thread_ids: [],
+    exclude_thread_ids: params.exclude_thread_ids || [],
     reaction_count_range: DEFAULT_NUMERIC_RANGE,
     reply_count_range: DEFAULT_NUMERIC_RANGE,
     custom_base_sort: 'comprehensive',
   };
 
+  // 【注意】此处的 exclude_thread_ids 包含了通过 axios 拦截器处理后的无损字符串 ID。
+  // 虽然 ApiSearchParams 定义为 number[]，但通过强制转换传递字符串，
+  // 依靠 Python 后端的 Pydantic 自动转换为正确的大整数。
   return requestBody;
 }
 
