@@ -6,6 +6,7 @@ import { Clock, FileText, Flame, Hash, History, MessageCircle, User, X } from 'l
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { describeSearchHistoryContext, type SearchHistoryItem } from '@/shared/lib/searchHistory';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 export type SearchSuggestionAction =
   | { type: 'append'; value: string }
@@ -299,10 +300,10 @@ export function SearchSuggestions({
                         <div className="flex min-w-0 items-start gap-2">
                           <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-[var(--od-bg-tertiary)]">
                             {item.thumbnailUrl ? (
-                              <img
+                              <LazyImage
                                 src={item.thumbnailUrl}
                                 alt={item.display}
-                                className="h-full w-full object-cover"
+                                className="h-full w-full"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-[var(--od-text-tertiary)]">
@@ -329,10 +330,10 @@ export function SearchSuggestions({
                       ) : (
                         <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                           {item.type === 'author' && item.avatar ? (
-                            <img
+                            <LazyImage
                               src={item.avatar}
                               alt={item.display}
-                              className="h-5 w-5 flex-shrink-0 rounded-full object-cover"
+                              className="h-5 w-5 flex-shrink-0 rounded-full"
                             />
                           ) : (
                             <item.icon

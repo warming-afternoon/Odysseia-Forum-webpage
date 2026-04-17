@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Image as ImageIcon } from 'lucide-react';
 import { BannerApplicationModal } from '@/features/banner/components/BannerApplicationModal';
 import defaultBannerImage from '@/assets/images/banners/banner.png';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 interface Banner {
   id: string;
@@ -46,10 +47,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
     return (
       <div className="group relative mb-4 overflow-hidden rounded-xl">
         <div className="relative aspect-[21/9]">
-          <img
+          <LazyImage
             src={defaultBannerImage}
             alt="欢迎来到 Odysseia"
-            className="h-full w-full object-cover"
+            className="h-full w-full"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -76,10 +77,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
     >
       {/* Banner 图片 */}
       <div className="relative aspect-[21/9]">
-        <img
+        <LazyImage
           src={currentBanner.image}
           alt={currentBanner.title}
-          className="h-full w-full object-cover transition-transform duration-700"
+          className="h-full w-full transition-transform duration-700"
         />
 
         {/* 渐变遮罩 */}

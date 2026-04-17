@@ -86,7 +86,7 @@
 
 **参数说明**:
 - `tag_logic`: 决定标签的匹配逻辑，支持 `'and'` 和 `'or'`。
-- `search_by_collection`: 如果为 `true`，则说明当前正在针对收藏列表/书单内容执行检索。
+- `search_by_collection`: 如果为 `true`，则说明当前正在针对收藏列表/书单内容执行检索。此功能对应 Discord Bot 端的 `/查看收藏` 指令。
 
 **核心逻辑变动**:
 1.  **多服务器支持 (`guild_id`)**: 若不传则搜索所有已索引服务器；若传则锁定特定服务器。
@@ -95,6 +95,7 @@
     - **显示逻辑**: 搜索结果中的帖子若来自被映射的源频道，会携带 `virtual_tags` 标记。
     - **筛选逻辑**: 在 `include_tags` 中传入虚拟标签名，后端会自动将其转化为对多个源频道的并集搜索。
 3.  **精确匹配**: `include_tags` 和 `exclude_tags` 会优先检查是否匹配虚拟标签。
+4.  **帖子删除检测**: 当帖子首楼消息被删除时，后端会自动在搜索结果中隐藏对应帖子（`show_flag` 内部标记），无需前端额外处理。
 
 - **响应 (`SearchResponse`)**:
   ```json
@@ -118,13 +119,136 @@
   }
   ```
 
+### 获取单个帖子详情
+- **端点**: `GET /search/thread/{thread_id}`
+- **描述**: 按 Discord 帖子 ID 获取单个帖子的详细信息
+- **用途**: Banner 点击、分享链接等场景，避免依赖当前页搜索结果是否已包含该帖
+- **路径参数**: `thread_id` (int) — 帖子的 Discord ID
+- **响应**: `ThreadDetail` 对象
+
 ### 获取频道和标签
 - **端点**: `GET /meta/channels`
 - **描述**: 获取所有已索引的频道及其可用标签。
 - **查询参数**:
   - `guild_id`: 按服务器 ID 过滤频道列表。
   - `channel_ids`: 获取特定频道的元数据。
-- **响应**: `List[Channel]` 对象。
+- **响应**: `List[ChannelDetail]` 对象。
+
+### 获取主服务器 ID
+- **端点**: `GET /meta/main-guild`
+- **描述**: 返回配置文件中定义的主服务器 ID (Main Guild ID)
+- **响应**: 主服务器的 Snowflake ID
+
+---
+
+## 作者数据统计 (`/authors`)
+
+### 获取作者详情与统计
+- **端点**: `GET /authors/{author_id}`
+- **描述**: 根据作者 ID 获取作者信息及统计摘要
+- **路径参数**: `author_id` (int) — 作者的 Discord 用户 ID
+- **响应 (`AuthorProfileResponse`)**:
+  ```json
+  {
+    "id": "string",
+    "name": "string",
+    "global_name": "string | null",
+    "display_name": "string",
+    "avatar_url": "string | null",
+    "stats": {
+      "thread_count": 0,
+      "reaction_count": 0,
+      "reply_count": 0
+    }
+  }
+  ```
+- **字段说明**:
+  - `id`: 作者的 Discord 用户 ID（字符串）
+  - `name`: 唯一用户名
+  - `global_name`: 全局显示名称
+  - `display_name`: 服务器内显示名称
+  - `avatar_url`: 头像 URL
+  - `stats.thread_count`: 发帖总数
+  - `stats.reaction_count`: 收到的总反应数
+  - `stats.reply_count`: 收到的总回复数
+
+---
+
+## 标签数据统计 (`/tags`)
+
+### 聚合查询标签统计
+- **端点**: `POST /tags/stats`
+- **描述**: 一次性聚合获取指定范围内的所有标签使用统计情况
+- **请求体 (`TagStatsRequest`)**:
+  ```json
+  {
+    "guild_id": "int | null (可选, 服务器 ID)",
+    "channel_ids": ["int | null (可选, 频道 ID 列表)"],
+    "include_virtual": true
+  }
+  ```
+  - `include_virtual`: 是否包含虚拟映射标签的统计，默认 `true`
+- **响应 (`TagStatsResponse`)**:
+  ```json
+  {
+    "total_threads": 1234,
+    "items": [
+      {
+        "tag_name": "标签名",
+        "total_thread_count": 56,
+        "channel_info": [
+          {
+            "channel_id": "string",
+            "channel_name": "string",
+            "thread_count": 30
+          }
+        ]
+      }
+    ]
+  }
+  ```
+  - `total_threads`: 检索范围内的有效帖子总数
+  - `items[].tag_name`: 标签名称
+  - `items[].total_thread_count`: 该标签下的总帖子数（跨频道累加）
+  - `items[].channel_info`: 按频道分桶的详细统计数据
+
+---
+
+## 发现广场 (`/discovery`)
+
+> **重要**: 这些是新增的专用接口，用于替代之前 Plaza 和 Draw 页面通过 `/search` 接口模拟的临时方案。
+
+### 获取广场轨道数据
+- **端点**: `GET /discovery/rails`
+- **描述**: 一次性获取多条轨道（最新发布、点赞飙升、讨论飙升、收藏飙升）数据，并自动处理收藏标记
+- **查询参数**:
+  - `limit`: 每条轨道返回的数量（1–50，默认 10）
+  - `days`: 统计时间跨度天数（1–90，默认 30）
+  - `apply_preferences`: 是否应用当前用户的过滤偏好（默认 `true`）
+- **响应 (`DiscoveryRailsResponse`)**:
+  ```json
+  {
+    "latest": [ThreadDetail, ...],
+    "reaction_surge": [ThreadDetail, ...],
+    "discussion_surge": [ThreadDetail, ...],
+    "collection_surge": [ThreadDetail, ...]
+  }
+  ```
+  - `latest`: 最新发布的帖子
+  - `reaction_surge`: 近期点赞飙升的帖子
+  - `discussion_surge`: 近期讨论飙升的帖子
+  - `collection_surge`: 近期收藏飙升的帖子
+
+### 随机抽卡
+- **端点**: `GET /discovery/random`
+- **描述**: 根据指定范围随机抽取帖子
+- **查询参数**:
+  - `limit`: 抽取数量（1–50，默认 10）
+  - `channel_ids`: 频道筛选范围（可选，int 数组）
+  - `include_tags`: 包含的标签名（可选，string 数组）
+  - `exclude_tags`: 必须排除的标签名（可选，string 数组）
+  - `tag_logic`: 标签逻辑，`'and'` 或 `'or'`（默认 `'and'`）
+- **响应**: `List[ThreadDetail]`
 
 ---
 
@@ -266,12 +390,13 @@
   {
     "items": [
       {
-        "thread_id": 123456789,
-        "channel_id": 123
+        "thread_id": "string (Snowflake ID)",
+        "channel_id": "string (可选)"
       }
     ]
   }
   ```
+  > **注意**: `thread_id` 和 `channel_id` 应以字符串传输，避免 JavaScript Number 精度丢失。
 - **响应**:
   ```json
   {
@@ -303,9 +428,18 @@
 
 ---
 
+## 系统 (`/health`)
+
+### 健康检查
+- **端点**: `GET /health`
+- **描述**: API 服务健康检查端点
+- **响应**: 服务状态信息
+
+---
+
 ## 高级搜索语法
 
-前端支持以下高级语法(在后端 `KeywordParser` 中解析):
+前端支持以下高级语法(在后端 `KeywordParser` 中解析)：
 
 - **作者搜索**: `author:用户名` 或 `$author:用户名$`
 - **标签搜索**: `$tag:标签名$`
@@ -369,3 +503,4 @@ const channelId: number = 1393246224072839168;
 3. **分页**: 使用 `exclude_thread_ids` 而非 `offset` 实现无缝滚动
 4. **缓存**: 合理设置 `staleTime` 避免过度请求
 5. **错误处理**: 捕获 401 状态码并重定向到登录页
+6. **帖子删除**: 后端自动处理已删除帖子的隐藏，前端无需额外过滤

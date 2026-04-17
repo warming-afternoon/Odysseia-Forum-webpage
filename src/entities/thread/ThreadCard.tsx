@@ -13,6 +13,7 @@ import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
 import { ThreadStatusBadges } from '@/entities/thread/ThreadStatusBadges';
 import { useFontSizeSetting, useCardSizeSetting } from '@/shared/hooks/useSettings';
 import { fontSizeMap } from '@/shared/lib/settings';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 interface ThreadCardProps {
   thread: Thread;
@@ -169,17 +170,12 @@ function ThreadCardImpl({ thread, onTagClick, searchQuery, onAuthorClick, onPrev
         className={`relative w-full overflow-hidden rounded-[1.45rem] border border-[var(--od-shell-line)] bg-[var(--od-surface-shell)] shadow-[var(--od-shadow-soft)] ${mediaAspectClass}`}
       >
         {thumbnailSrc ? (
-          <img
+          <LazyImage
             src={thumbnailSrc}
             alt={thread.title}
-            className="h-full w-full object-cover"
-            onError={() => {
-              setThumbnailSrc('');
-              reportBrokenThreadThumbnail({
-                threadId: thread.thread_id,
-                channelId: thread.channel_id,
-              });
-            }}
+            className="h-full w-full"
+            threadId={thread.thread_id}
+            channelId={thread.channel_id}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--od-surface-raised)_15%,transparent)]">

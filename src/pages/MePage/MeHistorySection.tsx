@@ -2,6 +2,7 @@ import { Eye, RefreshCw, Trash2 } from 'lucide-react';
 
 import type { BrowseHistoryItem } from '@/shared/lib/browseHistory';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 interface MeHistorySectionProps {
   historyItems: BrowseHistoryItem[];
@@ -62,7 +63,7 @@ export function MeHistorySection({
                   className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[var(--od-surface-soft)]"
                   title={`打开 ${item.title}`}
                 >
-                  <img src={item.thumbnailUrl} alt={item.title} className="h-full w-full object-cover" />
+                  <LazyImage src={item.thumbnailUrl} alt={item.title} className="h-full w-full" />
                 </button>
               ) : (
                 <button

@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, Tag as TagIcon, TrendingUp, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { searchApi } from '@/features/search/api/searchApi';
-import { searchKeys } from '@/features/search/lib/queryKeys';
 import { addToken } from '@/shared/lib/searchTokenizer';
 import { useSidebarCollapsedSetting } from '@/shared/hooks/useSettings';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
+import { tagsApi } from '@/features/tags/api/tagsApi';
+import { tagKeys } from '@/features/tags/lib/queryKeys';
+import { useChannels } from '@/shared/hooks/useChannels';
 
 interface TagWithCount {
   key: string;
@@ -18,7 +19,6 @@ interface TagWithCount {
   count: number;
 }
 
-const TAG_COUNT_BATCH_SIZE = 8;
 const ALL_CHANNELS_VALUE = '__all__';
 
 export function TagsPage() {
@@ -27,138 +27,57 @@ export function TagsPage() {
   const navigate = useNavigate();
   const sidebarCollapsed = useSidebarCollapsedSetting();
 
-  // 全频道标签源（兼容没有 /meta/channels 的后端）
-  const { data: channelTagCatalog = [], isLoading: isCatalogLoading } = useQuery({
-    queryKey: searchKeys.channelTagCatalog(),
-    queryFn: () => searchApi.getChannelTagCatalog(),
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
+  // 获取频道数据
+  const { data: channelsData, isLoading: isChannelsLoading } = useChannels();
+  const channelMap = useMemo(() => {
+    const map = new Map<string, string>();
+    channelsData?.apiData?.forEach(c => map.set(c.channel_id, c.name));
+    return map;
+  }, [channelsData]);
 
   const channelOptions = useMemo(() => {
-    return channelTagCatalog
-      .filter((channel) => (channel.available_tags?.length || 0) > 0 || (channel.virtual_tags?.length || 0) > 0)
+    if (!channelsData?.channels) return [];
+    return channelsData.channels
       .map((channel) => ({
-        id: channel.channel_id,
-        name: channel.channel_name,
+        id: channel.id,
+        name: channel.name,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
-  }, [channelTagCatalog]);
+  }, [channelsData]);
 
-  const scopedTagEntries = useMemo(() => {
-    const entries: Array<{
-      key: string;
-      name: string;
-      channelId: string;
-      channelName: string;
-      isVirtual: boolean;
-    }> = [];
-
-    for (const channel of channelTagCatalog) {
-      if (
-        selectedChannelId !== ALL_CHANNELS_VALUE
-        && channel.channel_id !== selectedChannelId
-      ) {
-        continue;
-      }
-
-      const virtualSet = new Set((channel.virtual_tags || []).map((tag) => tag.trim()).filter(Boolean));
-      const realTags = (channel.available_tags || [])
-        .map((tag) => tag.trim())
-        .filter((tag) => Boolean(tag) && !virtualSet.has(tag));
-
-      for (const tag of realTags) {
-        entries.push({
-          key: `${channel.channel_id}::real::${tag}`,
-          name: tag,
-          channelId: channel.channel_id,
-          channelName: channel.channel_name,
-          isVirtual: false,
-        });
-      }
-
-      // 排除虚拟标签，不在总览中展示
-      // for (const tag of virtualSet) {
-      //   entries.push({
-      //     key: `${channel.channel_id}::virtual::${tag}`,
-      //     name: tag,
-      //     channelId: channel.channel_id,
-      //     channelName: channel.channel_name,
-      //     isVirtual: true,
-      //   });
-      // }
-    }
-
-    return entries;
-  }, [channelTagCatalog, selectedChannelId]);
-
-  // 当前频道范围内总帖子数
-  const { data: scopedSearchData, isLoading: isScopedSearchLoading } = useQuery({
-    queryKey: ['tags-overview', 'total-threads', selectedChannelId],
-    queryFn: () =>
-      searchApi.search({
-        limit: 1,
-        channel_ids:
-          selectedChannelId === ALL_CHANNELS_VALUE ? undefined : [selectedChannelId],
-      }),
-    staleTime: 60 * 1000,
-  });
-
-  // 获取每个标签的帖子数量
-  const { data: tagCounts } = useQuery({
-    queryKey: ['tag-counts', selectedChannelId, scopedTagEntries.map((tag) => tag.key)],
-    queryFn: async () => {
-      const counts: Record<string, number> = {};
-
-      // 分批并发，避免一次性请求过多导致 429/超时
-      for (let i = 0; i < scopedTagEntries.length; i += TAG_COUNT_BATCH_SIZE) {
-        const batch = scopedTagEntries.slice(i, i + TAG_COUNT_BATCH_SIZE);
-        const batchEntries = await Promise.all(
-          batch.map(async (tagEntry) => {
-            if (tagEntry.isVirtual) {
-              return [tagEntry.key, 0] as const;
-            }
-
-            try {
-              const result = await searchApi.search({
-                include_tags: [tagEntry.name],
-                channel_ids:
-                  selectedChannelId === ALL_CHANNELS_VALUE ? undefined : [tagEntry.channelId],
-                limit: 1,
-              });
-              return [tagEntry.key, result.total] as const;
-            } catch (error) {
-              console.error(`Failed to fetch count for tag: ${tagEntry.name}`, error);
-              return [tagEntry.key, 0] as const;
-            }
-          }),
-        );
-
-        for (const [tag, count] of batchEntries) {
-          counts[tag] = count;
-        }
-      }
-
-      return counts;
-    },
-    enabled: scopedTagEntries.length > 0,
+  // 使用新接口获取聚合统计数据
+  const { data: statsData, isLoading: isStatsLoading } = useQuery({
+    queryKey: tagKeys.stats({
+      channel_ids: selectedChannelId === ALL_CHANNELS_VALUE ? null : [Number(selectedChannelId)],
+      include_virtual: true,
+    }),
+    queryFn: () => tagsApi.getStats({
+      channel_ids: selectedChannelId === ALL_CHANNELS_VALUE ? null : [Number(selectedChannelId)],
+      include_virtual: true,
+    }),
     staleTime: 5 * 60 * 1000,
-    retry: false,
   });
 
-  // 组合标签和数量
+  // 组合标签和数量 (平铺数据以维持现有 UI)
   const tagsWithCounts: TagWithCount[] = useMemo(() => {
-    return scopedTagEntries
-      .map((tagEntry) => ({
-        key: tagEntry.key,
-        name: tagEntry.name,
-        channelId: tagEntry.channelId,
-        channelName: tagEntry.channelName,
-        isVirtual: tagEntry.isVirtual,
-        count: tagCounts?.[tagEntry.key] || 0,
-      }))
-      .sort((a, b) => b.count - a.count); // 按数量降序排序
-  }, [scopedTagEntries, tagCounts]);
+    if (!statsData) return [];
+
+    const entries: TagWithCount[] = [];
+    statsData.items.forEach(item => {
+      item.channel_info.forEach(info => {
+        entries.push({
+          key: `${info.channel_id}::${info.is_virtual ? 'virtual' : 'real'}::${item.tag_name}`,
+          name: item.tag_name,
+          channelId: info.channel_id,
+          channelName: channelMap.get(info.channel_id) || `频道 ${info.channel_id}`,
+          isVirtual: info.is_virtual,
+          count: info.thread_count,
+        });
+      });
+    });
+
+    return entries.sort((a, b) => b.count - a.count);
+  }, [statsData, channelMap]);
 
   // 过滤标签
   const filteredTags = useMemo(() => {
@@ -178,10 +97,10 @@ export function TagsPage() {
   };
 
   // 统计信息
-  const totalTags = new Set(scopedTagEntries.map((tag) => tag.name)).size;
-  const totalThreads = Number(scopedSearchData?.total || 0);
-  const isPageLoading = isCatalogLoading || isScopedSearchLoading;
-  const maxTagCount = Math.max(...filteredTags.map((tag) => tag.count), 1);
+  const totalTags = new Set(tagsWithCounts.map((tag) => tag.name)).size;
+  const totalThreads = Number(statsData?.total_threads || 0);
+  const isPageLoading = isChannelsLoading || isStatsLoading;
+  const maxTagCount = Math.max(...filteredTags.map((tag) => tag.count), 0) || 1;
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden text-[var(--od-text-primary)]">

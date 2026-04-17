@@ -64,32 +64,30 @@ export function LazyImage({
 
   // 监听图片是否已经在缓存中，如果是，则直接标记为已加载，避免闪烁
   useLayoutEffect(() => {
-    if (imageRef.current?.complete) {
+    if (imageRef.current?.complete && isInView) {
       setIsLoaded(true);
     }
   }, [isInView]);
 
   return (
-    <div ref={imgRef} className={`relative ${className}`}>
+    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {isImageDisabled ? (
-        // 节省流量模式：不请求实际图片，只显示轻量占位
+        // 节省流量模式
         <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_oklab,var(--od-bg-tertiary)_85%,transparent)]">
           <div className="flex flex-col items-center gap-1">
             <div className="h-8 w-8 rounded-md border border-[var(--od-border-strong)] bg-[color-mix(in_oklab,var(--od-bg-secondary)_85%,transparent)]" />
-            <span className="text-[10px] text-[var(--od-text-tertiary)]">图片已关闭（设置中可开启）</span>
+            <span className="text-[10px] text-[var(--od-text-tertiary)]">图片已关闭</span>
           </div>
         </div>
       ) : (
         <>
-          {/* 占位符/加载动画 */}
+          {/* 占位符 / 骨架屏 */}
           {!isLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_oklab,var(--od-bg-tertiary)_85%,transparent)]">
+            <div className="absolute inset-0 bg-[var(--od-surface-raised)]">
               {placeholder ? (
                 <img src={placeholder} alt="" className="h-full w-full object-cover opacity-50" />
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  {/* Spinner removed as per user request */}
-                </div>
+                <div className="h-full w-full animate-pulse bg-gradient-to-r from-[var(--od-surface-raised)] via-[var(--od-interactive-hover)] to-[var(--od-surface-raised)] bg-[length:200%_100%]" />
               )}
             </div>
           )}
@@ -100,7 +98,7 @@ export function LazyImage({
               ref={imageRef}
               src={currentSrc}
               alt={alt}
-              className={`h-full w-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'
+              className={`h-full w-full object-cover transition-all duration-700 ease-out ${isLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.02] opacity-0 blur-sm'
                 }`}
               onLoad={() => setIsLoaded(true)}
               onError={() => {

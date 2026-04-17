@@ -7,6 +7,7 @@ import type { Thread } from '@/entities/thread/types';
 import { APP_VERSION } from '@/shared/config/appInfo';
 import { resolveStaticNotifications } from '@/features/notifications/notificationsConfig';
 import { usePreviewStore } from '@/features/search/store/previewStore';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 type NotificationKind = 'follow_update' | 'release_update';
 
@@ -288,10 +289,10 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
                   <div className="mb-2 flex items-start gap-2">
                     <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-[var(--od-bg-tertiary)]">
                       {item.thread.thumbnail_urls && item.thread.thumbnail_urls.length > 0 ? (
-                        <img
+                        <LazyImage
                           src={item.thread.thumbnail_urls[0]}
                           alt={item.title}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-[var(--od-text-tertiary)]">

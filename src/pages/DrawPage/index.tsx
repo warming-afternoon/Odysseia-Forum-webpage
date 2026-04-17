@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   BadgeCheck,
   Compass,
@@ -16,34 +15,15 @@ import { ThreadCard } from '@/entities/thread/ThreadCard';
 import type { Thread } from '@/entities/thread/types';
 import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
 import { getDiscoveryPreferenceContext } from '@/features/preferences/lib/discoveryPreferences';
-import { searchApi } from '@/features/search/api/searchApi';
+import { plazaApi } from '@/features/plaza/api/plazaApi';
 import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
-import { searchKeys } from '@/features/search/lib/queryKeys';
 import { GUILD_ID } from '@/shared/config/channelCategories.private';
 import { useChannels } from '@/shared/hooks/useChannels';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
 
 type DrawScopeMode = 'preferences' | 'channel';
 
-const DRAW_BATCH_LIMIT = 72;
-
-function uniqueThreads(threads: Thread[]) {
-  const map = new Map<string, Thread>();
-  for (const thread of threads) {
-    if (!thread?.thread_id) continue;
-    if (!map.has(thread.thread_id)) map.set(thread.thread_id, thread);
-  }
-  return Array.from(map.values());
-}
-
-function sampleThreads(threads: Thread[], count: number) {
-  const pool = [...threads];
-  for (let i = pool.length - 1; i > 0; i -= 1) {
-    const swapIndex = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[swapIndex]] = [pool[swapIndex], pool[i]];
-  }
-  return pool.slice(0, Math.min(count, pool.length));
-}
+// 抽卡辅助函数已移除，改为由后端随机返回结果
 
 // allChannels moved to component context
 
@@ -66,6 +46,8 @@ export function DrawPage() {
   const [drawResults, setDrawResults] = useState<Thread[]>([]);
   const [lastDrawCount, setLastDrawCount] = useState<number>(1);
   const [revealedCount, setRevealedCount] = useState<number>(0);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const preferredChannelIds = preferenceContext?.preferredChannelIds || [];
   const availableScopeChannels = useMemo(() => {
@@ -73,7 +55,7 @@ export function DrawPage() {
 
     const preferredSet = new Set(preferredChannelIds);
     return allChannels.filter((channel) => preferredSet.has(channel.id));
-  }, [preferredChannelIds]);
+  }, [allChannels, preferredChannelIds]);
 
   useEffect(() => {
     if (scopeMode !== 'channel') return;
@@ -101,7 +83,7 @@ export function DrawPage() {
     const timers = drawResults.slice(1).map((_, index) =>
       window.setTimeout(() => {
         setRevealedCount((current) => Math.min(drawResults.length, current + 1));
-      }, 180 * (index + 1)),
+      }, 120 * (index + 1)),
     );
 
     return () => {
@@ -113,46 +95,41 @@ export function DrawPage() {
     if (scopeMode === 'channel' && selectedChannelId) return [selectedChannelId];
     return preferenceContext?.preferredChannelIds.length
       ? preferenceContext.preferredChannelIds
-      : undefined;
+      : null;
   }, [preferenceContext?.preferredChannelIds, scopeMode, selectedChannelId]);
 
-  const includeTags = preferenceContext?.includeTags.length ? preferenceContext.includeTags : undefined;
-  const excludeTags = preferenceContext?.excludeTags.length ? preferenceContext.excludeTags : undefined;
-  const preferenceSignature = preferenceContext?.signature || 'all-content';
-  const candidateQuery = useQuery({
-    queryKey: searchKeys.drawPool({
-      preferenceSignature,
-      scopeMode,
-      selectedChannelId,
-      effectiveChannelIds,
-    }),
-    queryFn: async () => {
-      const result = await searchApi.search({
+  const includeTags = preferenceContext?.includeTags || null;
+  const excludeTags = preferenceContext?.excludeTags || null;
+
+  const handleDraw = async (count: number) => {
+    try {
+      setIsDrawing(true);
+      setError(null);
+      setDrawResults([]); // 清空旧结果
+      setRevealedCount(0);
+
+      const results = await plazaApi.getRandomThreads({
+        limit: count,
         channel_ids: effectiveChannelIds,
         include_tags: includeTags,
         exclude_tags: excludeTags,
-        sort_method: 'last_active_desc',
-        limit: DRAW_BATCH_LIMIT,
       });
 
-      return uniqueThreads((result.results || []) as Thread[]);
-    },
-    staleTime: 60 * 1000,
-  });
+      setLastDrawCount(count);
+      setDrawResults(results);
+    } catch (err) {
+      console.error('Failed to draw randomly', err);
+      setError('抽卡失败了，可能是由于网络波动或当前范围内内容不足。');
+    } finally {
+      setIsDrawing(false);
+    }
+  };
 
-  const candidateThreads = candidateQuery.data || [];
   const featuredResult = drawResults[0] || null;
   const trailingResults = drawResults.slice(1, revealedCount);
   const activeScopeLabel = scopeMode === 'channel' && selectedChannelId
     ? availableScopeChannels.find((c) => c.id === selectedChannelId)?.name || '未找到频道'
     : '我的偏好池范围';
-
-
-  const handleDraw = (count: number) => {
-    const sampled = sampleThreads(candidateThreads, count);
-    setLastDrawCount(count);
-    setDrawResults(sampled);
-  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8 p-4 sm:p-6 lg:p-8">
@@ -179,7 +156,7 @@ export function DrawPage() {
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
                 <Dices className="h-3.5 w-3.5 text-[var(--od-accent)]" />
-                候选 {candidateThreads.length} 条
+                后台全库真随机已就绪
               </span>
             </div>
           </div>
@@ -258,20 +235,28 @@ export function DrawPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  disabled={candidateThreads.length === 0 || candidateQuery.isLoading}
+                  disabled={isDrawing}
                   onClick={() => handleDraw(1)}
                   className="od-inline-action od-inline-action-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Wand2 className="h-4 w-4" />
+                  {isDrawing && lastDrawCount === 1 ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-4 w-4" />
+                  )}
                   来一抽
                 </button>
                 <button
                   type="button"
-                  disabled={candidateThreads.length === 0 || candidateQuery.isLoading}
+                  disabled={isDrawing}
                   onClick={() => handleDraw(10)}
                   className="od-inline-action od-inline-action-soft w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Dices className="h-4 w-4" />
+                  {isDrawing && lastDrawCount === 10 ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Dices className="h-4 w-4" />
+                  )}
                   十连发现
                 </button>
               </div>
@@ -297,61 +282,34 @@ export function DrawPage() {
             <p className="od-metric-line-value">{(includeTags?.length || 0) + (excludeTags?.length || 0)}</p>
             <p className="od-metric-line-note">现在记着包含标签 {includeTags?.length || 0} 个、排除标签 {excludeTags?.length || 0} 个，我会乖乖照着这个边界来抽的。</p>
           </div>
-          <div className="od-metric-line">
-            <p className="od-metric-line-label">当前池深度</p>
-            <p className="od-metric-line-value">{candidateThreads.length}</p>
-            <p className="od-metric-line-note">这里就是这一轮能被抽到的总数啦。池子越大越像乱逛，池子越小就越像冲着某种口味去找。</p>
-          </div>
         </div>
       </section>
 
       <section>
         <FluidDivider label="Pool Status" tone="strong" className="mb-6" />
-        {candidateQuery.isLoading ? (
+        {isDrawing ? (
           <div className="od-draw-slot text-sm text-[var(--od-text-secondary)]">
-            正在整理抽卡候选池…
+            <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-3" />
+            正在为你从几万张帖子里挑这一张…
           </div>
-        ) : candidateQuery.isError ? (
+        ) : error ? (
           <div className="od-draw-slot">
-            <p className="text-base font-semibold text-[var(--od-text-primary)]">候选池加载失败了</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">哎呀，没有拉到数据，稍后帮你重试一次吧。</p>
+            <p className="text-base font-semibold text-[var(--od-text-primary)]">哎呀，抽卡失败了</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">{error}</p>
             <button
               type="button"
-              onClick={() => candidateQuery.refetch()}
+              onClick={() => handleDraw(lastDrawCount)}
               className="od-inline-action od-inline-action-primary mt-4"
             >
               <RefreshCw className="h-4 w-4" />
-              重试
+              重试一下
             </button>
           </div>
-        ) : candidateThreads.length === 0 ? (
-          <div className="od-draw-slot">
-            <p className="text-base font-semibold text-[var(--od-text-primary)]">当前范围里没有可抽取内容</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">
-              可以放宽频道范围，或者去偏好页调整一下标签限制，再回来找我抽卡～
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setScopeMode('preferences')}
-                className="od-inline-action od-inline-action-ghost"
-              >
-                恢复默认范围
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/me?tab=preferences')}
-                className="od-inline-action od-inline-action-soft"
-              >
-                去调整偏好
-              </button>
-            </div>
-          </div>
-        ) : (
+        ) : drawResults.length === 0 ? (
           <div className="od-draw-slot text-sm text-[var(--od-text-secondary)]">
             准备好啦。你想先轻轻试一张也行，想热闹一点直接十连也行，我都陪你。
           </div>
-        )}
+        ) : null}
       </section>
 
       <section>
@@ -414,7 +372,7 @@ export function DrawPage() {
 
                 {drawResults.length > 1 ? (
                   <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-                    {trailingResults.map((thread, index) => (
+                    {trailingResults.map((thread: Thread, index: number) => (
                       <div key={thread.thread_id} className="w-[18rem] shrink-0 snap-start animate-in fade-in zoom-in-95 duration-300" style={{ animationDelay: `${index * 90}ms` }}>
                         <ThreadCard thread={thread} onPreview={openPreview} />
                       </div>

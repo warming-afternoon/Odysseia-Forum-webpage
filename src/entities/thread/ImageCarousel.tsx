@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 interface ImageCarouselProps {
   images: string[];
@@ -49,10 +50,10 @@ export function ImageCarousel({
   if (images.length === 1) {
     return (
       <div className={`relative w-full overflow-hidden ${className}`}>
-        <img
+        <LazyImage
           src={images[0]}
           alt={alt}
-          className="h-full w-full object-cover"
+          className="h-full w-full"
         />
       </div>
     );

@@ -3,6 +3,7 @@ import type { Booklist } from '@/entities/booklist/types';
 import { searchApi } from '@/features/search/api/searchApi';
 import { bannerApi } from '@/features/banner/api/bannerApi';
 import { booklistsApi } from '@/features/booklists/api/booklistsApi';
+import { apiClient } from '@/shared/api/client';
 
 export interface PlazaBannerItem {
   thread_id: string;
@@ -16,6 +17,7 @@ export type PlazaRailKey =
   | 'latest'
   | 'reaction_surge'
   | 'discussion_surge'
+  | 'collection_surge'
   | 'editors_pick';
 
 export interface PlazaRailConfig {
@@ -28,6 +30,13 @@ export interface PlazaPreferenceFilter {
   channel_ids?: string[];
   include_tags?: string[];
   exclude_tags?: string[];
+}
+
+export interface DiscoveryRailsResponse {
+  latest: Thread[];
+  reaction_surge: Thread[];
+  discussion_surge: Thread[];
+  collection_surge: Thread[];
 }
 
 export const PLAZA_RAILS: PlazaRailConfig[] = [
@@ -45,6 +54,11 @@ export const PLAZA_RAILS: PlazaRailConfig[] = [
     key: 'discussion_surge',
     title: '讨论升温',
     subtitle: '近 7 天回复活跃的讨论串',
+  },
+  {
+    key: 'collection_surge',
+    title: '收藏飙升',
+    subtitle: '被大家偷偷藏起来的好东西',
   },
   {
     key: 'editors_pick',
@@ -103,6 +117,13 @@ export const plazaApi = {
         active_after: '-7d',
         limit: 12,
       });
+    } else if (key === 'collection_surge') {
+      response = await searchApi.search({
+        ...baseFilter,
+        sort_method: 'relevance', // 这里之前没定，暂用相关度/收藏数排序
+        search_by_collection: true,
+        limit: 12,
+      });
     } else {
       response = await searchApi.search({
         ...baseFilter,
@@ -112,6 +133,36 @@ export const plazaApi = {
     }
 
     return dedupeThreads((response.results || []) as Thread[]).slice(0, 8);
+  },
+
+  getRails: async (params: { limit?: number; days?: number; apply_preferences?: boolean } = {}): Promise<DiscoveryRailsResponse> => {
+    const response = await apiClient.get<DiscoveryRailsResponse>('/discovery/rails', {
+      params: {
+        limit: params.limit ?? 12,
+        days: params.days ?? 30,
+        apply_preferences: params.apply_preferences ?? true,
+      },
+    });
+    return response.data;
+  },
+
+  getRandomThreads: async (params: {
+    limit?: number;
+    channel_ids?: string[] | null;
+    include_tags?: string[] | null;
+    exclude_tags?: string[] | null;
+    tag_logic?: 'and' | 'or';
+  } = {}): Promise<Thread[]> => {
+    const response = await apiClient.get<Thread[]>('/discovery/random', {
+      params: {
+        limit: params.limit ?? 10,
+        channel_ids: params.channel_ids?.join(','), // 后端如果支持逗号分隔，或者直接传数组（由 axios 处理）
+        include_tags: params.include_tags?.join(','),
+        exclude_tags: params.exclude_tags?.join(','),
+        tag_logic: params.tag_logic ?? 'and',
+      },
+    });
+    return response.data;
   },
 
   getFeaturedBooklists: async (): Promise<Booklist[]> => {

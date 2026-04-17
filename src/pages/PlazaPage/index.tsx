@@ -10,7 +10,6 @@ import type { Booklist } from '@/entities/booklist/types';
 import { plazaApi, PLAZA_RAILS, type PlazaRailKey } from '@/features/plaza/api/plazaApi';
 import { useToggleBooklistCollection } from '@/features/booklists/hooks/useBooklistsData';
 import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
-import { resolveDiscoveryPreferencePatch } from '@/features/preferences/lib/discoveryPreferences';
 import { plazaKeys } from '@/features/plaza/lib/queryKeys';
 import { usePreviewStore } from '@/features/search/store/previewStore';
 import { GUILD_ID } from '@/shared/config/channelCategories.private';
@@ -22,6 +21,7 @@ const railSortMap: Record<PlazaRailKey, string> = {
   latest: 'created_desc',
   reaction_surge: 'reaction_desc',
   discussion_surge: 'reply_desc',
+  collection_surge: 'reaction_desc', // 暂定收藏也跳点赞排序或收藏量
   editors_pick: 'relevance',
 };
 
@@ -29,18 +29,18 @@ export function PlazaPage() {
   const navigate = useNavigate();
   const setPreviewThread = usePreviewStore((state) => state.setPreviewThread);
   const { preferences } = useUserPreferences({ guildId: GUILD_ID });
-
   const [ignorePreferenceFilter, setIgnorePreferenceFilter] = useState(false);
 
-  const plazaPreferencePatch = useMemo(
-    () => (ignorePreferenceFilter
-      ? null
-      : resolveDiscoveryPreferencePatch({
-        preferences,
-        mode: 'plaza',
-      })),
-    [ignorePreferenceFilter, preferences],
-  );
+  // 判断是否有生效的偏好设置，用于展示 UI 提示
+  const hasActivePreferences = useMemo(() => {
+    if (!preferences) return false;
+    const channelIds = preferences.preferred_channels || [];
+    const includeTags = preferences.include_tags || [];
+    const excludeTags = preferences.exclude_tags || [];
+    return channelIds.length > 0 || includeTags.length > 0 || excludeTags.length > 0;
+  }, [preferences]);
+
+  const showPreferenceNotice = hasActivePreferences && !ignorePreferenceFilter;
 
   const gridClass = useCardGridClass();
 
@@ -56,36 +56,31 @@ export function PlazaPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const latestQuery = useQuery({
-    queryKey: plazaKeys.rail('latest', plazaPreferencePatch || null),
-    queryFn: () => plazaApi.getRail('latest', plazaPreferencePatch || undefined),
-    staleTime: 90 * 1000,
-  });
-  const reactionQuery = useQuery({
-    queryKey: plazaKeys.rail('reaction_surge', plazaPreferencePatch || null),
-    queryFn: () => plazaApi.getRail('reaction_surge', plazaPreferencePatch || undefined),
-    staleTime: 90 * 1000,
-  });
-  const discussionQuery = useQuery({
-    queryKey: plazaKeys.rail('discussion_surge', plazaPreferencePatch || null),
-    queryFn: () => plazaApi.getRail('discussion_surge', plazaPreferencePatch || undefined),
-    staleTime: 90 * 1000,
-  });
-  const pickQuery = useQuery({
-    queryKey: plazaKeys.rail('editors_pick', plazaPreferencePatch || null),
-    queryFn: () => plazaApi.getRail('editors_pick', plazaPreferencePatch || undefined),
+  // 聚合查询所有轨道
+  const railsQuery = useQuery({
+    queryKey: plazaKeys.rails({
+      limit: 12,
+      days: 30,
+      applyPreferences: !ignorePreferenceFilter,
+    }),
+    queryFn: () => plazaApi.getRails({
+      limit: 12,
+      days: 30,
+      apply_preferences: !ignorePreferenceFilter,
+    }),
     staleTime: 90 * 1000,
   });
 
-  const railResultMap = useMemo(
-    () => ({
-      latest: latestQuery.data || [],
-      reaction_surge: reactionQuery.data || [],
-      discussion_surge: discussionQuery.data || [],
-      editors_pick: pickQuery.data || [],
-    }),
-    [latestQuery.data, reactionQuery.data, discussionQuery.data, pickQuery.data],
-  );
+  const railResultMap = useMemo(() => {
+    const data = railsQuery.data;
+    return {
+      latest: data?.latest || [],
+      reaction_surge: data?.reaction_surge || [],
+      discussion_surge: data?.discussion_surge || [],
+      collection_surge: data?.collection_surge || [],
+      editors_pick: (data as any)?.editors_pick || [],
+    };
+  }, [railsQuery.data]);
 
   const collectMutation = useToggleBooklistCollection();
 
@@ -172,7 +167,7 @@ export function PlazaPage() {
 
 
         <FluidDivider label="Discovery Feed" tone="strong" className="mb-6" />
-        {plazaPreferencePatch && (
+        {showPreferenceNotice && (
           <div className="mb-5">
             <div className="od-inline-notice" data-tone="accent">
               <div className="od-inline-notice-head">
@@ -207,7 +202,7 @@ export function PlazaPage() {
             </div>
           </div>
         )}
-        {!plazaPreferencePatch && ignorePreferenceFilter && preferences && (
+        {!showPreferenceNotice && hasActivePreferences && ignorePreferenceFilter && (
           <div className="mb-5 flex justify-end">
             <button
               type="button"
@@ -251,7 +246,7 @@ export function PlazaPage() {
               </div>
 
               <div className={gridClass}>
-                {list.map((thread) => (
+                {list.map((thread: any) => (
                   <ThreadCard
                     key={`${rail.key}-${thread.thread_id}`}
                     thread={thread}
