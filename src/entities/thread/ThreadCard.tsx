@@ -8,7 +8,7 @@ import { HighlightText } from '@/shared/ui/HighlightText';
 import { DiscordMarkdownText } from '@/shared/ui/DiscordMarkdownText';
 import type { Thread } from '@/entities/thread/types';
 import { ThreadActions } from '@/features/threads/components/ThreadActions';
-import { reportBrokenThreadThumbnail, subscribeThreadThumbnailRepair } from '@/features/threads/lib/thumbnailRepairQueue';
+import { subscribeThreadThumbnailRepair } from '@/features/threads/lib/thumbnailRepairQueue';
 import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
 import { ThreadStatusBadges } from '@/entities/thread/ThreadStatusBadges';
 import { useFontSizeSetting, useCardSizeSetting } from '@/shared/hooks/useSettings';
