@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FileText, Heart, MessageCircle, RefreshCw } from 'lucide-react';
 
 import { searchApi } from '@/features/search/api/searchApi';
+import { authorsApi } from '@/features/authors/api/authorsApi';
 import { ThreadResultsCollection } from '@/entities/thread/ThreadResultsCollection';
 import type { Thread } from '@/entities/thread/types';
 import { UserHeaderCard } from '@/entities/user/UserHeaderCard';
@@ -28,28 +29,41 @@ export function UserProfilePage() {
     staleTime: 60 * 1000,
   });
 
-  const threads = useMemo(() => ((threadsQuery.data?.results || []) as Thread[]), [threadsQuery.data?.results]);
-  const author = threads[0]?.author;
-  const authorName =
-    author?.display_name || author?.global_name || author?.name || (userId ? `作者 ${userId}` : '未知作者');
+  const profileQuery = useQuery({
+    queryKey: ['author-profile', userId],
+    enabled: Boolean(userId),
+    queryFn: () => authorsApi.getAuthorProfile(userId!),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const totalReactions = threads.reduce((sum, item) => sum + (Number(item.reaction_count) || 0), 0);
-  const totalReplies = threads.reduce((sum, item) => sum + (Number(item.reply_count) || 0), 0);
+  const threads = useMemo(() => ((threadsQuery.data?.results || []) as Thread[]), [threadsQuery.data?.results]);
+  
+  // 优先使用 profile 接口返回的权威元数据
+  const profile = profileQuery.data;
+  const authorFromThreads = threads[0]?.author;
+  
+  const authorName =
+    profile?.display_name || 
+    profile?.global_name || 
+    authorFromThreads?.display_name || 
+    authorFromThreads?.global_name || 
+    authorFromThreads?.name || 
+    (userId ? `作者 ${userId}` : '未知作者');
 
   const stats = [
     {
       label: '帖子数量',
-      value: threadsQuery.data?.total || 0,
+      value: profile?.stats.thread_count ?? threadsQuery.data?.total ?? 0,
       icon: FileText,
     },
     {
       label: '累计点赞',
-      value: totalReactions,
+      value: profile?.stats.reaction_count ?? 0,
       icon: Heart,
     },
     {
       label: '累计回复',
-      value: totalReplies,
+      value: profile?.stats.reply_count ?? 0,
       icon: MessageCircle,
     },
     {
@@ -68,18 +82,21 @@ export function UserProfilePage() {
             <div className="flex flex-col items-center gap-4">
               <UserHeaderCard
                 user={{
-                  id: author?.id || userId || 'unknown',
-                  username: author?.name || authorName,
-                  global_name: authorName,
+                  id: profile?.id || userId || 'unknown',
+                  username: profile?.name || authorFromThreads?.name || authorName,
+                  global_name: profile?.global_name || authorName,
                   avatar: undefined,
                 }}
-                avatarUrl={author?.avatar_url || null}
-                subtitle={`作者主页 · ${author?.id ? `ID: ${author.id}` : '正在加载作者信息'}`}
+                avatarUrl={profile?.avatar_url || authorFromThreads?.avatar_url || null}
+                subtitle={`作者主页 · ${userId ? `ID: ${userId}` : '正在加载作者信息'}`}
               />
 
               <button
                 type="button"
-                onClick={() => void threadsQuery.refetch()}
+                onClick={() => {
+                  void threadsQuery.refetch();
+                  void profileQuery.refetch();
+                }}
                 className="od-inline-action od-inline-action-ghost w-full justify-center sm:w-auto"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
@@ -99,10 +116,10 @@ export function UserProfilePage() {
             <span>这位作者的帖子</span>
             <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
             <Heart className="h-4 w-4" />
-            <span>{totalReactions}</span>
+            <span>{profile?.stats.reaction_count ?? '-'}</span>
             <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
             <MessageCircle className="h-4 w-4" />
-            <span>{totalReplies}</span>
+            <span>{profile?.stats.reply_count ?? '-'}</span>
           </div>
 
           {threadsQuery.isLoading ? (

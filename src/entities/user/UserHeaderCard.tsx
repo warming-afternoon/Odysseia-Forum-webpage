@@ -1,3 +1,4 @@
+import { UserRound } from 'lucide-react';
 import type { User } from '@/features/auth/api/authApi';
 import { LazyImage } from '@/shared/ui/LazyImage';
 

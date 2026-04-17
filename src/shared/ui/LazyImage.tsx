@@ -92,7 +92,7 @@ export function LazyImage({
               ref={imageRef}
               src={currentSrc}
               alt={alt}
-              className={`h-full w-full object-cover transition-all duration-[800ms] cubic-bezier(0.4, 0, 0.2, 1) ${isLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.03] opacity-0 blur-md'
+              className={`h-full w-full object-cover transition-all duration-[800ms] ease-in-out ${isLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-[1.01] opacity-0 blur-[2px]'
                 }`}
               onLoad={() => {
                 // 使用 decode() 确保图片不仅加载完，且已完成解码可以立即显示
