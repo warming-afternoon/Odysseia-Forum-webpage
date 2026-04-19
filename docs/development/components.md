@@ -27,6 +27,7 @@ Widgets 通常是页面中非常大的一个功能区块（往往具备独立的
 处理特定用户用例的组件。比如：发帖表单、点赞按钮。
 他们应该**自带该功能的全部逻辑**。
 - 如果你要封装一个 `LikeButton`，它不应该把网络请求暴露给父级。相反，`LikeButton` 自己读取传入的 `threadId`，在自己内部调用 `useMutation(...)`，这样任何地方只要放置这个 `<LikeButton threadId={123} />` 就能工作，做到绝对解耦。
+- **状态同步示例 (`SearchFilterPanel`)**: 对于需要综合展示当前环境上下文的高级业务组件，可以独立读取并同步上游状态。如 `SearchFilterPanel` 会独立拉取用户的偏好（`preferenceIncludeTags` 等），并在组件内部控制是否与 URL Search Params（如包含/排除的标签和作者等）进行同步切换（`syncPreferenceTags`）。
 
 ## 3. 组件性能与渲染优化
 
