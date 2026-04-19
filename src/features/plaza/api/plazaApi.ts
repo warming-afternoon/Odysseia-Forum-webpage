@@ -1,9 +1,9 @@
-import type { SearchResponse, Thread, Author } from '@/entities/thread/types';
-import type { Booklist } from '@/entities/booklist/types';
-import { searchApi } from '@/features/search/api/searchApi';
-import { bannerApi } from '@/features/banner/api/bannerApi';
-import { booklistsApi } from '@/features/booklists/api/booklistsApi';
-import { apiClient } from '@/shared/api/client';
+import type { SearchResponse, Thread, Author } from "@/entities/thread/types";
+import type { Booklist } from "@/entities/booklist/types";
+import { searchApi } from "@/features/search/api/searchApi";
+import { bannerApi } from "@/features/banner/api/bannerApi";
+import { booklistsApi } from "@/features/booklists/api/booklistsApi";
+import { apiClient } from "@/shared/api/client";
 
 export interface PlazaBannerItem {
   thread_id: string;
@@ -14,11 +14,11 @@ export interface PlazaBannerItem {
 }
 
 export type PlazaRailKey =
-  | 'latest'
-  | 'reaction_surge'
-  | 'discussion_surge'
-  | 'collection_surge'
-  | 'editors_pick';
+  | "latest"
+  | "reaction_surge"
+  | "discussion_surge"
+  | "collection_surge"
+  | "editors_pick";
 
 export interface PlazaRailConfig {
   key: PlazaRailKey;
@@ -41,29 +41,29 @@ export interface DiscoveryRailsResponse {
 
 export const PLAZA_RAILS: PlazaRailConfig[] = [
   {
-    key: 'latest',
-    title: '最近上新',
-    subtitle: '按发布时间倒序，追踪最新内容',
+    key: "latest",
+    title: "最近上新",
+    subtitle: "按发布时间倒序，追踪最新内容",
   },
   {
-    key: 'reaction_surge',
-    title: '点赞数飙升',
-    subtitle: '近 7 天互动强势增长的帖子',
+    key: "reaction_surge",
+    title: "点赞数飙升",
+    subtitle: "近 7 天互动强势增长的帖子",
   },
   {
-    key: 'discussion_surge',
-    title: '讨论升温',
-    subtitle: '近 7 天回复活跃的讨论串',
+    key: "discussion_surge",
+    title: "讨论升温",
+    subtitle: "近 7 天回复活跃的讨论串",
   },
   {
-    key: 'collection_surge',
-    title: '收藏飙升',
-    subtitle: '被大家偷偷藏起来的好东西',
+    key: "collection_surge",
+    title: "收藏飙升",
+    subtitle: "被大家偷偷藏起来的好东西",
   },
   {
-    key: 'editors_pick',
-    title: '今日精选',
-    subtitle: '综合排序下的高质量探索位',
+    key: "editors_pick",
+    title: "今日精选",
+    subtitle: "综合排序下的高质量探索位",
   },
 ];
 
@@ -81,15 +81,18 @@ export const plazaApi = {
     const result = await bannerApi.getActiveBanners();
     const items = Array.isArray(result?.banners) ? result.banners : [];
     return items.map((item: any) => ({
-      thread_id: String(item.thread_id ?? ''),
-      title: String(item.title ?? ''),
-      cover_image_url: String(item.cover_image_url ?? ''),
+      thread_id: String(item.thread_id ?? ""),
+      title: String(item.title ?? ""),
+      cover_image_url: String(item.cover_image_url ?? ""),
       channel_id: item.channel_id ? String(item.channel_id) : undefined,
       author: item.author,
     }));
   },
 
-  getRail: async (key: PlazaRailKey, preferenceFilter?: PlazaPreferenceFilter): Promise<Thread[]> => {
+  getRail: async (
+    key: PlazaRailKey,
+    preferenceFilter?: PlazaPreferenceFilter,
+  ): Promise<Thread[]> => {
     let response: SearchResponse;
     const baseFilter = {
       channel_ids: preferenceFilter?.channel_ids,
@@ -97,37 +100,37 @@ export const plazaApi = {
       exclude_tags: preferenceFilter?.exclude_tags,
     };
 
-    if (key === 'latest') {
+    if (key === "latest") {
       response = await searchApi.search({
         ...baseFilter,
-        sort_method: 'created_desc',
+        sort_method: "created_desc",
         limit: 12,
       });
-    } else if (key === 'reaction_surge') {
+    } else if (key === "reaction_surge") {
       response = await searchApi.search({
         ...baseFilter,
-        sort_method: 'reaction_desc',
-        created_after: '-7d',
+        sort_method: "reaction_desc",
+        created_after: "-7d",
         limit: 12,
       });
-    } else if (key === 'discussion_surge') {
+    } else if (key === "discussion_surge") {
       response = await searchApi.search({
         ...baseFilter,
-        sort_method: 'reply_desc',
-        active_after: '-7d',
+        sort_method: "reply_desc",
+        active_after: "-7d",
         limit: 12,
       });
-    } else if (key === 'collection_surge') {
+    } else if (key === "collection_surge") {
       response = await searchApi.search({
         ...baseFilter,
-        sort_method: 'relevance', // 这里之前没定，暂用相关度/收藏数排序
+        sort_method: "relevance", // 这里之前没定，暂用相关度/收藏数排序
         search_by_collection: true,
         limit: 12,
       });
     } else {
       response = await searchApi.search({
         ...baseFilter,
-        sort_method: 'relevance',
+        sort_method: "relevance",
         limit: 12,
       });
     }
@@ -135,31 +138,47 @@ export const plazaApi = {
     return dedupeThreads((response.results || []) as Thread[]).slice(0, 8);
   },
 
-  getRails: async (params: { limit?: number; days?: number; apply_preferences?: boolean } = {}): Promise<DiscoveryRailsResponse> => {
-    const response = await apiClient.get<DiscoveryRailsResponse>('/discovery/rails', {
-      params: {
-        limit: params.limit ?? 12,
-        days: params.days ?? 30,
-        apply_preferences: params.apply_preferences ?? true,
+  getRails: async (
+    params: { limit?: number; days?: number; apply_preferences?: boolean } = {},
+  ): Promise<DiscoveryRailsResponse> => {
+    const response = await apiClient.get<DiscoveryRailsResponse>(
+      "/discovery/rails",
+      {
+        params: {
+          limit: params.limit ?? 12,
+          days: params.days ?? 30,
+          apply_preferences: params.apply_preferences ?? true,
+        },
       },
-    });
+    );
     return response.data;
   },
 
-  getRandomThreads: async (params: {
-    limit?: number;
-    channel_ids?: string[] | null;
-    include_tags?: string[] | null;
-    exclude_tags?: string[] | null;
-    tag_logic?: 'and' | 'or';
-  } = {}): Promise<Thread[]> => {
-    const response = await apiClient.get<Thread[]>('/discovery/random', {
+  getRandomThreads: async (
+    params: {
+      limit?: number;
+      channel_ids?: string[] | null;
+      include_tags?: string[] | null;
+      exclude_tags?: string[] | null;
+      tag_logic?: "and" | "or";
+    } = {},
+  ): Promise<Thread[]> => {
+    const normalizedChannelIds = (params.channel_ids || [])
+      .flatMap((id) => String(id).split(","))
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .map((id) => Number.parseInt(id, 10))
+      .filter((id) => Number.isFinite(id));
+
+    const response = await apiClient.get<Thread[]>("/discovery/random", {
       params: {
         limit: params.limit ?? 10,
-        channel_ids: params.channel_ids?.join(','), // 后端如果支持逗号分隔，或者直接传数组（由 axios 处理）
-        include_tags: params.include_tags?.join(','),
-        exclude_tags: params.exclude_tags?.join(','),
-        tag_logic: params.tag_logic ?? 'and',
+        channel_ids: normalizedChannelIds.length
+          ? normalizedChannelIds
+          : undefined,
+        include_tags: params.include_tags || undefined,
+        exclude_tags: params.exclude_tags || undefined,
+        tag_logic: params.tag_logic ?? "and",
       },
     });
     return response.data;
@@ -168,7 +187,7 @@ export const plazaApi = {
   getFeaturedBooklists: async (): Promise<Booklist[]> => {
     const response = await booklistsApi.listPublic({
       sortMethod: 3,
-      sortOrder: 'desc',
+      sortOrder: "desc",
       pageIndex: 0,
       pageSize: 6,
     });

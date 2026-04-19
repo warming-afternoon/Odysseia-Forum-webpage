@@ -1,18 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
-import { searchApi } from '@/features/search/api/searchApi';
-import type { UserPreferencesResponse } from '@/features/preferences/api/preferencesApi';
+import { searchApi } from "@/features/search/api/searchApi";
+import { booklistsApi } from "@/features/booklists/api/booklistsApi";
+import type { UserPreferencesResponse } from "@/features/preferences/api/preferencesApi";
 import {
   getDiscoveryPreferenceContext,
   mergePreferenceTagsWithManual,
   resolveDiscoveryPreferencePatch,
-} from '@/features/preferences/lib/discoveryPreferences';
-import { ALL_VIRTUAL_TAGS } from '@/shared/config/navigation';
-import { parseSearchQuery } from '@/shared/lib/searchTokenizer';
-import type { SearchParams } from '@/features/search/hooks/useSearchParams';
-import { searchKeys } from '@/features/search/lib/queryKeys';
+} from "@/features/preferences/lib/discoveryPreferences";
+import { ALL_VIRTUAL_TAGS } from "@/shared/config/navigation";
+import { parseSearchQuery } from "@/shared/lib/searchTokenizer";
+import type { SearchParams } from "@/features/search/hooks/useSearchParams";
+import { searchKeys } from "@/features/search/lib/queryKeys";
 
 interface PreferenceTagState {
   includeTags: string[];
@@ -20,7 +21,9 @@ interface PreferenceTagState {
 }
 
 function mergeUnique(values: string[]) {
-  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean)),
+  );
 }
 
 interface UseSearchAutocompleteOptions {
@@ -41,10 +44,16 @@ export function useSearchAutocomplete({
   showSuggestions,
 }: UseSearchAutocompleteOptions) {
   const activeVirtualTag = useMemo(() => {
-    const tokens = parseSearchQuery(searchInput || '');
-    const tagToken = tokens.find((token) => token.type === 'tag' && token.mode === 'include');
+    const tokens = parseSearchQuery(searchInput || "");
+    const tagToken = tokens.find(
+      (token) => token.type === "tag" && token.mode === "include",
+    );
     if (!tagToken) return null;
-    return ALL_VIRTUAL_TAGS.find((virtualTag) => virtualTag.name === tagToken.value) ?? null;
+    return (
+      ALL_VIRTUAL_TAGS.find(
+        (virtualTag) => virtualTag.name === tagToken.value,
+      ) ?? null
+    );
   }, [searchInput]);
 
   const { data: filterMeta } = useQuery({
@@ -98,7 +107,13 @@ export function useSearchAutocomplete({
       ...params.includeTags,
       ...params.excludeTags,
     ]);
-  }, [filterMeta?.available_tags, filterMeta?.virtual_tags, globalAvailableTags, params.includeTags, params.excludeTags]);
+  }, [
+    filterMeta?.available_tags,
+    filterMeta?.virtual_tags,
+    globalAvailableTags,
+    params.includeTags,
+    params.excludeTags,
+  ]);
 
   const discoveryPreferenceContext = useMemo(
     () => getDiscoveryPreferenceContext(preferences),
@@ -114,17 +129,27 @@ export function useSearchAutocomplete({
         preferenceExcludeTags: preferenceTagState.excludeTags,
         syncPreferenceTags: true,
       }),
-    [params.includeTags, params.excludeTags, preferenceTagState.excludeTags, preferenceTagState.includeTags],
+    [
+      params.includeTags,
+      params.excludeTags,
+      preferenceTagState.excludeTags,
+      preferenceTagState.includeTags,
+    ],
   );
 
   const preferenceSuggestedTags = useMemo(() => {
-    const preferredChannels = new Set(discoveryPreferenceContext?.preferredChannelIds || []);
+    const preferredChannels = new Set(
+      discoveryPreferenceContext?.preferredChannelIds || [],
+    );
     const includeTags = preferenceTagState.includeTags;
     const excludeTags = new Set(preferenceTagState.excludeTags);
 
-    const scopedCatalog = preferredChannels.size > 0
-      ? channelTagCatalog.filter((channel) => preferredChannels.has(channel.channel_id))
-      : channelTagCatalog;
+    const scopedCatalog =
+      preferredChannels.size > 0
+        ? channelTagCatalog.filter((channel) =>
+            preferredChannels.has(channel.channel_id),
+          )
+        : channelTagCatalog;
 
     const collected = new Set<string>();
 
@@ -133,7 +158,10 @@ export function useSearchAutocomplete({
     }
 
     for (const channel of scopedCatalog) {
-      for (const tag of [...(channel.virtual_tags || []), ...(channel.available_tags || [])]) {
+      for (const tag of [
+        ...(channel.virtual_tags || []),
+        ...(channel.available_tags || []),
+      ]) {
         const normalized = tag.trim();
         if (!normalized || excludeTags.has(normalized)) continue;
         collected.add(normalized);
@@ -141,13 +169,18 @@ export function useSearchAutocomplete({
     }
 
     return Array.from(collected).slice(0, 8);
-  }, [channelTagCatalog, discoveryPreferenceContext?.preferredChannelIds, preferenceTagState.excludeTags, preferenceTagState.includeTags]);
+  }, [
+    channelTagCatalog,
+    discoveryPreferenceContext?.preferredChannelIds,
+    preferenceTagState.excludeTags,
+    preferenceTagState.includeTags,
+  ]);
 
   const suggestionPreferencePatch = useMemo(
     () =>
       resolveDiscoveryPreferencePatch({
         preferences,
-        mode: 'suggestion',
+        mode: "suggestion",
         query: searchInput,
         selectedChannel: params.channel,
       }),
@@ -166,11 +199,27 @@ export function useSearchAutocomplete({
     queryFn: () =>
       searchApi.search({
         query: debouncedQuery,
-        channel_ids: params.channel ? [params.channel] : suggestionPreferencePatch?.channel_ids,
+        channel_ids: params.channel
+          ? [params.channel]
+          : suggestionPreferencePatch?.channel_ids,
         include_tags: suggestionPreferencePatch?.include_tags,
         exclude_tags: suggestionPreferencePatch?.exclude_tags,
         limit: 5,
-        sort_method: 'relevance',
+        sort_method: "relevance",
+      }),
+    enabled: showSuggestions && debouncedQuery.length > 0,
+    staleTime: 30 * 1000,
+    retry: false,
+  });
+
+  const { data: suggestionBooklistsData } = useQuery({
+    queryKey: searchKeys.booklistSuggestions(debouncedQuery),
+    queryFn: () =>
+      booklistsApi.listPublic({
+        keywords: debouncedQuery,
+        pageIndex: 0,
+        pageSize: 5,
+        sortMethod: 3,
       }),
     enabled: showSuggestions && debouncedQuery.length > 0,
     staleTime: 30 * 1000,
@@ -181,20 +230,23 @@ export function useSearchAutocomplete({
     return (suggestionSearchData?.results || []).slice(0, 5).map((thread) => ({
       thread_id: thread.thread_id,
       title: thread.title,
-      snippet: thread.first_message_excerpt || '',
+      snippet: thread.first_message_excerpt || "",
       thumbnail_url: thread.thumbnail_urls?.[0] || null,
       author_name:
         thread.author?.display_name ||
         thread.author?.global_name ||
         thread.author?.name ||
-        '未知用户',
+        "未知用户",
       author_avatar_url: thread.author?.avatar_url || null,
       source_thread: thread,
     }));
   }, [suggestionSearchData?.results]);
 
   const suggestionAuthors = useMemo(() => {
-    const unique = new Map<string, { id: string; name: string; avatar_url?: string | null }>();
+    const unique = new Map<
+      string,
+      { id: string; name: string; avatar_url?: string | null }
+    >();
 
     for (const thread of suggestionSearchData?.results || []) {
       if (!thread.author) continue;
@@ -203,7 +255,10 @@ export function useSearchAutocomplete({
 
       unique.set(authorId, {
         id: authorId,
-        name: thread.author.display_name || thread.author.global_name || thread.author.name,
+        name:
+          thread.author.display_name ||
+          thread.author.global_name ||
+          thread.author.name,
         avatar_url: thread.author.avatar_url || null,
       });
 
@@ -218,7 +273,23 @@ export function useSearchAutocomplete({
       ...(suggestionSearchData?.virtual_tags || []),
       ...(suggestionSearchData?.available_tags || []),
     ]).slice(0, 5);
-  }, [suggestionSearchData?.available_tags, suggestionSearchData?.virtual_tags]);
+  }, [
+    suggestionSearchData?.available_tags,
+    suggestionSearchData?.virtual_tags,
+  ]);
+
+  const suggestionBooklists = useMemo(() => {
+    return (suggestionBooklistsData?.results || [])
+      .slice(0, 5)
+      .map((booklist) => ({
+        id: booklist.id,
+        title: booklist.title,
+        description: booklist.description || "",
+        cover_image_url: booklist.cover_image_url || null,
+        item_count: booklist.item_count,
+        collection_count: booklist.collection_count,
+      }));
+  }, [suggestionBooklistsData?.results]);
 
   return {
     activeVirtualTag,
@@ -230,6 +301,7 @@ export function useSearchAutocomplete({
     suggestionPreferencePatch,
     suggestionTags,
     suggestionThreads,
+    suggestionBooklists,
     virtualTagOriginChannelMap,
   };
 }

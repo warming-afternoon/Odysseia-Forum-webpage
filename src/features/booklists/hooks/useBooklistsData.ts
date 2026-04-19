@@ -1,9 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { booklistsApi } from '@/features/booklists/api/booklistsApi';
-import { booklistKeys, type BooklistScope } from '@/features/booklists/lib/queryKeys';
-import type { BooklistFormInput, BooklistItemAddInput, BooklistItemUpdateInput } from '@/entities/booklist/types';
-import { extractErrorMessage, notifyError, notifySuccess } from '@/shared/lib/notify';
+import { booklistsApi } from "@/features/booklists/api/booklistsApi";
+import {
+  booklistKeys,
+  type BooklistScope,
+} from "@/features/booklists/lib/queryKeys";
+import type {
+  BooklistFormInput,
+  BooklistItemAddInput,
+  BooklistItemUpdateInput,
+} from "@/entities/booklist/types";
+import {
+  extractErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/shared/lib/notify";
 
 export function useBooklistsList(params: {
   scope: BooklistScope;
@@ -15,7 +26,7 @@ export function useBooklistsList(params: {
   return useQuery({
     queryKey: booklistKeys.list(params),
     queryFn: async () => {
-      if (params.scope === 'public') {
+      if (params.scope === "public") {
         return booklistsApi.listPublic(params);
       }
 
@@ -24,8 +35,8 @@ export function useBooklistsList(params: {
         sortMethod: params.sortMethod,
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
-        createByCurrentUser: params.scope === 'mine',
-        collectByCurrentUser: params.scope === 'collected',
+        createByCurrentUser: params.scope === "mine",
+        collectByCurrentUser: params.scope === "collected",
       });
     },
     staleTime: 60 * 1000,
@@ -34,7 +45,7 @@ export function useBooklistsList(params: {
 
 export function useMyBooklistsList() {
   return useQuery({
-    queryKey: [...booklistKeys.mineLists(), 'mine'],
+    queryKey: [...booklistKeys.mineLists(), "mine"],
     queryFn: () =>
       booklistsApi.listMine({
         createByCurrentUser: true,
@@ -48,7 +59,7 @@ export function useMyBooklistsList() {
 
 export function useCollectedBooklistsList() {
   return useQuery({
-    queryKey: [...booklistKeys.mineLists(), 'collected'],
+    queryKey: [...booklistKeys.mineLists(), "collected"],
     queryFn: () =>
       booklistsApi.listMine({
         collectByCurrentUser: true,
@@ -60,20 +71,20 @@ export function useCollectedBooklistsList() {
   });
 }
 
-export function useBooklistDetail(booklistId: number) {
+export function useBooklistDetail(booklistId: number | string) {
   return useQuery({
     queryKey: booklistKeys.detail(booklistId),
     queryFn: () => booklistsApi.getDetail(booklistId),
-    enabled: Number.isFinite(booklistId),
+    enabled: /^\d+$/.test(String(booklistId)),
     staleTime: 60 * 1000,
   });
 }
 
-export function useBooklistItems(booklistId: number) {
+export function useBooklistItems(booklistId: number | string) {
   return useQuery({
     queryKey: booklistKeys.items(booklistId),
-    queryFn: () => booklistsApi.listItems(booklistId, 0, 100),
-    enabled: Number.isFinite(booklistId),
+    queryFn: () => booklistsApi.listItems(booklistId, 0, 24),
+    enabled: /^\d+$/.test(String(booklistId)),
     staleTime: 60 * 1000,
   });
 }
@@ -81,11 +92,15 @@ export function useBooklistItems(booklistId: number) {
 function useInvalidateBooklists() {
   const queryClient = useQueryClient();
 
-  return (booklistId?: number) => {
+  return (booklistId?: number | string) => {
     queryClient.invalidateQueries({ queryKey: booklistKeys.all });
-    if (typeof booklistId === 'number' && Number.isFinite(booklistId)) {
-      queryClient.invalidateQueries({ queryKey: booklistKeys.detail(booklistId) });
-      queryClient.invalidateQueries({ queryKey: booklistKeys.items(booklistId) });
+    if (booklistId !== undefined && /^\d+$/.test(String(booklistId))) {
+      queryClient.invalidateQueries({
+        queryKey: booklistKeys.detail(booklistId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: booklistKeys.items(booklistId),
+      });
     }
   };
 }
@@ -99,7 +114,8 @@ export function useToggleBooklistCollection() {
     onSuccess: (_, variables) => {
       invalidateBooklists(variables.id);
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '书单收藏状态更新失败')),
+    onError: (error) =>
+      notifyError(extractErrorMessage(error, "书单收藏状态更新失败")),
   });
 }
 
@@ -109,11 +125,11 @@ export function useCreateBooklist(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (payload: BooklistFormInput) => booklistsApi.create(payload),
     onSuccess: () => {
-      notifySuccess('书单创建成功');
+      notifySuccess("书单创建成功");
       invalidateBooklists();
       onSuccess?.();
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '书单创建失败')),
+    onError: (error) => notifyError(extractErrorMessage(error, "书单创建失败")),
   });
 }
 
@@ -121,14 +137,19 @@ export function useUpdateBooklist(booklistId?: number, onSuccess?: () => void) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id?: number; payload: Partial<BooklistFormInput> }) =>
-      booklistsApi.update(id ?? booklistId!, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id?: number;
+      payload: Partial<BooklistFormInput>;
+    }) => booklistsApi.update(id ?? booklistId!, payload),
     onSuccess: (_, variables) => {
-      notifySuccess('书单已更新');
+      notifySuccess("书单已更新");
       invalidateBooklists(variables.id ?? booklistId);
       onSuccess?.();
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '书单更新失败')),
+    onError: (error) => notifyError(extractErrorMessage(error, "书单更新失败")),
   });
 }
 
@@ -138,52 +159,68 @@ export function useDeleteBooklist(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (id: number) => booklistsApi.remove(id),
     onSuccess: (_, id) => {
-      notifySuccess('书单已删除');
+      notifySuccess("书单已删除");
       invalidateBooklists(id);
       onSuccess?.();
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '删除书单失败')),
+    onError: (error) => notifyError(extractErrorMessage(error, "删除书单失败")),
   });
 }
 
-export function useAddBooklistItems(booklistId: number, onSuccess?: () => void) {
+export function useAddBooklistItems(
+  booklistId: number | string,
+  onSuccess?: () => void,
+) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
-    mutationFn: (items: BooklistItemAddInput[]) => booklistsApi.addItems(booklistId, items),
+    mutationFn: (items: BooklistItemAddInput[]) =>
+      booklistsApi.addItems(booklistId, items),
     onSuccess: () => {
-      notifySuccess('帖子已加入书单');
+      notifySuccess("帖子已加入书单");
       invalidateBooklists(booklistId);
       onSuccess?.();
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '添加帖子到书单失败')),
+    onError: (error) =>
+      notifyError(extractErrorMessage(error, "添加帖子到书单失败")),
   });
 }
 
-export function useRemoveBooklistItems(booklistId: number) {
+export function useRemoveBooklistItems(booklistId: number | string) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
-    mutationFn: (threadId: number) => booklistsApi.removeItems(booklistId, [threadId]),
+    mutationFn: (threadId: string | number) =>
+      booklistsApi.removeItems(booklistId, [threadId]),
     onSuccess: () => {
-      notifySuccess('书单条目已移除');
+      notifySuccess("书单条目已移除");
       invalidateBooklists(booklistId);
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '移除书单条目失败')),
+    onError: (error) =>
+      notifyError(extractErrorMessage(error, "移除书单条目失败")),
   });
 }
 
-export function useUpdateBooklistItem(booklistId: number, onSuccess?: () => void) {
+export function useUpdateBooklistItem(
+  booklistId: number | string,
+  onSuccess?: () => void,
+) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
-    mutationFn: ({ threadId, payload }: { threadId: number; payload: BooklistItemUpdateInput }) =>
-      booklistsApi.updateItem(booklistId, threadId, payload),
+    mutationFn: ({
+      threadId,
+      payload,
+    }: {
+      threadId: string | number;
+      payload: BooklistItemUpdateInput;
+    }) => booklistsApi.updateItem(booklistId, threadId, payload),
     onSuccess: () => {
-      notifySuccess('书单条目已更新');
+      notifySuccess("书单条目已更新");
       invalidateBooklists(booklistId);
       onSuccess?.();
     },
-    onError: (error) => notifyError(extractErrorMessage(error, '更新书单条目失败')),
+    onError: (error) =>
+      notifyError(extractErrorMessage(error, "更新书单条目失败")),
   });
 }

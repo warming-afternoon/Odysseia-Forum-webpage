@@ -1,20 +1,32 @@
-import { X, MessageCircle, ThumbsUp, Calendar, Hash, User, Eye, Clock3 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
-import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  X,
+  MessageCircle,
+  ThumbsUp,
+  Calendar,
+  Hash,
+  User,
+  Eye,
+  Clock3,
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { MarkdownText } from '@/shared/ui/MarkdownText';
-import { ImageCarousel } from '@/entities/thread/ImageCarousel';
-import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
-import { ThreadActions } from '@/features/threads/components/ThreadActions';
-import { ThreadStatusBadges } from '@/entities/thread/ThreadStatusBadges';
-import type { Thread } from '@/entities/thread/types';
-import { useFontSizeSetting } from '@/shared/hooks/useSettings';
-import { fontSizeMap } from '@/shared/lib/settings';
-import { useLockBodyScroll } from '@/shared/hooks/useLockBodyScroll';
-import { useSearchURLParams } from '@/features/search/hooks/useSearchParams';
-import { addToken } from '@/shared/lib/searchTokenizer';
+import { MarkdownText } from "@/shared/ui/MarkdownText";
+import { ImageCarousel } from "@/entities/thread/ImageCarousel";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
+import { ThreadActions } from "@/features/threads/components/ThreadActions";
+import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import type { Thread } from "@/entities/thread/types";
+import { useFontSizeSetting } from "@/shared/hooks/useSettings";
+import { fontSizeMap } from "@/shared/lib/settings";
+import { useLockBodyScroll } from "@/shared/hooks/useLockBodyScroll";
+import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
+import { addToken } from "@/shared/lib/searchTokenizer";
+import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
+
+import { createPortal } from "react-dom";
 
 interface ThreadPreviewOverlayProps {
   thread: Thread;
@@ -35,6 +47,7 @@ export function ThreadPreviewOverlay({
   const fontSize = useFontSizeSetting();
   const fontSizes = fontSizeMap[fontSize];
   const [isVisible, setIsVisible] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   useLockBodyScroll(true);
 
@@ -42,12 +55,12 @@ export function ThreadPreviewOverlay({
     setIsVisible(true);
 
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
+      if (e.key === "Escape") handleClose();
     };
-    window.addEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
 
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, []);
 
@@ -61,7 +74,7 @@ export function ThreadPreviewOverlay({
     locale: zhCN,
   });
 
-  const fullTime = format(new Date(thread.created_at), 'yyyy年MM月dd日 HH:mm', {
+  const fullTime = format(new Date(thread.created_at), "yyyy年MM月dd日 HH:mm", {
     locale: zhCN,
   });
   const lastActiveTime = thread.last_active_at
@@ -70,20 +83,24 @@ export function ThreadPreviewOverlay({
         locale: zhCN,
       })
     : null;
-  const virtualOnlyTags = (thread.virtual_tags || []).filter((tag) => !thread.tags.includes(tag));
+  const virtualOnlyTags = (thread.virtual_tags || []).filter(
+    (tag) => !thread.tags.includes(tag),
+  );
 
   const searchableAuthorName =
     thread.author?.display_name ??
     thread.author?.global_name ??
     thread.author?.name;
-  const authorName = searchableAuthorName || '未知用户';
+  const authorName = searchableAuthorName || "未知用户";
 
   const applySearchToken = useCallback(
-    (type: 'tag' | 'author', value: string) => {
-      const nextQuery = addToken(params.query || '', type, value, 'include');
+    (type: "tag" | "author", value: string) => {
+      const nextQuery = addToken(params.query || "", type, value, "include");
 
-      if (location.pathname !== '/search') {
-        navigate(nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : '/search');
+      if (location.pathname !== "/search") {
+        navigate(
+          nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : "/search",
+        );
       } else {
         setParams({ query: nextQuery });
       }
@@ -93,15 +110,22 @@ export function ThreadPreviewOverlay({
     [location.pathname, navigate, params.query, setParams],
   );
 
-  return (
+  return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-black/0 backdrop-blur-none pointer-events-none'
-        }`}
+      className={`fixed inset-0 flex items-center justify-center p-4 transition-all duration-300 ${
+        isVisible
+          ? "bg-black/60 backdrop-blur-sm"
+          : "bg-black/0 backdrop-blur-none pointer-events-none"
+      }`}
+      style={{ zIndex: 2000 }}
       onClick={handleClose}
     >
       <div
-        className={`od-floating-panel-solid flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] transition-all duration-300 ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0'
-          }`}
+        className={`od-floating-panel-solid flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] transition-all duration-300 ${
+          isVisible
+            ? "translate-y-0 scale-100 opacity-100"
+            : "translate-y-4 scale-95 opacity-0"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -118,7 +142,10 @@ export function ThreadPreviewOverlay({
                   className="shrink-0"
                   title={`查看作者主页：${authorName}`}
                 >
-                  <AuthorAvatar author={thread.author} className="h-10 w-10 transition-opacity hover:opacity-80" />
+                  <AuthorAvatar
+                    author={thread.author}
+                    className="h-10 w-10 transition-opacity hover:opacity-80"
+                  />
                 </button>
               ) : (
                 <AuthorAvatar author={thread.author} className="h-10 w-10" />
@@ -137,7 +164,9 @@ export function ThreadPreviewOverlay({
                     {authorName}
                   </button>
                 ) : (
-                  <div className="truncate font-bold text-[var(--od-text-primary)]">{authorName}</div>
+                  <div className="truncate font-bold text-[var(--od-text-primary)]">
+                    {authorName}
+                  </div>
                 )}
                 <div className="mt-1">
                   <ThreadStatusBadges
@@ -149,6 +178,14 @@ export function ThreadPreviewOverlay({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setQuickAddOpen(true)}
+                className="rounded-full px-2 py-1 text-xs text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
+                title="加入书单"
+              >
+                +书单
+              </button>
               {!hideExternalButton && (
                 <ThreadActions
                   threadId={thread.thread_id}
@@ -158,12 +195,12 @@ export function ThreadPreviewOverlay({
                   externalUrlOverride={externalUrlOverride}
                 />
               )}
-                <button
-                  onClick={handleClose}
-                  className="rounded-full p-2 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <button
+                onClick={handleClose}
+                className="rounded-full p-2 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
 
@@ -202,9 +239,11 @@ export function ThreadPreviewOverlay({
         </div>
 
         {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto bg-[var(--od-surface-floating)] p-6 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto bg-[var(--od-surface-floating)] p-6 scrollbar-thin">
           {/* Title */}
-          <h2 className={`mb-4 font-bold leading-tight text-[var(--od-text-primary)] ${fontSizes.title}`}>
+          <h2
+            className={`mb-4 font-bold leading-tight text-[var(--od-text-primary)] ${fontSizes.title}`}
+          >
             {thread.title}
           </h2>
 
@@ -215,7 +254,7 @@ export function ThreadPreviewOverlay({
                 <button
                   type="button"
                   key={tag}
-                  onClick={() => applySearchToken('tag', tag)}
+                  onClick={() => applySearchToken("tag", tag)}
                   className="od-pill-chip"
                   title={`添加标签筛选：${tag}`}
                 >
@@ -231,7 +270,7 @@ export function ThreadPreviewOverlay({
                 <button
                   type="button"
                   key={`vt-${tag}`}
-                  onClick={() => applySearchToken('tag', tag)}
+                  onClick={() => applySearchToken("tag", tag)}
                   className="inline-flex items-center gap-1 rounded-full border border-[var(--od-accent)]/24 bg-[var(--od-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--od-accent)] transition-colors hover:bg-[var(--od-accent)]/18"
                   title={`添加标签筛选：${tag}`}
                 >
@@ -255,13 +294,21 @@ export function ThreadPreviewOverlay({
 
           {/* Content Excerpt (Full) - Flat, no background */}
           {thread.first_message_excerpt && (
-            <div className={`mb-6 ${fontSizes.content} text-[var(--od-text-secondary)]`}>
+            <div
+              className={`mb-6 ${fontSizes.content} text-[var(--od-text-secondary)]`}
+            >
               <MarkdownText text={thread.first_message_excerpt} />
             </div>
           )}
-
         </div>
       </div>
-    </div>
+      <QuickAddToBooklistModal
+        isOpen={quickAddOpen}
+        threadId={thread.thread_id}
+        threadTitle={thread.title}
+        onClose={() => setQuickAddOpen(false)}
+      />
+    </div>,
+    document.body
   );
 }

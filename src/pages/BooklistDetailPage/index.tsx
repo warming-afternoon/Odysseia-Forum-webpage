@@ -4,14 +4,17 @@ import {
   ArrowLeft,
   BookOpen,
   Edit3,
+  LayoutGrid,
   Plus,
   RefreshCw,
+  Rows3,
   Star,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { ThreadResultsCollection } from "@/entities/thread/ThreadResultsCollection";
+import { ThreadCard } from "@/entities/thread/ThreadCard";
+import { ThreadListItem } from "@/entities/thread/ThreadListItem";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { Thread } from "@/entities/thread/types";
 import {
@@ -55,10 +58,11 @@ export function BooklistDetailPage() {
   const { user } = useAuth();
   const { openPreview } = usePreviewThread();
 
-  const booklistId = Number.parseInt(id || "", 10);
+  const booklistId = String(id || "").trim();
   const [showEdit, setShowEdit] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);
+  const [itemViewMode, setItemViewMode] = useState<"list" | "grid">("list");
 
   const detailQuery = useBooklistDetail(booklistId);
   const itemsQuery = useBooklistItems(booklistId);
@@ -68,7 +72,7 @@ export function BooklistDetailPage() {
     [detailQuery.data?.owner_id, user?.id],
   );
 
-  const updateMutation = useUpdateBooklist(booklistId, () =>
+  const updateMutation = useUpdateBooklist(Number(booklistId), () =>
     setShowEdit(false),
   );
   const deleteMutation = useDeleteBooklist(() => navigate("/booklists"));
@@ -81,7 +85,7 @@ export function BooklistDetailPage() {
     setEditingItem(null),
   );
 
-  if (!Number.isFinite(booklistId)) {
+  if (!/^\d+$/.test(booklistId)) {
     return (
       <div className="p-8 text-sm text-[var(--od-error)]">无效书单 ID</div>
     );
@@ -143,6 +147,33 @@ export function BooklistDetailPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1 rounded-full border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+                  <button
+                    type="button"
+                    onClick={() => setItemViewMode("list")}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                      itemViewMode === "list"
+                        ? "bg-[var(--od-accent)] text-white"
+                        : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    }`}
+                  >
+                    <Rows3 className="h-3.5 w-3.5" />
+                    列表
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setItemViewMode("grid")}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                      itemViewMode === "grid"
+                        ? "bg-[var(--od-accent)] text-white"
+                        : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    }`}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    卡片
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => detailQuery.refetch()}
@@ -156,7 +187,7 @@ export function BooklistDetailPage() {
                   type="button"
                   onClick={() =>
                     collectMutation.mutate({
-                      id: booklistId,
+                      id: Number(booklistId),
                       collected: Boolean(booklist.collected_flag),
                     })
                   }
@@ -194,7 +225,7 @@ export function BooklistDetailPage() {
                           !window.confirm(`确认删除书单「${booklist.title}」？`)
                         )
                           return;
-                        deleteMutation.mutate(booklistId);
+                        deleteMutation.mutate(Number(booklistId));
                       }}
                       className="inline-flex items-center gap-1 rounded-md border border-[var(--od-border)] px-3 py-1.5 text-xs text-[var(--od-error)]"
                     >
@@ -219,17 +250,31 @@ export function BooklistDetailPage() {
               </p>
             </div>
           ) : (
-            <div className="min-w-0 flex flex-col space-y-od-list-gap">
+            <div
+              className={
+                itemViewMode === "list"
+                  ? "min-w-0 flex flex-col space-y-od-list-gap"
+                  : "grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+              }
+            >
               {items.map((item) => (
                 <div
                   key={`${item.booklist_item_id}-${item.thread_id}`}
-                  className="space-y-2"
+                  className={
+                    itemViewMode === "list" ? "space-y-2" : "space-y-3"
+                  }
                 >
-                  <ThreadResultsCollection
-                    threads={[toThread(item)]}
-                    onPreview={openPreview}
-                    listClassName="flex flex-col"
-                  />
+                  {itemViewMode === "list" ? (
+                    <ThreadListItem
+                      thread={toThread(item)}
+                      onPreview={openPreview}
+                    />
+                  ) : (
+                    <ThreadCard
+                      thread={toThread(item)}
+                      onPreview={openPreview}
+                    />
+                  )}
                   <div className="rounded-lg border border-[var(--od-border)] bg-[var(--od-card)] px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                       <span className="text-[var(--od-text-tertiary)]">
@@ -247,12 +292,11 @@ export function BooklistDetailPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              const tid = Number.parseInt(item.thread_id, 10);
-                              if (!Number.isFinite(tid)) {
+                              if (!/^\d+$/.test(item.thread_id)) {
                                 toast.error("无效 thread_id，无法删除");
                                 return;
                               }
-                              removeItemMutation.mutate(tid);
+                              removeItemMutation.mutate(item.thread_id);
                             }}
                             className="rounded border border-[var(--od-border)] px-2 py-1 text-[var(--od-error)]"
                           >
@@ -296,12 +340,14 @@ export function BooklistDetailPage() {
         onClose={() => setEditingItem(null)}
         onSubmit={(payload) => {
           if (!editingItem) return;
-          const tid = Number.parseInt(editingItem.thread_id, 10);
-          if (!Number.isFinite(tid)) {
+          if (!/^\d+$/.test(editingItem.thread_id)) {
             toast.error("无效 thread_id，无法更新");
             return;
           }
-          updateItemMutation.mutate({ threadId: tid, payload });
+          updateItemMutation.mutate({
+            threadId: editingItem.thread_id,
+            payload,
+          });
         }}
       />
     </>

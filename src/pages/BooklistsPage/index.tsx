@@ -1,34 +1,43 @@
-import { useMemo, useState } from 'react';
-import { BookOpen, Plus, RefreshCw, Search, SlidersHorizontal } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from "react";
+import {
+  BookOpen,
+  Plus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { BooklistCard } from '@/entities/booklist/BooklistCard';
-import type { Booklist } from '@/entities/booklist/types';
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { BooklistListItem } from "@/entities/booklist/BooklistListItem";
+import type { Booklist } from "@/entities/booklist/types";
 import {
   useBooklistsList,
   useCreateBooklist,
   useDeleteBooklist,
   useToggleBooklistCollection,
   useUpdateBooklist,
-} from '@/features/booklists/hooks/useBooklistsData';
-import { BooklistFormModal } from '@/features/booklists/components/BooklistFormModal';
-import { FluidDivider } from '@/shared/ui/FluidDivider';
+} from "@/features/booklists/hooks/useBooklistsData";
+import { BooklistFormModal } from "@/features/booklists/components/BooklistFormModal";
+import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { booklistsApi } from "@/features/booklists/api/booklistsApi";
+import { authorsApi } from "@/features/authors/api/authorsApi";
 
-type BooklistScope = 'public' | 'mine' | 'collected';
+type BooklistScope = "public" | "mine" | "collected";
 
 const scopeOptions: Array<{ key: BooklistScope; label: string }> = [
-  { key: 'public', label: '公开书单' },
-  { key: 'mine', label: '我的创建' },
-  { key: 'collected', label: '我的收藏' },
+  { key: "public", label: "公开书单" },
+  { key: "mine", label: "我的创建" },
+  { key: "collected", label: "我的收藏" },
 ];
 
 export function BooklistsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [scope, setScope] = useState<BooklistScope>('public');
-  const [keywords, setKeywords] = useState('');
+  const [scope, setScope] = useState<BooklistScope>("public");
+  const [keywords, setKeywords] = useState("");
   const [sortMethod, setSortMethod] = useState<number>(4);
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -49,26 +58,88 @@ export function BooklistsPage() {
   const collectMutation = useToggleBooklistCollection();
 
   const results = listQuery.data?.results ?? [];
+  const normalizedResults = useMemo(
+    () =>
+      results.map((item) =>
+        scope === "collected" ? { ...item, collected_flag: true } : item,
+      ),
+    [results, scope],
+  );
   const total = listQuery.data?.total ?? 0;
   const pageSize = listQuery.data?.limit ?? 12;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const sortOptions = useMemo(
     () => [
-      { value: 1, label: '按帖子数' },
-      { value: 2, label: '按浏览数' },
-      { value: 3, label: '按收藏数' },
-      { value: 4, label: '按创建时间' },
-      { value: 5, label: '按更新时间' },
-      ...(scope === 'collected' ? [{ value: 6, label: '按收藏时间' }] : []),
+      { value: 1, label: "按帖子数" },
+      { value: 2, label: "按浏览数" },
+      { value: 3, label: "按收藏数" },
+      { value: 4, label: "按创建时间" },
+      { value: 5, label: "按更新时间" },
+      ...(scope === "collected" ? [{ value: 6, label: "按收藏时间" }] : []),
     ],
     [scope],
   );
 
+  const ownerIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          normalizedResults
+            .map((item) => String(item.owner_id))
+            .filter(Boolean),
+        ),
+      ),
+    [normalizedResults],
+  );
+
+  const ownerProfilesQuery = useQuery({
+    queryKey: ["booklists", "owners", ownerIds],
+    enabled: ownerIds.length > 0,
+    queryFn: async () => {
+      const entries = await Promise.all(
+        ownerIds.map(async (ownerId) => {
+          try {
+            const profile = await authorsApi.getAuthorProfile(ownerId);
+            return [ownerId, profile] as const;
+          } catch {
+            return [ownerId, null] as const;
+          }
+        }),
+      );
+      return new Map(entries);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const latestCoverQueries = useQueries({
+    queries: normalizedResults.map((booklist) => ({
+      queryKey: ["booklists", "latest-cover", booklist.id],
+      queryFn: async () => {
+        const data = await booklistsApi.listItems(booklist.id, 0, 1);
+        return data.results?.[0]?.thumbnail_urls?.[0] || null;
+      },
+      staleTime: 5 * 60 * 1000,
+      enabled: !booklist.cover_image_url,
+    })),
+  });
+
+  const fallbackCoverMap = useMemo(() => {
+    const map = new Map<number, string | null>();
+    normalizedResults.forEach((booklist, index) => {
+      map.set(booklist.id, latestCoverQueries[index]?.data || null);
+    });
+    return map;
+  }, [latestCoverQueries, normalizedResults]);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-10 p-4 sm:p-6 lg:gap-14 lg:p-8">
       <section>
-        <FluidDivider label="Booklists" tone="strong" className="mb-8 lg:mb-10" />
+        <FluidDivider
+          label="Booklists"
+          tone="strong"
+          className="mb-8 lg:mb-10"
+        />
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
@@ -80,10 +151,10 @@ export function BooklistsPage() {
                   内容整理
                 </p>
                 <div className="space-y-1.5">
-                   <h1 className="od-section-title">书单</h1>
-                   <p className="max-w-2xl text-sm leading-6 text-[var(--od-text-secondary)]">
-                     喜欢的内容可以慢慢收进书单里呀。你可以自己偷偷留着，也可以整理好了再拿出来分享给别人看。
-                   </p>
+                  <h1 className="od-section-title">书单</h1>
+                  <p className="max-w-2xl text-sm leading-6 text-[var(--od-text-secondary)]">
+                    喜欢的内容可以慢慢收进书单里呀。你可以自己偷偷留着，也可以整理好了再拿出来分享给别人看。
+                  </p>
                 </div>
               </div>
             </div>
@@ -111,8 +182,8 @@ export function BooklistsPage() {
                     }}
                     className={`od-pill-chip ${
                       scope === option.key
-                        ? 'bg-[var(--od-accent)] text-white'
-                        : 'text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]'
+                        ? "bg-[var(--od-accent)] text-white"
+                        : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
                     }`}
                   >
                     {option.label}
@@ -121,7 +192,7 @@ export function BooklistsPage() {
               </div>
 
               <p className="text-sm leading-6 text-[var(--od-text-secondary)]">
-                 你可以先看看公开的，或者翻翻自己整理过、收藏过的那些，再慢慢搜就好，不用急。
+                你可以先看看公开的，或者翻翻自己整理过、收藏过的那些，再慢慢搜就好，不用急。
               </p>
             </div>
 
@@ -173,35 +244,59 @@ export function BooklistsPage() {
       {listQuery.isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="h-72 animate-pulse rounded-[1.35rem] bg-[color-mix(in_srgb,var(--od-surface-content)_62%,transparent)]" />
+            <div
+              key={idx}
+              className="h-72 animate-pulse rounded-[1.35rem] bg-[color-mix(in_srgb,var(--od-surface-content)_62%,transparent)]"
+            />
           ))}
         </div>
       ) : listQuery.isError ? (
         <div className="py-12 text-center text-sm text-[var(--od-text-secondary)]">
           书单这边刚刚有点小迷糊，等一下再来，我会重新帮你拿一遍的。
         </div>
-      ) : results.length === 0 ? (
+      ) : normalizedResults.length === 0 ? (
         <div className="py-14 text-center">
-          <p className="text-base font-semibold text-[var(--od-text-primary)]">暂无书单</p>
+          <p className="text-base font-semibold text-[var(--od-text-primary)]">
+            暂无书单
+          </p>
           <p className="mt-1 text-sm text-[var(--od-text-secondary)]">
-            {scope === 'public' ? '现在还没有公开书单呢，要不要顺手做第一个呀？' : '这里还空着呢，你可以慢慢新建一个试试。'}
+            {scope === "public"
+              ? "现在还没有公开书单呢，要不要顺手做第一个呀？"
+              : "这里还空着呢，你可以慢慢新建一个试试。"}
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {results.map((booklist) => (
-              <BooklistCard
+          <div className="flex flex-col space-y-od-list-gap">
+            {normalizedResults.map((booklist) => (
+              <BooklistListItem
                 key={booklist.id}
                 booklist={booklist}
                 canManage={String(booklist.owner_id) === String(user?.id)}
+                ownerName={
+                  ownerProfilesQuery.data?.get(String(booklist.owner_id))
+                    ?.display_name || undefined
+                }
+                ownerAvatarUrl={
+                  ownerProfilesQuery.data?.get(String(booklist.owner_id))
+                    ?.avatar_url || null
+                }
+                coverImageUrl={
+                  booklist.cover_image_url ||
+                  fallbackCoverMap.get(booklist.id) ||
+                  null
+                }
                 onOpen={(id) => navigate(`/booklists/${id}`)}
                 onToggleCollect={(item) =>
-                  collectMutation.mutate({ id: item.id, collected: Boolean(item.collected_flag) })
+                  collectMutation.mutate({
+                    id: item.id,
+                    collected: Boolean(item.collected_flag),
+                  })
                 }
                 onEdit={(item) => setEditing(item)}
                 onDelete={(item) => {
-                  if (!window.confirm(`确认删除书单「${item.title}」？`)) return;
+                  if (!window.confirm(`确认删除书单「${item.title}」？`))
+                    return;
                   deleteMutation.mutate(item.id);
                 }}
                 collectLoading={collectMutation.isPending}
@@ -224,7 +319,11 @@ export function BooklistsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setPageIndex((prev) => (prev + 1 < totalPages ? prev + 1 : prev))}
+                onClick={() =>
+                  setPageIndex((prev) =>
+                    prev + 1 < totalPages ? prev + 1 : prev,
+                  )
+                }
                 disabled={pageIndex + 1 >= totalPages}
                 className="od-inline-action od-inline-action-ghost disabled:opacity-40"
               >
