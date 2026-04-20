@@ -35,6 +35,11 @@ export function RootLayout() {
 
   useEffect(() => {
     setIsMobileOpen(false);
+    // 当发生页面或筛选跳转时，将焦点转移到主内容区，避免停留在侧边栏
+    const mainContainer = document.getElementById('main-scroll-container');
+    if (mainContainer) {
+      setTimeout(() => mainContainer.focus(), 50);
+    }
   }, [location.pathname, location.search, location.hash]);
 
   return (
@@ -71,9 +76,60 @@ export function RootLayout() {
           <div className="pointer-events-none absolute left-0 right-0 top-0 z-0 hidden h-24 rounded-tl-[2.5rem] bg-gradient-to-b from-white/[0.02] to-transparent sm:block" />
           <main
             id="main-scroll-container"
-            className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0"
+            role="main"
+            tabIndex={-1}
+            className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0 focus:outline-none flex flex-col"
           >
             <Outlet />
+            {/* 防止网速跟不上按 Tab 导致焦点滑出主区域 */}
+            <div
+              tabIndex={0}
+              aria-live="polite"
+              aria-atomic="true"
+              className="mt-auto sr-only focus:not-sr-only focus:p-6 focus:text-center focus:text-sm focus:font-medium focus:text-[var(--od-text-secondary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--od-accent)]"
+              onFocus={(e) => {
+                const sentinel = e.currentTarget;
+                const mainContainer = sentinel.parentElement;
+                if (!mainContainer) return;
+
+                sentinel.textContent = "已到达列表底部，正在加载更多内容...";
+
+                const initialArticleCount = mainContainer.querySelectorAll('article').length;
+
+                const observer = new MutationObserver(() => {
+                  const newArticles = mainContainer.querySelectorAll('article');
+                  if (newArticles.length > initialArticleCount) {
+                    observer.disconnect();
+
+                    // 监听到新数据，通过 aria-live 播报加载完成
+                    sentinel.textContent = "加载完成";
+
+                    // 留出 1 秒钟让读屏器播报，随后转移焦点
+                    setTimeout(() => {
+                      // 如果在这 1 秒内用户主动切走了焦点，就不再强行把焦点拽回来
+                      if (document.activeElement === sentinel) {
+                        const nextCard = newArticles[initialArticleCount] as HTMLElement;
+                        if (nextCard) {
+                          nextCard.focus();
+                        }
+                      }
+                      // 焦点转移后重置缓冲垫文字，以备下次触发
+                      sentinel.textContent = "已到达列表底部，正在加载更多内容...";
+                    }, 1000);
+                  }
+                });
+
+                observer.observe(mainContainer, { childList: true, subtree: true });
+
+                // 如果用户没等到加载完就切走了焦点，中止监听
+                sentinel.addEventListener('blur', () => {
+                  observer.disconnect();
+                  sentinel.textContent = "已到达列表底部，正在加载更多内容...";
+                }, { once: true });
+              }}
+            >
+              已到达列表底部，正在加载更多内容...
+            </div>
           </main>
         </div>
       </div>

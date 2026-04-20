@@ -1,7 +1,7 @@
 import { X, MessageCircle, ThumbsUp, Calendar, Hash, User, Eye, Clock3 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { MarkdownText } from '@/shared/ui/MarkdownText';
@@ -35,25 +35,28 @@ export function ThreadPreviewOverlay({
   const fontSize = useFontSizeSetting();
   const fontSizes = fontSizeMap[fontSize];
   const [isVisible, setIsVisible] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useLockBodyScroll(true);
 
   useEffect(() => {
     setIsVisible(true);
-
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
-    };
-    window.addEventListener('keydown', handleEsc);
-
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
+    if (dialogRef.current && !dialogRef.current.open) {
+      dialogRef.current.showModal();
+    }
   }, []);
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300);
+    setTimeout(() => {
+      dialogRef.current?.close();
+      onClose();
+    }, 300);
+  };
+
+  const handleNativeCancel = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    handleClose();
   };
 
   const createdTime = formatDistanceToNow(new Date(thread.created_at), {
@@ -94,16 +97,19 @@ export function ThreadPreviewOverlay({
   );
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-black/0 backdrop-blur-none pointer-events-none'
-        }`}
-      onClick={handleClose}
+    <dialog
+      ref={dialogRef}
+      onCancel={handleNativeCancel}
+      onClick={(e) => {
+        // 点击 dialog 的 backdrop 时关闭弹窗
+        if (e.target === dialogRef.current) {
+          handleClose();
+        }
+      }}
+      aria-labelledby="thread-preview-title"
+      className={`fixed inset-0 z-50 m-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm transition-all duration-300 ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0 backdrop:bg-black/0 backdrop:backdrop-blur-none'
+        } od-floating-panel-solid`}
     >
-      <div
-        className={`od-floating-panel-solid flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] transition-all duration-300 ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0'
-          }`}
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Header */}
         <div className="border-b border-[var(--od-shell-line)] bg-[var(--od-surface-floating)] px-6 py-5">
           <div className="flex items-start justify-between gap-4">
@@ -204,7 +210,7 @@ export function ThreadPreviewOverlay({
         {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto bg-[var(--od-surface-floating)] p-6 scrollbar-thin">
           {/* Title */}
-          <h2 className={`mb-4 font-bold leading-tight text-[var(--od-text-primary)] ${fontSizes.title}`}>
+          <h2 id="thread-preview-title" className={`mb-4 font-bold leading-tight text-[var(--od-text-primary)] ${fontSizes.title}`}>
             {thread.title}
           </h2>
 
@@ -261,7 +267,6 @@ export function ThreadPreviewOverlay({
           )}
 
         </div>
-      </div>
-    </div>
+    </dialog>
   );
 }

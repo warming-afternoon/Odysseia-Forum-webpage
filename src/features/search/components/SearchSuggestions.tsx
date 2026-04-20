@@ -254,7 +254,7 @@ export function SearchSuggestions({
           暂无联想结果，继续输入更多关键词试试。
         </div>
       ) : (
-      <div className="max-h-[420px] overflow-y-auto p-2">
+      <div id="search-suggestions-listbox" role="listbox" className="max-h-[420px] overflow-y-auto p-2">
         {groups.sectionedGroups.map((group, groupIndex) => (
           <div
             key={group.title}
@@ -274,15 +274,16 @@ export function SearchSuggestions({
                 </button>
               )}
             </div>
-            <ul className="space-y-1">
+            <div role="group" aria-label={group.title} className="space-y-1">
               {group.items.map((item) => {
                 const globalIndex = groups.flatItems.findIndex((candidate) => candidate.key === item.key);
                 const isSelected = selectedIndex === globalIndex;
 
                 return (
-                  <li key={item.key}>
                     <div
-                      role="button"
+                      key={item.key}
+                      role="option"
+                      aria-selected={isSelected}
                       tabIndex={0}
                       onClick={() => handleSelect(item)}
                       onKeyDown={(event) => {
@@ -363,10 +364,9 @@ export function SearchSuggestions({
                         </button>
                       )}
                     </div>
-                  </li>
                 );
               })}
-            </ul>
+            </div>
           </div>
         ))}
       </div>

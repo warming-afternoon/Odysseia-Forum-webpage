@@ -27,11 +27,37 @@ export function BooklistCard({
     locale: zhCN,
   });
 
+  const ariaLabel = `书单：${booklist.title}。${booklist.description || '暂无简介'}。包含 ${booklist.item_count} 个帖子，${booklist.collection_count} 次收藏。更新于 ${updatedText}`;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpen(booklist.id);
+    }
+  };
+
   return (
     <article
-      className="group flex cursor-pointer flex-col gap-4 border-b border-[color-mix(in_srgb,var(--od-text-secondary)_14%,transparent)] pb-5 transition-colors"
+      role="button"
+      aria-label={ariaLabel}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className="group flex cursor-pointer flex-col gap-4 border-b border-[color-mix(in_srgb,var(--od-text-secondary)_14%,transparent)] pb-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--od-accent)] rounded-xl p-2"
       onClick={() => onOpen(booklist.id)}
     >
+      {/* 拦截 Tab 焦点进入内部元素，并对辅助技术隐藏内部细节 */}
+      <div
+        aria-hidden="true"
+        className="flex w-full flex-col pointer-events-auto"
+        ref={(el) => {
+          if (el) {
+            const focusables = el.querySelectorAll('a, button, [tabindex="0"]');
+            focusables.forEach(node => {
+              node.setAttribute('tabindex', '-1');
+            });
+          }
+        }}
+      >
       <div className="flex gap-4">
         <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-[1.35rem] bg-[color-mix(in_srgb,var(--od-surface-content)_64%,transparent)] sm:h-32 sm:w-28">
           {booklist.cover_image_url ? (
@@ -124,6 +150,7 @@ export function BooklistCard({
             </div>
           )}
         </div>
+      </div>
       </div>
       </div>
     </article>

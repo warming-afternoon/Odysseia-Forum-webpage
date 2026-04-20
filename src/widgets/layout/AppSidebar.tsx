@@ -103,7 +103,7 @@ export function AppSidebar() {
     }`;
 
   return (
-    <div className="flex h-full flex-col">
+    <nav role="navigation" className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-3 py-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md">
           <img src={ServerIcon} alt="Server Icon" className="h-full w-full object-cover" />
@@ -262,8 +262,8 @@ export function AppSidebar() {
             </button>
 
             {groupedChannels.map((category) => (
-              <div key={category.groupName} className="mt-4 first:mt-0">
-                <div className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-[var(--od-text-tertiary)] opacity-60">
+              <div key={category.groupName} className="mt-4 first:mt-0" role="group" aria-labelledby={`group-${category.groupName}`}>
+                <div id={`group-${category.groupName}`} className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-[var(--od-text-tertiary)] opacity-60">
                   {category.groupName}
                 </div>
                 <div className="space-y-0.5">
@@ -271,6 +271,7 @@ export function AppSidebar() {
                     const active = activeChannelId === channel.id;
                     return (
                       <button
+                        aria-pressed={active}
                         key={channel.id}
                         onClick={() => {
                           const nextChannel = active ? null : channel.id;
@@ -295,7 +296,7 @@ export function AppSidebar() {
                         }}
                         className={navItemClass(active)}
                       >
-                        <span className={navIndicatorClass(active)} />
+                        <span aria-hidden="true" className={navIndicatorClass(active)} />
                         <span className="truncate">{channel.name}</span>
                       </button>
                     );
@@ -315,16 +316,17 @@ export function AppSidebar() {
           <div className="flex items-center gap-1">
             <Link
               to="/me"
-              className="group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg p-2 transition-colors hover:bg-[var(--od-bg-secondary)]"
+              aria-label={`进入 ${user?.global_name || user?.username || 'Guest'} 的个人主页`}
+              className="group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg p-2 transition-colors hover:bg-[var(--od-bg-secondary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--od-accent)]"
             >
-              <div className="relative h-8 w-8 flex-shrink-0">
+              <div aria-hidden="true" className="relative h-8 w-8 flex-shrink-0">
                 <img
                   src={
                     user?.avatar
                       ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
                       : 'https://cdn.discordapp.com/embed/avatars/0.png'
                   }
-                  alt={user?.username}
+                  alt=""
                   className="h-full w-full rounded-full object-cover ring-2 ring-white/[0.08]"
                 />
                 <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-white/[0.08] bg-green-500" />
@@ -347,6 +349,6 @@ export function AppSidebar() {
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

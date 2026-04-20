@@ -203,6 +203,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
 
   return (
     <header
+      role="banner"
       className={`fixed left-0 right-0 top-0 z-40 flex h-[3.25rem] shrink-0 items-center justify-between bg-transparent px-3 transition-[left] duration-300 sm:h-[4.25rem] sm:px-4 ${
         sidebarCollapsed ? 'lg:left-0' : 'lg:left-[170px]'
       }`}
@@ -396,6 +397,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
 
         <div className="relative">
           <button
+            aria-label="打开通知中心"
+            aria-expanded={notificationOpen}
             onClick={() => setNotificationOpen((prev) => !prev)}
             className={`relative flex h-8 w-8 shrink-0 items-center justify-center text-[var(--od-text-tertiary)] transition-colors sm:h-[34px] sm:w-[34px] ${
               notificationOpen

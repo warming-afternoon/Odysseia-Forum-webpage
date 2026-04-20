@@ -25,6 +25,14 @@ interface ThreadCardProps {
 }
 
 function ThreadCardImpl({ thread, onTagClick, searchQuery, onAuthorClick, onPreview, index = 0 }: ThreadCardProps) {
+  const ariaLabel = `帖子：${thread.title}。作者：${thread.author?.display_name || thread.author?.name || '未知'}。${thread.reply_count}条回复，${thread.reaction_count}个点赞。标签：${thread.tags.join(', ')}`;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onPreview?.(thread);
+    }
+  };
   const navigate = useNavigate();
   const fontSize = useFontSizeSetting();
   const fontSizes = fontSizeMap[fontSize];
@@ -98,12 +106,29 @@ function ThreadCardImpl({ thread, onTagClick, searchQuery, onAuthorClick, onPrev
 
   return (
     <article
-      className="group flex h-full w-full cursor-pointer flex-col animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both"
-      style={{ 
+      role="button"
+      aria-label={ariaLabel}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className="group flex h-full w-full cursor-pointer flex-col animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--od-accent)] rounded-[1.45rem]"
+      style={{
         animationDelay: `${(index % 24) * 40}ms`,
       }}
       onClick={() => onPreview?.(thread)}
     >
+      {/* 拦截 Tab 焦点进入内部元素，并对辅助技术隐藏内部细节 */}
+      <div
+        aria-hidden="true"
+        className="flex h-full w-full flex-col pointer-events-auto"
+        ref={(el) => {
+          if (el) {
+            const focusables = el.querySelectorAll('a, button, [tabindex="0"]');
+            focusables.forEach(node => {
+              node.setAttribute('tabindex', '-1');
+            });
+          }
+        }}
+      >
       <div className="flex flex-col gap-2 px-1 pb-3 pt-1 text-[var(--od-text-primary)]">
         <div className="flex min-w-0 items-center gap-2 overflow-hidden">
           <button type="button" onClick={handleAuthorClick} className="rounded-full shrink-0">
@@ -262,6 +287,7 @@ function ThreadCardImpl({ thread, onTagClick, searchQuery, onAuthorClick, onPrev
         </div>
 
         <div className="h-px w-full bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--od-border-strong)_36%,transparent),transparent)]" />
+      </div>
       </div>
     </article>
   );

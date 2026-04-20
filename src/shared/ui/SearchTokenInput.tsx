@@ -222,6 +222,10 @@ export function SearchTokenInput({
     <div
       ref={containerRef}
       onClick={() => inputRef.current?.focus()}
+      role="combobox"
+      aria-expanded={tokens.length > 0 || inputValue.length > 0}
+      aria-haspopup="listbox"
+      aria-controls="search-suggestions-listbox"
       className={`flex min-h-[40px] w-full min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden rounded-lg border-none bg-[var(--od-bg-secondary)] px-2 py-1.5 text-sm text-[var(--od-text-primary)] transition-all duration-200 ${className}`}
     >
       {/* 显示 token chips */}
@@ -294,6 +298,8 @@ export function SearchTokenInput({
 
       {/* 输入框 */}
       <input
+        aria-autocomplete="list"
+        aria-controls="search-suggestions-listbox"
         ref={(element) => {
           inputRef.current = element;
           if (externalInputRef) {
