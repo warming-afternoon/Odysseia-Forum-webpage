@@ -1,20 +1,32 @@
-import { X, MessageCircle, ThumbsUp, Calendar, Hash, User, Eye, Clock3 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
-import { useCallback, useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  X,
+  MessageCircle,
+  ThumbsUp,
+  Calendar,
+  Hash,
+  User,
+  Eye,
+  Clock3,
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { MarkdownText } from '@/shared/ui/MarkdownText';
-import { ImageCarousel } from '@/entities/thread/ImageCarousel';
-import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
-import { ThreadActions } from '@/features/threads/components/ThreadActions';
-import { ThreadStatusBadges } from '@/entities/thread/ThreadStatusBadges';
-import type { Thread } from '@/entities/thread/types';
-import { useFontSizeSetting } from '@/shared/hooks/useSettings';
-import { fontSizeMap } from '@/shared/lib/settings';
-import { useLockBodyScroll } from '@/shared/hooks/useLockBodyScroll';
-import { useSearchURLParams } from '@/features/search/hooks/useSearchParams';
-import { addToken } from '@/shared/lib/searchTokenizer';
+import { MarkdownText } from "@/shared/ui/MarkdownText";
+import { ImageCarousel } from "@/entities/thread/ImageCarousel";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
+import { ThreadActions } from "@/features/threads/components/ThreadActions";
+import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import type { Thread } from "@/entities/thread/types";
+import { useFontSizeSetting } from "@/shared/hooks/useSettings";
+import { fontSizeMap } from "@/shared/lib/settings";
+import { useLockBodyScroll } from "@/shared/hooks/useLockBodyScroll";
+import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
+import { addToken } from "@/shared/lib/searchTokenizer";
+import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
+
+import { createPortal } from "react-dom";
 
 interface ThreadPreviewOverlayProps {
   thread: Thread;
@@ -35,6 +47,7 @@ export function ThreadPreviewOverlay({
   const fontSize = useFontSizeSetting();
   const fontSizes = fontSizeMap[fontSize];
   const [isVisible, setIsVisible] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useLockBodyScroll(true);
@@ -64,7 +77,7 @@ export function ThreadPreviewOverlay({
     locale: zhCN,
   });
 
-  const fullTime = format(new Date(thread.created_at), 'yyyy年MM月dd日 HH:mm', {
+  const fullTime = format(new Date(thread.created_at), "yyyy年MM月dd日 HH:mm", {
     locale: zhCN,
   });
   const lastActiveTime = thread.last_active_at
@@ -73,20 +86,24 @@ export function ThreadPreviewOverlay({
         locale: zhCN,
       })
     : null;
-  const virtualOnlyTags = (thread.virtual_tags || []).filter((tag) => !thread.tags.includes(tag));
+  const virtualOnlyTags = (thread.virtual_tags || []).filter(
+    (tag) => !thread.tags.includes(tag),
+  );
 
   const searchableAuthorName =
     thread.author?.display_name ??
     thread.author?.global_name ??
     thread.author?.name;
-  const authorName = searchableAuthorName || '未知用户';
+  const authorName = searchableAuthorName || "未知用户";
 
   const applySearchToken = useCallback(
-    (type: 'tag' | 'author', value: string) => {
-      const nextQuery = addToken(params.query || '', type, value, 'include');
+    (type: "tag" | "author", value: string) => {
+      const nextQuery = addToken(params.query || "", type, value, "include");
 
-      if (location.pathname !== '/search') {
-        navigate(nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : '/search');
+      if (location.pathname !== "/search") {
+        navigate(
+          nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : "/search",
+        );
       } else {
         setParams({ query: nextQuery });
       }
@@ -96,20 +113,21 @@ export function ThreadPreviewOverlay({
     [location.pathname, navigate, params.query, setParams],
   );
 
-  return (
-    <dialog
-      ref={dialogRef}
-      onCancel={handleNativeCancel}
-      onClick={(e) => {
-        // 点击 dialog 的 backdrop 时关闭弹窗
-        if (e.target === dialogRef.current) {
-          handleClose();
-        }
-      }}
-      aria-labelledby="thread-preview-title"
-      className={`fixed inset-0 z-50 m-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm transition-all duration-300 ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0 backdrop:bg-black/0 backdrop:backdrop-blur-none'
+return createPortal(
+    <>
+      <dialog
+        ref={dialogRef}
+        onCancel={handleNativeCancel}
+        onClick={(e) => {
+          if (e.target === dialogRef.current) {
+            handleClose();
+          }
+        }}
+        aria-labelledby="thread-preview-title"
+        className={`fixed inset-0 z-[2000] m-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.6rem] p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm transition-all duration-300 ${
+          isVisible ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0 backdrop:bg-black/0 backdrop:backdrop-blur-none"
         } od-floating-panel-solid`}
-    >
+      >
         {/* Header */}
         <div className="border-b border-[var(--od-shell-line)] bg-[var(--od-surface-floating)] px-6 py-5">
           <div className="flex items-start justify-between gap-4">
@@ -122,9 +140,12 @@ export function ThreadPreviewOverlay({
                     navigate(`/u/${thread.author!.id}`);
                   }}
                   className="shrink-0"
-                  title={`查看作者主页：${authorName}`}
+                  title={`查看作者主页：`}
                 >
-                  <AuthorAvatar author={thread.author} className="h-10 w-10 transition-opacity hover:opacity-80" />
+                  <AuthorAvatar
+                    author={thread.author}
+                    className="h-10 w-10 transition-opacity hover:opacity-80"
+                  />
                 </button>
               ) : (
                 <AuthorAvatar author={thread.author} className="h-10 w-10" />
@@ -138,12 +159,14 @@ export function ThreadPreviewOverlay({
                       navigate(`/u/${thread.author!.id}`);
                     }}
                     className="truncate text-left font-bold text-[var(--od-text-primary)] hover:text-[var(--od-accent)] hover:underline"
-                    title={`查看作者主页：${authorName}`}
+                    title={`查看作者主页：`}
                   >
                     {authorName}
                   </button>
                 ) : (
-                  <div className="truncate font-bold text-[var(--od-text-primary)]">{authorName}</div>
+                  <div className="truncate font-bold text-[var(--od-text-primary)]">
+                    {authorName}
+                  </div>
                 )}
                 <div className="mt-1">
                   <ThreadStatusBadges
@@ -155,6 +178,14 @@ export function ThreadPreviewOverlay({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setQuickAddOpen(true)}
+                className="rounded-full px-2 py-1 text-xs text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
+                title="加入书单"
+              >
+                +书单
+              </button>
               {!hideExternalButton && (
                 <ThreadActions
                   threadId={thread.thread_id}
@@ -164,12 +195,12 @@ export function ThreadPreviewOverlay({
                   externalUrlOverride={externalUrlOverride}
                 />
               )}
-                <button
-                  onClick={handleClose}
-                  className="rounded-full p-2 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <button
+                onClick={handleClose}
+                className="rounded-full p-2 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-interactive-hover)] hover:text-[var(--od-text-primary)]"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
 
@@ -208,7 +239,7 @@ export function ThreadPreviewOverlay({
         </div>
 
         {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto bg-[var(--od-surface-floating)] p-6 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto bg-[var(--od-surface-floating)] p-6 scrollbar-thin">
           {/* Title */}
           <h2 id="thread-preview-title" className={`mb-4 font-bold leading-tight text-[var(--od-text-primary)] ${fontSizes.title}`}>
             {thread.title}
@@ -221,7 +252,7 @@ export function ThreadPreviewOverlay({
                 <button
                   type="button"
                   key={tag}
-                  onClick={() => applySearchToken('tag', tag)}
+                  onClick={() => applySearchToken("tag", tag)}
                   className="od-pill-chip"
                   title={`添加标签筛选：${tag}`}
                 >
@@ -237,7 +268,7 @@ export function ThreadPreviewOverlay({
                 <button
                   type="button"
                   key={`vt-${tag}`}
-                  onClick={() => applySearchToken('tag', tag)}
+                  onClick={() => applySearchToken("tag", tag)}
                   className="inline-flex items-center gap-1 rounded-full border border-[var(--od-accent)]/24 bg-[var(--od-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--od-accent)] transition-colors hover:bg-[var(--od-accent)]/18"
                   title={`添加标签筛选：${tag}`}
                 >
@@ -261,12 +292,21 @@ export function ThreadPreviewOverlay({
 
           {/* Content Excerpt (Full) - Flat, no background */}
           {thread.first_message_excerpt && (
-            <div className={`mb-6 ${fontSizes.content} text-[var(--od-text-secondary)]`}>
+            <div
+              className={`mb-6 ${fontSizes.content} text-[var(--od-text-secondary)]`}
+            >
               <MarkdownText text={thread.first_message_excerpt} />
             </div>
           )}
-
         </div>
-    </dialog>
+</dialog>
+      <QuickAddToBooklistModal
+        isOpen={quickAddOpen}
+        threadId={thread.thread_id}
+        threadTitle={thread.title}
+        onClose={() => setQuickAddOpen(false)}
+      />
+    </>,
+    document.body
   );
 }

@@ -8,22 +8,27 @@
  * 面板型筛选继续承载排序与时间范围。
  */
 
-import { migrateLegacySyntax, tokenizeSearchPayload } from '@/shared/lib/searchTokenizer';
-import { useCallback, useMemo } from 'react';
-import { useSearchParams as useRouterSearchParams } from 'react-router-dom';
+import {
+  migrateLegacySyntax,
+  tokenizeSearchPayload,
+} from "@/shared/lib/searchTokenizer";
+import { useCallback, useMemo } from "react";
+import { useSearchParams as useRouterSearchParams } from "react-router-dom";
 
 export type SortMethod =
-  | 'relevance'
-  | 'last_active_desc'
-  | 'created_desc'
-  | 'reply_desc'
-  | 'reaction_desc';
+  | "relevance"
+  | "last_active_desc"
+  | "created_desc"
+  | "reply_desc"
+  | "reaction_desc";
 
-export type TagLogic = 'and' | 'or';
+export type TagLogic = "and" | "or";
+export type SearchTargetType = "thread" | "booklist";
 
 export interface SearchParams {
   query: string;
   channel: string | null;
+  type: SearchTargetType;
   sortMethod: SortMethod;
   includeTags: string[];
   excludeTags: string[];
@@ -35,64 +40,72 @@ export interface SearchParams {
 }
 
 const VALID_SORT_METHODS: Set<string> = new Set([
-  'relevance',
-  'last_active_desc',
-  'created_desc',
-  'reply_desc',
-  'reaction_desc',
+  "relevance",
+  "last_active_desc",
+  "created_desc",
+  "reply_desc",
+  "reaction_desc",
 ]);
 
 function normalizeQuery(rawQuery: string) {
-  return migrateLegacySyntax(rawQuery || '').replace(/\s+/g, ' ').trim();
+  return migrateLegacySyntax(rawQuery || "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function stripChannelTokens(query: string) {
   return normalizeQuery(query)
-    .replace(/(^|\s)-?\$channel:[^$]+\$/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/(^|\s)-?\$channel:[^$]+\$/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 export function parseParams(sp: URLSearchParams): SearchParams {
-  const rawSort = sp.get('sort') || 'last_active_desc';
+  const rawSort = sp.get("sort") || "last_active_desc";
   const sortMethod: SortMethod = VALID_SORT_METHODS.has(rawSort)
     ? (rawSort as SortMethod)
-    : 'last_active_desc';
+    : "last_active_desc";
 
-  const rawTagLogic = sp.get('tag_logic');
-  const tagLogic: TagLogic = rawTagLogic === 'or' ? 'or' : 'and';
+  const rawTagLogic = sp.get("tag_logic");
+  const tagLogic: TagLogic = rawTagLogic === "or" ? "or" : "and";
 
-  const rawQuery = normalizeQuery(sp.get('q') || '');
+  const rawQuery = normalizeQuery(sp.get("q") || "");
   const tokenized = tokenizeSearchPayload(rawQuery);
   const query = stripChannelTokens(rawQuery);
+  const rawType = sp.get("type");
+  const type: SearchTargetType = rawType === "booklist" ? "booklist" : "thread";
 
   return {
     query,
-    channel: sp.get('channel') || tokenized.channels[0] || null,
+    channel: sp.get("channel") || tokenized.channels[0] || null,
+    type,
     sortMethod,
     includeTags: tokenizeSearchPayload(query).includeTags,
     excludeTags: tokenizeSearchPayload(query).excludeTags,
     includeAuthors: tokenizeSearchPayload(query).includeAuthors,
     excludeAuthors: tokenizeSearchPayload(query).excludeAuthors,
     tagLogic,
-    timeFrom: sp.get('time_from') || '',
-    timeTo: sp.get('time_to') || '',
+    timeFrom: sp.get("time_from") || "",
+    timeTo: sp.get("time_to") || "",
   };
 }
 
-export function serializeParams(params: Partial<SearchParams>): URLSearchParams {
+export function serializeParams(
+  params: Partial<SearchParams>,
+): URLSearchParams {
   const sp = new URLSearchParams();
 
-  if (params.query) sp.set('q', normalizeQuery(params.query));
-  if (params.channel) sp.set('channel', params.channel);
-  if (params.sortMethod && params.sortMethod !== 'last_active_desc') {
-    sp.set('sort', params.sortMethod);
+  if (params.query) sp.set("q", normalizeQuery(params.query));
+  if (params.channel) sp.set("channel", params.channel);
+  if (params.type && params.type !== "thread") sp.set("type", params.type);
+  if (params.sortMethod && params.sortMethod !== "last_active_desc") {
+    sp.set("sort", params.sortMethod);
   }
-  if (params.tagLogic && params.tagLogic !== 'and') {
-    sp.set('tag_logic', params.tagLogic);
+  if (params.tagLogic && params.tagLogic !== "and") {
+    sp.set("tag_logic", params.tagLogic);
   }
-  if (params.timeFrom) sp.set('time_from', params.timeFrom);
-  if (params.timeTo) sp.set('time_to', params.timeTo);
+  if (params.timeFrom) sp.set("time_from", params.timeFrom);
+  if (params.timeTo) sp.set("time_to", params.timeTo);
 
   return sp;
 }
@@ -107,7 +120,8 @@ export function useSearchURLParams() {
       const current = parseParams(searchParams);
       const merged = { ...current, ...updates };
       const newSP = serializeParams(merged);
-      const isQueryChange = updates.query !== undefined && updates.query !== current.query;
+      const isQueryChange =
+        updates.query !== undefined && updates.query !== current.query;
       setSearchParams(newSP, { replace: !isQueryChange });
     },
     [searchParams, setSearchParams],
@@ -127,8 +141,8 @@ export function useSearchURLParams() {
       params.excludeAuthors.length > 0 ||
       params.timeFrom ||
       params.timeTo ||
-      (params.sortMethod && params.sortMethod !== 'last_active_desc') ||
-      (params.tagLogic && params.tagLogic !== 'and')
+      (params.sortMethod && params.sortMethod !== "last_active_desc") ||
+      (params.tagLogic && params.tagLogic !== "and")
     );
   }, [params]);
 

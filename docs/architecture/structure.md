@@ -60,7 +60,8 @@ Odysseia-Forum-Main/
 
 在日常开发中，如果你需要修改某一个特定的功能，可以通过如下规律快速定界：
 
-- **搜索与列表展现**: 主要被汇聚在了 `src/features/search/`。通过 `searchTokenizer` 提供分词功能，利用 `useSearchURLParams` 提取并监听 URL query 参数作为唯一数据源。而 `store` 被细分为控制 UI 的 `searchStore` 与独立处理帖子浮层数据的 `previewStore`。
+- **搜索与列表展现**: 主要被汇聚在了 `src/features/search/`。通过 `searchTokenizer` 提供分词功能，利用 `useSearchURLParams` 提取并监听 URL query 参数作为唯一数据源。而 `store` 被细分为控制纯 UI 的 `searchStore` (如 `isMainBannerVisible`, `activeBannerId`) 与独立处理帖子浮层数据的 `previewStore`。
+- **发现广场与抽卡**: `src/features/plaza/` 不再复用搜索接口，而是通过 `plazaApi.ts` 调用专用的后端发现接口（`/discovery/rails`、`/discovery/random`），在 `PlazaPage` 和 `DrawPage` 中直接获取独立组装的热点轨道或随机推荐帖子。
 - **全局预览浮层**: `src/widgets/thread-preview/`，响应 `previewStore` 的状态从而在任意页面顶部展示帖子快照阅读流。
 - **主框架皮肤与顶栏**: 放置在 `src/widgets/layout/` 中。这些区块天然包裹在页面周围，属于高度复用的骨架级挂件。
 - **论坛内容的承接者**: `src/entities/thread/`，任何跟帖子这三个字本身有关的数据形态、卡片样式、Tag 样式，全都被内聚在此处。

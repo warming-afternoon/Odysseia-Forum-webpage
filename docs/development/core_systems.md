@@ -56,3 +56,8 @@ const ProfilePage = lazy(() => import('@/pages/UserProfilePage'));
 
 ### 5.2 参数层 (`useSearchURLParams`)
 `src/features/search/hooks/useSearchParams.ts` 中的 `useSearchURLParams` 钩子解析并暴露经过封装合并后的过滤状态，组件使用该钩子修改参数会自动触发 React Router 的导航方法，进而引发整个订阅此 Hooks 的查询模块重刷。
+
+### 5.3 偏好融合层 (`useSearchResults`)
+在获取最终数据前，`src/features/search/hooks/useSearchResults.ts` 会将 URL 参数与用户的个人发现偏好（`preferences`）进行融合：
+- **偏好补丁 (`discoveryPreferencePatch`)**: 当用户未明确指定特定条件（如标签、频道、排序）时，系统会自动注入由偏好生成的查询补丁。
+- **生效参数**: 最终用于向后端请求的数据包含合并后的 `effectiveSortMethod`、`effectiveChannelIds`、`effectiveIncludeTags` 等，实现了全局配置与临时 URL 过滤条件的优雅降级。

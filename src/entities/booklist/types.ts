@@ -1,9 +1,11 @@
-import { components } from '@shared-types/openapi';
+import { components } from "@shared-types/openapi";
 
-export type Booklist = components['schemas']['BooklistDetail'];
-export type BooklistItem = components['schemas']['BooklistItemDetail'];
-export type BooklistCreateResponse = components['schemas']['BooklistCreateResponse'];
-export type BooklistUpdateResponse = components['schemas']['BooklistUpdateResponse'];
+export type Booklist = components["schemas"]["BooklistDetail"];
+export type BooklistItem = components["schemas"]["BooklistItemDetail"];
+export type BooklistCreateResponse =
+  components["schemas"]["BooklistCreateResponse"];
+export type BooklistUpdateResponse =
+  components["schemas"]["BooklistUpdateResponse"];
 
 export interface PaginatedResponse<T> {
   total: number;
@@ -17,7 +19,7 @@ export interface BooklistListParams {
   pageSize?: number;
   keywords?: string;
   sortMethod?: number;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   isPublic?: boolean;
 }
 
@@ -30,7 +32,7 @@ export interface BooklistFormInput {
 }
 
 export interface BooklistItemAddInput {
-  thread_id: number;
+  thread_id: string | number;
   comment?: string;
   display_order?: number;
 }

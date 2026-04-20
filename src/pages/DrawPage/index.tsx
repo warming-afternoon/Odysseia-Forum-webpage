@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   Compass,
@@ -9,19 +9,21 @@ import {
   RefreshCw,
   Sparkles,
   Wand2,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { ThreadCard } from '@/entities/thread/ThreadCard';
-import type { Thread } from '@/entities/thread/types';
-import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
-import { getDiscoveryPreferenceContext } from '@/features/preferences/lib/discoveryPreferences';
-import { plazaApi } from '@/features/plaza/api/plazaApi';
-import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
-import { GUILD_ID } from '@/shared/config/channelCategories.private';
-import { useChannels } from '@/shared/hooks/useChannels';
-import { FluidDivider } from '@/shared/ui/FluidDivider';
+import { ThreadCard } from "@/entities/thread/ThreadCard";
+import type { Thread } from "@/entities/thread/types";
+import { DrawRevealOverlay } from "@/features/draw/components/DrawRevealOverlay";
+import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
+import { getDiscoveryPreferenceContext } from "@/features/preferences/lib/discoveryPreferences";
+import { plazaApi } from "@/features/plaza/api/plazaApi";
+import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
+import { GUILD_ID } from "@/shared/config/channelCategories.private";
+import { useChannels } from "@/shared/hooks/useChannels";
+import { FluidDivider } from "@/shared/ui/FluidDivider";
 
-type DrawScopeMode = 'preferences' | 'channel';
+type DrawScopeMode = "preferences" | "channel";
+type DrawOverlayPhase = "charging" | "revealing" | "result" | "error";
 
 // 抽卡辅助函数已移除，改为由后端随机返回结果
 
@@ -35,19 +37,26 @@ export function DrawPage() {
     () => getDiscoveryPreferenceContext(preferences),
     [preferences],
   );
-  
+
   const { data: channelsData } = useChannels();
   const allChannels = useMemo(() => {
     return channelsData?.channels || [];
   }, [channelsData?.channels]);
 
-  const [scopeMode, setScopeMode] = useState<DrawScopeMode>('preferences');
-  const [selectedChannelId, setSelectedChannelId] = useState<string>('');
+  const [scopeMode, setScopeMode] = useState<DrawScopeMode>("preferences");
+  const [selectedChannelId, setSelectedChannelId] = useState<string>("");
   const [drawResults, setDrawResults] = useState<Thread[]>([]);
+  const [overlayResults, setOverlayResults] = useState<Thread[]>([]);
   const [lastDrawCount, setLastDrawCount] = useState<number>(1);
   const [revealedCount, setRevealedCount] = useState<number>(0);
+  const [overlayRevealedCount, setOverlayRevealedCount] = useState<number>(0);
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayPhase, setOverlayPhase] =
+    useState<DrawOverlayPhase>("charging");
   const [isDrawing, setIsDrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const drawSequenceRef = useRef(0);
+  const skipRevealRef = useRef(false);
 
   const preferredChannelIds = preferenceContext?.preferredChannelIds || [];
   const availableScopeChannels = useMemo(() => {
@@ -58,41 +67,33 @@ export function DrawPage() {
   }, [allChannels, preferredChannelIds]);
 
   useEffect(() => {
-    if (scopeMode !== 'channel') return;
+    if (scopeMode !== "channel") return;
 
     if (!selectedChannelId) {
-      const fallback = availableScopeChannels[0]?.id || '';
+      const fallback = availableScopeChannels[0]?.id || "";
       if (fallback) setSelectedChannelId(fallback);
       return;
     }
 
-    if (!availableScopeChannels.some((channel) => channel.id === selectedChannelId)) {
-      setSelectedChannelId(availableScopeChannels[0]?.id || '');
+    if (
+      !availableScopeChannels.some(
+        (channel) => channel.id === selectedChannelId,
+      )
+    ) {
+      setSelectedChannelId(availableScopeChannels[0]?.id || "");
     }
   }, [availableScopeChannels, scopeMode, selectedChannelId]);
 
   useEffect(() => {
-    if (drawResults.length === 0) {
-      setRevealedCount(0);
-      return;
-    }
+    if (overlayPhase !== "revealing" || overlayResults.length === 0) return;
 
-    setRevealedCount(1);
-    if (drawResults.length === 1) return;
-
-    const timers = drawResults.slice(1).map((_, index) =>
-      window.setTimeout(() => {
-        setRevealedCount((current) => Math.min(drawResults.length, current + 1));
-      }, 120 * (index + 1)),
-    );
-
-    return () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, [drawResults]);
+    // 移除自动计时的揭晓逻辑，改为由 DrawRevealOverlay 手动控制
+    setOverlayRevealedCount(overlayResults.length);
+  }, [overlayPhase, overlayResults]);
 
   const effectiveChannelIds = useMemo(() => {
-    if (scopeMode === 'channel' && selectedChannelId) return [selectedChannelId];
+    if (scopeMode === "channel" && selectedChannelId)
+      return [selectedChannelId];
     return preferenceContext?.preferredChannelIds.length
       ? preferenceContext.preferredChannelIds
       : null;
@@ -102,11 +103,19 @@ export function DrawPage() {
   const excludeTags = preferenceContext?.excludeTags || null;
 
   const handleDraw = async (count: number) => {
+    const sequenceId = drawSequenceRef.current + 1;
+    drawSequenceRef.current = sequenceId;
+    skipRevealRef.current = false;
+
     try {
       setIsDrawing(true);
       setError(null);
-      setDrawResults([]); // 清空旧结果
+      setOverlayOpen(true);
+      setOverlayPhase("charging");
+      setDrawResults([]);
       setRevealedCount(0);
+      setOverlayResults([]);
+      setOverlayRevealedCount(0);
 
       const results = await plazaApi.getRandomThreads({
         limit: count,
@@ -115,21 +124,57 @@ export function DrawPage() {
         exclude_tags: excludeTags,
       });
 
+      if (drawSequenceRef.current !== sequenceId) return;
+
       setLastDrawCount(count);
-      setDrawResults(results);
+      setOverlayResults(results);
+
+      await new Promise((resolve) => window.setTimeout(resolve, 760));
+      if (drawSequenceRef.current !== sequenceId) return;
+
+      if (results.length === 0) {
+        setOverlayPhase("result");
+        setDrawResults([]);
+        setRevealedCount(0);
+        return;
+      }
+
+      if (skipRevealRef.current) {
+        setOverlayPhase("result");
+        setOverlayRevealedCount(results.length);
+        setDrawResults(results);
+        setRevealedCount(results.length);
+        return;
+      }
+
+      setOverlayPhase("revealing");
     } catch (err) {
-      console.error('Failed to draw randomly', err);
-      setError('抽卡失败了，可能是由于网络波动或当前范围内内容不足。');
+      console.error("Failed to draw randomly", err);
+      setError("抽卡失败了，可能是由于网络波动或当前范围内内容不足。");
+      setOverlayPhase("error");
+      setOverlayOpen(true);
     } finally {
       setIsDrawing(false);
     }
   };
 
+  const handleSkipOverlay = () => {
+    skipRevealRef.current = true;
+    if (overlayResults.length === 0) return;
+    if (overlayPhase === "result" || overlayPhase === "error") return;
+    setOverlayRevealedCount(overlayResults.length);
+    setOverlayPhase("result");
+    setDrawResults(overlayResults);
+    setRevealedCount(overlayResults.length);
+  };
+
   const featuredResult = drawResults[0] || null;
   const trailingResults = drawResults.slice(1, revealedCount);
-  const activeScopeLabel = scopeMode === 'channel' && selectedChannelId
-    ? availableScopeChannels.find((c) => c.id === selectedChannelId)?.name || '未找到频道'
-    : '我的偏好池范围';
+  const activeScopeLabel =
+    scopeMode === "channel" && selectedChannelId
+      ? availableScopeChannels.find((c) => c.id === selectedChannelId)?.name ||
+        "未找到频道"
+      : "我的偏好池范围";
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8 p-4 sm:p-6 lg:p-8">
@@ -140,7 +185,9 @@ export function DrawPage() {
               <Sparkles className="h-3.5 w-3.5" />
               Surprise Discovery Ritual
             </div>
-            <h1 className="od-hero-title max-w-3xl text-[var(--od-text-primary)]">随机抽卡</h1>
+            <h1 className="od-hero-title max-w-3xl text-[var(--od-text-primary)]">
+              随机抽卡
+            </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--od-text-secondary)] sm:text-base sm:leading-7">
               你要是懒得自己翻，我就帮你抽呀。抽出来的内容像拆小盲盒一样，一张张看会很有意思呢。
             </p>
@@ -148,7 +195,9 @@ export function DrawPage() {
             <div className="mt-7 flex flex-wrap items-center gap-2 text-xs text-[var(--od-text-secondary)]">
               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
                 <BadgeCheck className="h-3.5 w-3.5 text-[var(--od-accent)]" />
-                {preferenceContext ? '偏好过滤已生效' : '尚未设置偏好，当前使用全社区池'}
+                {preferenceContext
+                  ? "偏好过滤已生效"
+                  : "尚未设置偏好，当前使用全社区池"}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
                 <Layers3 className="h-3.5 w-3.5 text-[var(--od-accent)]" />
@@ -164,13 +213,19 @@ export function DrawPage() {
           <div className="space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--od-text-label)]">Draw Flow</p>
-                <p className="mt-2 text-sm font-semibold text-[var(--od-text-primary)]">先圈个大概范围，再决定抽一张还是抽十张</p>
-                <p className="mt-1 text-xs leading-5 text-[var(--od-text-secondary)]">我不会故意抽到你偏好外面去的，放心吧。</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--od-text-label)]">
+                  Draw Flow
+                </p>
+                <p className="mt-2 text-sm font-semibold text-[var(--od-text-primary)]">
+                  先圈个大概范围，再决定抽一张还是抽十张
+                </p>
+                <p className="mt-1 text-xs leading-5 text-[var(--od-text-secondary)]">
+                  我不会故意抽到你偏好外面去的，放心吧。
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className="od-inline-action od-inline-action-ghost"
               >
                 <Compass className="h-4 w-4" />
@@ -180,26 +235,28 @@ export function DrawPage() {
 
             <div className="space-y-4">
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">抽卡范围</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                  抽卡范围
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setScopeMode('preferences')}
+                    onClick={() => setScopeMode("preferences")}
                     className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
-                      scopeMode === 'preferences'
-                        ? 'border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm'
-                        : 'border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50'
-                     }`}
+                      scopeMode === "preferences"
+                        ? "border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm"
+                        : "border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50"
+                    }`}
                   >
                     按我的偏好抽
                   </button>
                   <button
                     type="button"
-                    onClick={() => setScopeMode('channel')}
+                    onClick={() => setScopeMode("channel")}
                     className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
-                      scopeMode === 'channel'
-                        ? 'border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm'
-                        : 'border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50'
+                      scopeMode === "channel"
+                        ? "border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm"
+                        : "border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50"
                     }`}
                   >
                     指定频道抽
@@ -208,18 +265,27 @@ export function DrawPage() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">频道选择</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                  频道选择
+                </p>
                 <select
-                  value={scopeMode === 'channel' ? selectedChannelId : ''}
+                  value={scopeMode === "channel" ? selectedChannelId : ""}
                   onChange={(event) => setSelectedChannelId(event.target.value)}
-                  disabled={scopeMode !== 'channel' || availableScopeChannels.length === 0}
+                  disabled={
+                    scopeMode !== "channel" ||
+                    availableScopeChannels.length === 0
+                  }
                   className="w-full rounded-2xl border border-[var(--od-border)] bg-[var(--od-surface-input)] px-4 py-3 text-sm text-[var(--od-text-primary)] outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-[var(--od-accent)]"
                 >
                   {availableScopeChannels.length === 0 ? (
                     <option value="">当前没有可抽取频道</option>
                   ) : (
                     availableScopeChannels.map((channel) => (
-                      <option key={channel.id} value={channel.id} className="text-[var(--od-text-primary)]">
+                      <option
+                        key={channel.id}
+                        value={channel.id}
+                        className="text-[var(--od-text-primary)]"
+                      >
                         {channel.name}
                       </option>
                     ))
@@ -228,8 +294,12 @@ export function DrawPage() {
               </div>
 
               <div className="pt-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">揭晓方式</p>
-                <p className="mt-2 text-xs leading-5 text-[var(--od-text-secondary)]">想随手碰碰运气就单抽，想一次看热闹一点就十连呀。</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                  揭晓方式
+                </p>
+                <p className="mt-2 text-xs leading-5 text-[var(--od-text-secondary)]">
+                  想随手碰碰运气就单抽，想一次看热闹一点就十连呀。
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -270,17 +340,24 @@ export function DrawPage() {
         <div className="od-metric-strip">
           <div className="od-metric-line">
             <p className="od-metric-line-label">频道池</p>
-            <p className="od-metric-line-value">{effectiveChannelIds?.length ?? allChannels.length}</p>
+            <p className="od-metric-line-value">
+              {effectiveChannelIds?.length ?? allChannels.length}
+            </p>
             <p className="od-metric-line-note">
               {preferenceContext?.preferredChannelIds.length
-                ? '我会优先从你平时更常看的频道里翻，指定频道以后范围还会再收一点。'
-                : '你还没给我偏好范围呢，所以我现在是从公开频道里一起翻。'}
+                ? "我会优先从你平时更常看的频道里翻，指定频道以后范围还会再收一点。"
+                : "你还没给我偏好范围呢，所以我现在是从公开频道里一起翻。"}
             </p>
           </div>
           <div className="od-metric-line">
             <p className="od-metric-line-label">标签约束</p>
-            <p className="od-metric-line-value">{(includeTags?.length || 0) + (excludeTags?.length || 0)}</p>
-            <p className="od-metric-line-note">现在记着包含标签 {includeTags?.length || 0} 个、排除标签 {excludeTags?.length || 0} 个，我会乖乖照着这个边界来抽的。</p>
+            <p className="od-metric-line-value">
+              {(includeTags?.length || 0) + (excludeTags?.length || 0)}
+            </p>
+            <p className="od-metric-line-note">
+              现在记着包含标签 {includeTags?.length || 0} 个、排除标签{" "}
+              {excludeTags?.length || 0} 个，我会乖乖照着这个边界来抽的。
+            </p>
           </div>
         </div>
       </section>
@@ -294,8 +371,12 @@ export function DrawPage() {
           </div>
         ) : error ? (
           <div className="od-draw-slot">
-            <p className="text-base font-semibold text-[var(--od-text-primary)]">哎呀，抽卡失败了</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">{error}</p>
+            <p className="text-base font-semibold text-[var(--od-text-primary)]">
+              哎呀，抽卡失败了
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">
+              {error}
+            </p>
             <button
               type="button"
               onClick={() => handleDraw(lastDrawCount)}
@@ -320,7 +401,7 @@ export function DrawPage() {
               <div className="space-y-4">
                 <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--od-accent)_18%,transparent)] bg-[color-mix(in_srgb,var(--od-accent)_10%,transparent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--od-accent)]">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {lastDrawCount > 1 ? '十连主卡' : '本次命中'}
+                  {lastDrawCount > 1 ? "十连主卡" : "本次命中"}
                 </div>
 
                 <div className="w-full lg:max-w-4xl">
@@ -346,7 +427,9 @@ export function DrawPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate(`/search?channel=${featuredResult.channel_id}`)}
+                    onClick={() =>
+                      navigate(`/search?channel=${featuredResult.channel_id}`)
+                    }
                     className="od-inline-action od-inline-action-ghost"
                   >
                     <Compass className="h-4 w-4" />
@@ -358,14 +441,19 @@ export function DrawPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--od-text-primary)]">其余结果</p>
+                    <p className="text-sm font-semibold text-[var(--od-text-primary)]">
+                      其余结果
+                    </p>
                     <p className="mt-1 text-xs leading-5 text-[var(--od-text-secondary)]">
-                      {drawResults.length > 1 ? '剩下那些我也整整齐齐摆在旁边啦，你可以一起对着看。' : '现在是单抽，所以这里只会在多抽的时候热闹起来。'}
+                      {drawResults.length > 1
+                        ? "剩下那些我也整整齐齐摆在旁边啦，你可以一起对着看。"
+                        : "现在是单抽，所以这里只会在多抽的时候热闹起来。"}
                     </p>
                   </div>
                   {drawResults.length > 1 && (
                     <span className="rounded-full border border-[var(--od-shell-line)] bg-[var(--od-surface-soft)] px-3 py-1 text-[11px] font-semibold text-[var(--od-text-secondary)]">
-                      已揭晓 {Math.max(0, revealedCount - 1)} / {Math.max(0, drawResults.length - 1)}
+                      已揭晓 {Math.max(0, revealedCount - 1)} /{" "}
+                      {Math.max(0, drawResults.length - 1)}
                     </span>
                   )}
                 </div>
@@ -373,7 +461,11 @@ export function DrawPage() {
                 {drawResults.length > 1 ? (
                   <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
                     {trailingResults.map((thread: Thread, index: number) => (
-                      <div key={thread.thread_id} className="w-[18rem] shrink-0 snap-start animate-in fade-in zoom-in-95 duration-300" style={{ animationDelay: `${index * 90}ms` }}>
+                      <div
+                        key={thread.thread_id}
+                        className="w-[18rem] shrink-0 snap-start animate-in fade-in zoom-in-95 duration-300"
+                        style={{ animationDelay: `${index * 90}ms` }}
+                      >
                         <ThreadCard thread={thread} onPreview={openPreview} />
                       </div>
                     ))}
@@ -391,13 +483,30 @@ export function DrawPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--od-surface-soft)] text-[var(--od-accent)]">
               <Sparkles className="h-7 w-7" />
             </div>
-            <h3 className="mt-5 text-xl font-bold tracking-tight text-[var(--od-text-primary)]">第一张卡还在等你揭晓哦～</h3>
+            <h3 className="mt-5 text-xl font-bold tracking-tight text-[var(--od-text-primary)]">
+              第一张卡还在等你揭晓哦～
+            </h3>
             <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">
               先挑一下这轮想在哪片地方碰运气，再决定抽一张还是十张。我会把结果乖乖送到你面前的。
             </p>
           </div>
         )}
       </section>
+
+      <DrawRevealOverlay
+        isOpen={overlayOpen}
+        phase={overlayPhase}
+        results={overlayResults}
+        revealedCount={overlayRevealedCount}
+        drawCount={lastDrawCount}
+        isDrawing={isDrawing}
+        error={error}
+        onClose={() => setOverlayOpen(false)}
+        onSkip={handleSkipOverlay}
+        onRetry={() => handleDraw(lastDrawCount)}
+        onPreview={openPreview}
+        onDrawAgain={handleDraw}
+      />
     </div>
   );
 }

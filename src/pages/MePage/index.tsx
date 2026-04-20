@@ -1,13 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Bookmark, Eye, FileText, Heart, Settings2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  BookOpen,
+  Bookmark,
+  Eye,
+  FileText,
+  Heart,
+  Settings2,
+} from "lucide-react";
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { Thread } from '@/entities/thread/types';
-import { useFollowsFeed } from '@/features/follows/hooks/useFollowsData';
-import { searchApi } from '@/features/search/api/searchApi';
-import type { Booklist } from '@/entities/booklist/types';
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import type { Thread } from "@/entities/thread/types";
+import { useFollowsFeed } from "@/features/follows/hooks/useFollowsData";
+import { searchApi } from "@/features/search/api/searchApi";
+import type { Booklist } from "@/entities/booklist/types";
 import {
   useCollectedBooklistsList,
   useCreateBooklist,
@@ -15,57 +22,73 @@ import {
   useMyBooklistsList,
   useToggleBooklistCollection,
   useUpdateBooklist,
-} from '@/features/booklists/hooks/useBooklistsData';
-import { BooklistFormModal } from '@/features/booklists/components/BooklistFormModal';
-import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
-import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
-import { FluidDivider } from '@/shared/ui/FluidDivider';
+} from "@/features/booklists/hooks/useBooklistsData";
+import { BooklistFormModal } from "@/features/booklists/components/BooklistFormModal";
+import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
+import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
+import { FluidDivider } from "@/shared/ui/FluidDivider";
 import {
   toPreferencesFormValue,
   toPreferencesUpdatePayload,
   type PreferencesFormValue,
-} from '@/features/preferences/lib/preferencesMapper';
-import { MeBooklistsSection, type BooklistSubTab } from '@/pages/MePage/MeBooklistsSection';
-import { MeFollowsSection } from '@/pages/MePage/MeFollowsSection';
-import { MeHistorySection } from '@/pages/MePage/MeHistorySection';
-import { MePageHeader, type MePageTabOption } from '@/pages/MePage/MePageHeader';
-import { MePreferencesSection } from '@/pages/MePage/MePreferencesSection';
-import { MeThreadsSection } from '@/pages/MePage/MeThreadsSection';
-import { useChannels } from '@/shared/hooks/useChannels';
-import { GUILD_ID } from '@/shared/config/channelCategories.private';
-import { clearBrowseHistory, getBrowseHistory, removeBrowseHistory } from '@/shared/lib/browseHistory';
-import { notifyError, notifySuccess } from '@/shared/lib/notify';
+} from "@/features/preferences/lib/preferencesMapper";
+import {
+  MeBooklistsSection,
+  type BooklistSubTab,
+} from "@/pages/MePage/MeBooklistsSection";
+import { MeFollowsSection } from "@/pages/MePage/MeFollowsSection";
+import { MeHistorySection } from "@/pages/MePage/MeHistorySection";
+import {
+  MePageHeader,
+  type MePageTabOption,
+} from "@/pages/MePage/MePageHeader";
+import { MePreferencesSection } from "@/pages/MePage/MePreferencesSection";
+import { MeThreadsSection } from "@/pages/MePage/MeThreadsSection";
+import { useChannels } from "@/shared/hooks/useChannels";
+import { GUILD_ID } from "@/shared/config/channelCategories.private";
+import {
+  clearBrowseHistory,
+  getBrowseHistory,
+  removeBrowseHistory,
+} from "@/shared/lib/browseHistory";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 
-type MeTab = 'booklists' | 'follows' | 'threads' | 'history' | 'preferences';
+type MeTab = "booklists" | "follows" | "threads" | "history" | "preferences";
 
 const DEFAULT_FORM: PreferencesFormValue = {
   preferredChannelIds: [],
-  includeTagsText: '',
-  excludeTagsText: '',
-  includeKeywordsText: '',
-  excludeKeywordsText: '',
-  previewImageMode: 'thumbnail',
+  includeTagsText: "",
+  excludeTagsText: "",
+  includeKeywordsText: "",
+  excludeKeywordsText: "",
+  previewImageMode: "thumbnail",
   resultsPerPage: 24,
-  sortMethod: 'last_active_desc',
+  sortMethod: "last_active_desc",
 };
 
 const tabOptions: MePageTabOption[] = [
-  { key: 'booklists', label: '书单', icon: BookOpen },
-  { key: 'follows', label: '关注', icon: Bookmark },
-  { key: 'threads', label: '创建', icon: FileText },
-  { key: 'history', label: '足迹', icon: Eye },
-  { key: 'preferences', label: '偏好', icon: Settings2 },
+  { key: "booklists", label: "书单", icon: BookOpen },
+  { key: "follows", label: "关注", icon: Bookmark },
+  { key: "threads", label: "创建", icon: FileText },
+  { key: "history", label: "足迹", icon: Eye },
+  { key: "preferences", label: "偏好", icon: Settings2 },
 ];
 
 function parseTab(value: string | null): MeTab {
-  if (value === 'booklists' || value === 'follows' || value === 'threads' || value === 'history' || value === 'preferences') {
+  if (
+    value === "booklists" ||
+    value === "follows" ||
+    value === "threads" ||
+    value === "history" ||
+    value === "preferences"
+  ) {
     return value;
   }
-  return 'booklists';
+  return "booklists";
 }
 
 function parseBooklistSubTab(value: string | null): BooklistSubTab {
-  return value === 'collected' ? 'collected' : 'mine';
+  return value === "collected" ? "collected" : "mine";
 }
 
 export function MePage() {
@@ -74,8 +97,8 @@ export function MePage() {
   const { user } = useAuth();
   const { openPreview, openPreviewById } = usePreviewThread();
 
-  const tab = parseTab(searchParams.get('tab'));
-  const booklistSubTab = parseBooklistSubTab(searchParams.get('booklists'));
+  const tab = parseTab(searchParams.get("tab"));
+  const booklistSubTab = parseBooklistSubTab(searchParams.get("booklists"));
 
   const [showCreateBooklist, setShowCreateBooklist] = useState(false);
   const [editingBooklist, setEditingBooklist] = useState<Booklist | null>(null);
@@ -98,37 +121,45 @@ export function MePage() {
   }, [preferences, isDirty]);
 
   useEffect(() => {
-    if (tab === 'history') {
+    if (tab === "history") {
       // Allow DOM to update first
       setTimeout(() => {
-        document.getElementById('history-section')?.scrollIntoView({ behavior: 'smooth' });
+        document
+          .getElementById("history-section")
+          ?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
   }, [tab]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
-      if (event.key && event.key !== 'odysseia_browse_history') return;
+      if (event.key && event.key !== "odysseia_browse_history") return;
       setBrowseHistoryVersion((value) => value + 1);
     };
 
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const { data: channelsData } = useChannels();
-  const channelOptions = useMemo(() => channelsData?.channels || [], [channelsData?.channels]);
+  const channelOptions = useMemo(
+    () => channelsData?.channels || [],
+    [channelsData?.channels],
+  );
   const { data: channelTagCatalog = [] } = useQuery({
-    queryKey: ['me', 'preferences', 'channel-tag-catalog'],
+    queryKey: ["me", "preferences", "channel-tag-catalog"],
     queryFn: () => searchApi.getChannelTagCatalog(),
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
   const availablePreferenceTags = useMemo(() => {
     const preferredChannels = new Set(form.preferredChannelIds);
-    const scopedCatalog = preferredChannels.size > 0
-      ? channelTagCatalog.filter((channel) => preferredChannels.has(channel.channel_id))
-      : channelTagCatalog;
+    const scopedCatalog =
+      preferredChannels.size > 0
+        ? channelTagCatalog.filter((channel) =>
+            preferredChannels.has(channel.channel_id),
+          )
+        : channelTagCatalog;
 
     const tagSet = new Set<string>();
     for (const channel of scopedCatalog) {
@@ -146,12 +177,12 @@ export function MePage() {
   const followsQuery = useFollowsFeed();
 
   const createdThreadsQuery = useQuery({
-    queryKey: ['me', 'threads', user?.id],
+    queryKey: ["me", "threads", user?.id],
     enabled: Boolean(user?.id),
     queryFn: () =>
       searchApi.search({
         include_authors: user?.id ? [user.id] : [],
-        sort_method: 'created_desc',
+        sort_method: "created_desc",
         limit: 36,
       }),
     staleTime: 60 * 1000,
@@ -165,41 +196,54 @@ export function MePage() {
 
   const createMutation = useCreateBooklist(() => setShowCreateBooklist(false));
 
-  const updateMutation = useUpdateBooklist(undefined, () => setEditingBooklist(null));
+  const updateMutation = useUpdateBooklist(undefined, () =>
+    setEditingBooklist(null),
+  );
 
   const deleteMutation = useDeleteBooklist();
 
   const createdThreads = (createdThreadsQuery.data?.results || []) as Thread[];
-  const browseHistory = useMemo(() => getBrowseHistory(), [browseHistoryVersion]);
+  const browseHistory = useMemo(
+    () => getBrowseHistory(),
+    [browseHistoryVersion],
+  );
   const followedThreads = useMemo(() => {
     const threads = followsQuery.data?.results || [];
-    const selectedFollowChannel = searchParams.get('channel');
+    const selectedFollowChannel = searchParams.get("channel");
     if (!selectedFollowChannel) return threads;
-    return threads.filter((thread) => String(thread.channel_id) === String(selectedFollowChannel));
+    return threads.filter(
+      (thread) => String(thread.channel_id) === String(selectedFollowChannel),
+    );
   }, [followsQuery.data?.results, searchParams]);
-  const totalReactions = createdThreads.reduce((sum, item) => sum + (Number(item.reaction_count) || 0), 0);
-  const totalReplies = createdThreads.reduce((sum, item) => sum + (Number(item.reply_count) || 0), 0);
+  const totalReactions = createdThreads.reduce(
+    (sum, item) => sum + (Number(item.reaction_count) || 0),
+    0,
+  );
+  const totalReplies = createdThreads.reduce(
+    (sum, item) => sum + (Number(item.reply_count) || 0),
+    0,
+  );
   const totalFollows = followsQuery.data?.total || 0;
   const totalBooklists = myBooklistsQuery.data?.total || 0;
 
   const stats = [
     {
-      label: '我的书单',
+      label: "我的书单",
       value: totalBooklists,
       icon: BookOpen,
     },
     {
-      label: '我的关注',
+      label: "我的关注",
       value: totalFollows,
       icon: Bookmark,
     },
     {
-      label: '我的帖子',
+      label: "我的帖子",
       value: createdThreadsQuery.data?.total || 0,
       icon: FileText,
     },
     {
-      label: '累计点赞',
+      label: "累计点赞",
       value: totalReactions,
       icon: Heart,
     },
@@ -207,14 +251,14 @@ export function MePage() {
 
   const setTab = (next: MeTab) => {
     const sp = new URLSearchParams(searchParams);
-    sp.set('tab', next);
+    sp.set("tab", next);
     setSearchParams(sp, { replace: true });
   };
 
   const setBooklistSubTab = (next: BooklistSubTab) => {
     const sp = new URLSearchParams(searchParams);
-    sp.set('tab', 'booklists');
-    sp.set('booklists', next);
+    sp.set("tab", "booklists");
+    sp.set("booklists", next);
     setSearchParams(sp, { replace: true });
   };
 
@@ -236,15 +280,25 @@ export function MePage() {
       const payload = toPreferencesUpdatePayload(form);
       await savePreferences(payload);
       setIsDirty(false);
-      notifySuccess('偏好已保存');
+      notifySuccess("偏好已保存");
     } catch {
-      notifyError('保存偏好失败');
+      notifyError("保存偏好失败");
     }
   };
 
-  const activeBooklists = booklistSubTab === 'mine'
-    ? myBooklistsQuery.data?.results || []
-    : collectedBooklistsQuery.data?.results || [];
+  const activeBooklists = useMemo(() => {
+    if (booklistSubTab === "mine") {
+      return myBooklistsQuery.data?.results || [];
+    }
+    return (collectedBooklistsQuery.data?.results || []).map((item) => ({
+      ...item,
+      collected_flag: true,
+    }));
+  }, [
+    booklistSubTab,
+    collectedBooklistsQuery.data?.results,
+    myBooklistsQuery.data?.results,
+  ]);
 
   return (
     <>
@@ -262,11 +316,13 @@ export function MePage() {
           />
         </section>
 
-        {tab === 'booklists' && (
+        {tab === "booklists" && (
           <MeBooklistsSection
             activeBooklists={activeBooklists}
             collectLoading={collectMutation.isPending}
-            isLoading={myBooklistsQuery.isLoading || collectedBooklistsQuery.isLoading}
+            isLoading={
+              myBooklistsQuery.isLoading || collectedBooklistsQuery.isLoading
+            }
             subTab={booklistSubTab}
             userId={user?.id}
             onCreate={() => setShowCreateBooklist(true)}
@@ -282,21 +338,24 @@ export function MePage() {
             }}
             onSetSubTab={setBooklistSubTab}
             onToggleCollect={(item) => {
-              collectMutation.mutate({ id: item.id, collected: Boolean(item.collected_flag) });
+              collectMutation.mutate({
+                id: item.id,
+                collected: Boolean(item.collected_flag),
+              });
             }}
           />
         )}
 
-        {tab === 'follows' && (
+        {tab === "follows" && (
           <MeFollowsSection
             hasAnyResults={(followsQuery.data?.results?.length || 0) > 0}
             isError={followsQuery.isError}
             isLoading={followsQuery.isLoading}
-            selectedChannel={searchParams.get('channel')}
+            selectedChannel={searchParams.get("channel")}
             threads={followedThreads}
             onClearChannel={() => {
               const nextParams = new URLSearchParams(searchParams);
-              nextParams.delete('channel');
+              nextParams.delete("channel");
               setSearchParams(nextParams, { replace: true });
             }}
             onPreview={openPreview}
@@ -304,7 +363,7 @@ export function MePage() {
           />
         )}
 
-        {tab === 'threads' && (
+        {tab === "threads" && (
           <MeThreadsSection
             isLoading={createdThreadsQuery.isLoading}
             threads={createdThreads}
@@ -316,7 +375,7 @@ export function MePage() {
           />
         )}
 
-        {tab === 'history' && (
+        {tab === "history" && (
           <MeHistorySection
             historyItems={browseHistory}
             onClear={() => {
@@ -332,7 +391,7 @@ export function MePage() {
           />
         )}
 
-        {tab === 'preferences' && (
+        {tab === "preferences" && (
           <MePreferencesSection
             availablePreferenceTags={availablePreferenceTags}
             channelOptions={channelOptions}
@@ -368,7 +427,6 @@ export function MePage() {
           updateMutation.mutate({ id: editingBooklist.id, payload });
         }}
       />
-
     </>
   );
 }
