@@ -1,6 +1,8 @@
 import { ReactNode, useEffect, useRef } from 'react';
-import { useTheme } from '@/shared/hooks/useTheme';
+
+import { WallpaperBackdrop } from '@/app/themes/WallpaperBackdrop';
 import { useThemeSettings } from '@/shared/hooks/useSettings';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 const loadedFontLinks = new Map<string, HTMLLinkElement>();
 
@@ -196,14 +198,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     root.setAttribute('data-od-wallpaper', hasWallpaper ? 'on' : 'off');
     root.setAttribute('data-od-backgroundless', settings.backgroundlessMode ? 'on' : 'off');
 
-    if (hasWallpaper) {
-      const escapedUrl = wallpaperUrl.replace(/"/g, '\\"');
-      root.style.setProperty('--od-wallpaper-image', `url("${escapedUrl}")`);
-      root.style.setProperty('--od-wallpaper-opacity', '1');
-    } else {
-      root.style.setProperty('--od-wallpaper-image', 'none');
-      root.style.setProperty('--od-wallpaper-opacity', '0');
-    }
+    // 背景图的实际渲染交给 <WallpaperBackdrop/>（通过真实 DOM + inline style 挂 url，
+    // 规避超长 base64 data URL 经由 CSS 自定义属性 + var() 展开时被部分浏览器静默回退的问题）。
+    // 因此这里始终把 body::before 的 wallpaper 图像关掉，仅保留 ::after 的暗化层。
+    root.style.setProperty('--od-wallpaper-image', 'none');
+    root.style.setProperty('--od-wallpaper-opacity', '0');
 
     // 方便调试：在 html 标签上标记当前主题
     root.setAttribute('data-od-theme', currentTheme);
@@ -328,5 +327,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     };
   }, [theme, currentTheme, settings.fontMode, settings.backgroundImageEnabled, settings.backgroundImageOpacity, settings.backgroundImageUrl, settings.backgroundImageBase64, settings.glassMode, settings.glassBlur, settings.backgroundlessMode]);
 
-  return <>{children}</>;
+  return (
+    <>
+      <WallpaperBackdrop />
+      {children}
+    </>
+  );
 }

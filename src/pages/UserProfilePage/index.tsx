@@ -1,29 +1,99 @@
-import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, Heart, MessageCircle, RefreshCw } from 'lucide-react';
+import { ArrowUpDown, FileText, Filter, Heart, MessageCircle, RefreshCw, X } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
-import { searchApi } from '@/features/search/api/searchApi';
-import { authorsApi } from '@/features/authors/api/authorsApi';
 import { ThreadResultsCollection } from '@/entities/thread/ThreadResultsCollection';
 import type { Thread } from '@/entities/thread/types';
 import { UserHeaderCard } from '@/entities/user/UserHeaderCard';
 import { UserStatsGrid } from '@/entities/user/UserStatsGrid';
+import { authorsApi } from '@/features/authors/api/authorsApi';
+import { searchApi, type UISortMethod } from '@/features/search/api/searchApi';
 import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
+import { useChannels } from '@/shared/hooks/useChannels';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
+
+// ─── 排序选项 ───────────────────────────────────────────────
+const SORT_OPTIONS: { value: UISortMethod; label: string }[] = [
+  { value: 'created_desc', label: '最新发布' },
+  { value: 'last_active_desc', label: '最近活跃' },
+  { value: 'reaction_desc', label: '点赞最多' },
+  { value: 'reply_desc', label: '回复最多' },
+  { value: 'relevance', label: '综合排序' },
+];
+
+const DEFAULT_SORT: UISortMethod = 'created_desc';
+
+// ─── URL 参数读写辅助 ────────────────────────────────────────
+function parseSortParam(raw: string | null): UISortMethod {
+  if (raw && SORT_OPTIONS.some((o) => o.value === raw)) return raw as UISortMethod;
+  return DEFAULT_SORT;
+}
+
+function parseChannelsParam(raw: string | null): string[] {
+  if (!raw) return [];
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+function serializeChannels(ids: string[]): string {
+  return ids.join(',');
+}
 
 export function UserProfilePage() {
   const { userId } = useParams();
   const { openPreview } = usePreviewThread();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  // ─── 从 URL 读取排序 & 频道筛选状态 ──────────────────────
+  const sortMethod = parseSortParam(searchParams.get('sort'));
+  const selectedChannelIds = useMemo(() => parseChannelsParam(searchParams.get('channels')), [searchParams]);
+
+  const setSort = useCallback(
+    (next: UISortMethod) => {
+      setSearchParams((prev) => {
+        const p = new URLSearchParams(prev);
+        if (next === DEFAULT_SORT) p.delete('sort');
+        else p.set('sort', next);
+        return p;
+      }, { replace: true });
+    },
+    [setSearchParams],
+  );
+
+  const toggleChannel = useCallback(
+    (channelId: string) => {
+      setSearchParams((prev) => {
+        const p = new URLSearchParams(prev);
+        const current = parseChannelsParam(p.get('channels'));
+        const next = current.includes(channelId)
+          ? current.filter((id) => id !== channelId)
+          : [...current, channelId];
+        if (next.length === 0) p.delete('channels');
+        else p.set('channels', serializeChannels(next));
+        return p;
+      }, { replace: true });
+    },
+    [setSearchParams],
+  );
+
+  const clearChannels = useCallback(() => {
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      p.delete('channels');
+      return p;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // ─── 数据请求 ────────────────────────────────────────────
   const threadsQuery = useQuery({
-    queryKey: ['user-profile', userId, 'threads'],
+    queryKey: ['user-profile', userId, 'threads', sortMethod, selectedChannelIds],
     enabled: Boolean(userId),
     queryFn: () =>
       searchApi.search({
         include_authors: userId ? [userId] : [],
         author_name: userId || undefined,
-        sort_method: 'created_desc',
+        sort_method: sortMethod,
+        channel_ids: selectedChannelIds.length > 0 ? selectedChannelIds : undefined,
         limit: 48,
       }),
     staleTime: 60 * 1000,
@@ -36,18 +106,20 @@ export function UserProfilePage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: channelsData } = useChannels();
+
   const threads = useMemo(() => ((threadsQuery.data?.results || []) as Thread[]), [threadsQuery.data?.results]);
-  
+
   // 优先使用 profile 接口返回的权威元数据
   const profile = profileQuery.data;
   const authorFromThreads = threads[0]?.author;
-  
+
   const authorName =
-    profile?.display_name || 
-    profile?.global_name || 
-    authorFromThreads?.display_name || 
-    authorFromThreads?.global_name || 
-    authorFromThreads?.name || 
+    profile?.display_name ||
+    profile?.global_name ||
+    authorFromThreads?.display_name ||
+    authorFromThreads?.global_name ||
+    authorFromThreads?.name ||
     (userId ? `作者 ${userId}` : '未知作者');
 
   const stats = [
@@ -72,6 +144,20 @@ export function UserProfilePage() {
       icon: RefreshCw,
     },
   ];
+
+  // ─── 频道列表（用于多选 chips） ───────────────────────────
+  const channelOptions = useMemo(() => {
+    if (!channelsData?.channels) return [];
+    return channelsData.channels
+      .map((c) => ({ id: c.id, name: c.name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+  }, [channelsData?.channels]);
+
+  const channelNameMap = useMemo(() => {
+    const m = new Map<string, string>();
+    channelOptions.forEach((c) => m.set(c.id, c.name));
+    return m;
+  }, [channelOptions]);
 
   return (
     <>
@@ -111,6 +197,85 @@ export function UserProfilePage() {
 
         <section className="px-1">
           <FluidDivider label="Threads" className="mb-8" />
+
+          {/* ─── 排序 & 频道筛选工具条 ─────────────────────── */}
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 排序 */}
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-3.5 w-3.5 text-[var(--od-text-tertiary)]" />
+                <div className="flex flex-wrap gap-1.5">
+                  {SORT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSort(opt.value)}
+                      data-active={sortMethod === opt.value}
+                      className="od-option-inline rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 频道多选 */}
+            <div className="flex flex-wrap items-start gap-2">
+              <Filter className="mt-1 h-3.5 w-3.5 flex-shrink-0 text-[var(--od-text-tertiary)]" />
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={clearChannels}
+                  data-active={selectedChannelIds.length === 0}
+                  className="od-option-inline rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                >
+                  全部频道
+                </button>
+                {channelOptions.map((ch) => (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => toggleChannel(ch.id)}
+                    data-active={selectedChannelIds.includes(ch.id)}
+                    className="od-option-inline rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                  >
+                    {ch.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 已选频道指示器 */}
+            {selectedChannelIds.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--od-text-secondary)]">
+                <span className="font-medium text-[var(--od-text-label)]">已选频道：</span>
+                {selectedChannelIds.map((id) => (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--od-accent)_12%,transparent)] px-2.5 py-0.5 text-[var(--od-text-primary)]"
+                  >
+                    {channelNameMap.get(id) || id}
+                    <button
+                      type="button"
+                      onClick={() => toggleChannel(id)}
+                      className="text-[var(--od-text-tertiary)] transition-colors hover:text-[var(--od-text-primary)]"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  type="button"
+                  onClick={clearChannels}
+                  className="text-[var(--od-text-tertiary)] underline underline-offset-2 transition-colors hover:text-[var(--od-text-primary)]"
+                >
+                  清除
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--od-text-secondary)]">
             <FileText className="h-4 w-4 text-[var(--od-accent)]" />
             <span>这位作者的帖子</span>
@@ -120,6 +285,13 @@ export function UserProfilePage() {
             <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
             <MessageCircle className="h-4 w-4" />
             <span>{profile?.stats.reply_count ?? '-'}</span>
+            {threadsQuery.data?.total != null && (
+              <>
+                <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
+                <span className="font-medium text-[var(--od-text-value)]">{threadsQuery.data.total}</span>
+                <span>条结果</span>
+              </>
+            )}
           </div>
 
           {threadsQuery.isLoading ? (

@@ -1,30 +1,30 @@
-import {
-  X,
-  MessageCircle,
-  ThumbsUp,
-  Calendar,
-  Hash,
-  User,
-  Eye,
-  Clock3,
-} from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { useCallback, useEffect, useState, useRef } from "react";
+import {
+    Calendar,
+    Clock3,
+    Eye,
+    Hash,
+    MessageCircle,
+    ThumbsUp,
+    User,
+    X,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { MarkdownText } from "@/shared/ui/MarkdownText";
 import { ImageCarousel } from "@/entities/thread/ImageCarousel";
-import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
-import { ThreadActions } from "@/features/threads/components/ThreadActions";
 import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
 import type { Thread } from "@/entities/thread/types";
-import { useFontSizeSetting } from "@/shared/hooks/useSettings";
-import { fontSizeMap } from "@/shared/lib/settings";
-import { useLockBodyScroll } from "@/shared/hooks/useLockBodyScroll";
-import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
-import { addToken } from "@/shared/lib/searchTokenizer";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
+import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
+import { ThreadActions } from "@/features/threads/components/ThreadActions";
+import { useLockBodyScroll } from "@/shared/hooks/useLockBodyScroll";
+import { useFontSizeSetting } from "@/shared/hooks/useSettings";
+import { addToken } from "@/shared/lib/searchTokenizer";
+import { fontSizeMap } from "@/shared/lib/settings";
+import { MarkdownText } from "@/shared/ui/MarkdownText";
 
 import { createPortal } from "react-dom";
 
@@ -140,7 +140,7 @@ return createPortal(
                     navigate(`/u/${thread.author!.id}`);
                   }}
                   className="shrink-0"
-                  title={`查看作者主页：`}
+                  title={`查看作者主页：${authorName}`}
                 >
                   <AuthorAvatar
                     author={thread.author}
@@ -159,7 +159,7 @@ return createPortal(
                       navigate(`/u/${thread.author!.id}`);
                     }}
                     className="truncate text-left font-bold text-[var(--od-text-primary)] hover:text-[var(--od-accent)] hover:underline"
-                    title={`查看作者主页：`}
+                    title={`查看作者主页：${authorName}`}
                   >
                     {authorName}
                   </button>

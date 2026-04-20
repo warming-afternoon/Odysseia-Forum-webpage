@@ -1,30 +1,30 @@
-import {
-  MessageCircle,
-  ThumbsUp,
-  Image as ImageIcon,
-  Eye,
-  Calendar,
-  Clock3,
-} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { useEffect, useMemo, useRef, useState, memo } from "react";
+import {
+    Calendar,
+    Clock3,
+    Eye,
+    Image as ImageIcon,
+    MessageCircle,
+    ThumbsUp,
+} from "lucide-react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { HighlightText } from "@/shared/ui/HighlightText";
-import { DiscordMarkdownText } from "@/shared/ui/DiscordMarkdownText";
+import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
 import type { Thread } from "@/entities/thread/types";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
+import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
 import { ThreadActions } from "@/features/threads/components/ThreadActions";
 import { subscribeThreadThumbnailRepair } from "@/features/threads/lib/thumbnailRepairQueue";
-import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
-import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
 import {
-  useFontSizeSetting,
-  useCardSizeSetting,
+    useCardSizeSetting,
+    useFontSizeSetting,
 } from "@/shared/hooks/useSettings";
 import { fontSizeMap } from "@/shared/lib/settings";
+import { DiscordMarkdownText } from "@/shared/ui/DiscordMarkdownText";
+import { HighlightText } from "@/shared/ui/HighlightText";
 import { LazyImage } from "@/shared/ui/LazyImage";
-import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
 
 interface ThreadCardProps {
   thread: Thread;
@@ -206,7 +206,7 @@ function ThreadCardImpl({
                   <span
                     ref={titleTrackRef}
                     style={{
-                      ["--od-marquee-distance" as string]: `px`,
+                      ["--od-marquee-distance" as string]: `${titleShift}px`,
                       ["--od-marquee-gap" as string]: "1.75rem",
                       ["--od-marquee-duration" as string]: `${Math.max(5, titleShift / 22)}s`,
                     }}
@@ -242,7 +242,7 @@ function ThreadCardImpl({
           </div>
 
           <div
-            className={`relative w-full overflow-hidden rounded-[1.45rem] border border-[var(--od-shell-line)] bg-[var(--od-surface-shell)] shadow-[var(--od-shadow-soft)] `}
+            className={`relative w-full overflow-hidden rounded-[1.45rem] border border-[var(--od-shell-line)] bg-[var(--od-surface-shell)] shadow-[var(--od-shadow-soft)] ${mediaAspectClass}`}
           >
             {thumbnailSrc ? (
               <LazyImage
@@ -321,7 +321,7 @@ function ThreadCardImpl({
                   )}
                   {virtualOnlyTags.slice(0, 2).map((tag) => (
                     <span
-                      key={`vt-`}
+                      key={`vt-${tag}`}
                       className="rounded-md border border-cyan-200/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-500"
                     >
                       ~{tag}

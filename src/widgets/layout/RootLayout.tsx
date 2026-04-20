@@ -1,13 +1,13 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import { ResizableSidebar } from '@/widgets/sidebar/ResizableSidebar';
-import { AppSidebar } from '@/widgets/layout/AppSidebar';
-import { TopBar } from '@/widgets/layout/TopBar';
-import { MobileTabBar } from '@/widgets/layout/MobileTabBar';
 import { MascotBar } from '@/features/mascot/components/MascotBar';
+import { useSettings, useSidebarCollapsedSetting } from '@/shared/hooks/useSettings';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
+import { AppSidebar } from '@/widgets/layout/AppSidebar';
+import { MobileTabBar } from '@/widgets/layout/MobileTabBar';
+import { TopBar } from '@/widgets/layout/TopBar';
+import { ResizableSidebar } from '@/widgets/sidebar/ResizableSidebar';
 import { GlobalThreadPreview } from '@/widgets/thread-preview/GlobalThreadPreview';
-import { useSidebarCollapsedSetting, useSettings } from '@/shared/hooks/useSettings';
 import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 
 /**
  * AppShell — 全站布局骨架
@@ -76,7 +76,6 @@ export function RootLayout() {
           <div className="pointer-events-none absolute left-0 right-0 top-0 z-0 hidden h-24 rounded-tl-[2.5rem] bg-gradient-to-b from-white/[0.02] to-transparent sm:block" />
           <main
             id="main-scroll-container"
-            role="main"
             tabIndex={-1}
             className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0 focus:outline-none flex flex-col"
           >

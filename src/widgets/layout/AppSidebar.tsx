@@ -1,24 +1,24 @@
 import ServerIcon from '@/assets/images/icon/A90C044F8DDF1959B2E9078CB629C239.png';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSearchURLParams } from '@/features/search/hooks/useSearchParams';
-import { clearStoredAuthToken } from '@/shared/lib/authSession';
 import { useChannels } from '@/shared/hooks/useChannels';
+import { clearStoredAuthToken } from '@/shared/lib/authSession';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { AnimatedIcon } from '@/shared/ui/animation/AnimatedIcon';
 import { WordLogoStatic } from '@/shared/ui/loaders/WordLogoStatic';
 import {
-  BookOpen,
-  Compass,
-  Dices,
-  Info,
-  LogOut,
-  Search as SearchIcon,
-  Settings,
-  Tag as TagIcon,
-  TestTube,
+    BookOpen,
+    Compass,
+    Dices,
+    Info,
+    LogOut,
+    Search as SearchIcon,
+    Settings,
+    Tag as TagIcon,
+    TestTube,
 } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export function AppSidebar() {
   const { user } = useAuth();
@@ -103,7 +103,7 @@ export function AppSidebar() {
     }`;
 
   return (
-    <nav role="navigation" className="flex h-full flex-col">
+    <nav className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-3 py-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md">
           <img src={ServerIcon} alt="Server Icon" className="h-full w-full object-cover" />

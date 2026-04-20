@@ -1,35 +1,35 @@
 import { NotificationCenter } from "@/features/notifications/components/NotificationCenter";
-import {
-  SearchSuggestions,
-  type SearchSuggestionAction,
-} from "@/features/search/components/SearchSuggestions";
+import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
+import { getPreferenceTagState } from "@/features/preferences/lib/discoveryPreferences";
 import { SearchFilterPanel } from "@/features/search/components/SearchFilterPanel";
-import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
-import type {
-  SortMethod,
-  TagLogic,
-} from "@/features/search/hooks/useSearchParams";
+import {
+    SearchSuggestions,
+    type SearchSuggestionAction,
+} from "@/features/search/components/SearchSuggestions";
 import { useSearchAutocomplete } from "@/features/search/hooks/useSearchAutocomplete";
+import type {
+    SortMethod,
+    TagLogic,
+} from "@/features/search/hooks/useSearchParams";
+import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
 import { useTopBarFilterState } from "@/features/search/hooks/useTopBarFilterState";
 import { useTopBarSearchController } from "@/features/search/hooks/useTopBarSearchController";
 import { usePreviewStore } from "@/features/search/store/previewStore";
-import { getPreferenceTagState } from "@/features/preferences/lib/discoveryPreferences";
-import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { SearchTokenInput } from "@/shared/ui/SearchTokenInput";
 import { AnimatedIcon } from "@/shared/ui/animation/AnimatedIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bell,
-  Compass,
-  Eye,
-  Hash,
-  Menu,
-  Search,
-  Settings as SettingsIcon,
-  SlidersHorizontal,
-  User,
-  X,
+    Bell,
+    Compass,
+    Eye,
+    Hash,
+    Menu,
+    Search,
+    Settings as SettingsIcon,
+    SlidersHorizontal,
+    User,
+    X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -229,7 +229,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
 
   return (
     <header
-      role="banner"
       className={`fixed left-0 right-0 top-0 z-40 flex h-[3.25rem] shrink-0 items-center justify-between bg-transparent px-3 transition-[left] duration-300 sm:h-[4.25rem] sm:px-4 ${
         sidebarCollapsed ? "lg:left-0" : "lg:left-[170px]"
       }`}
