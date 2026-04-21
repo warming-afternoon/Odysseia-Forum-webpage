@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion';
+import { motion, AnimatePresence, HTMLMotionProps } from 'motion/react';
 import { fadeVariants, slideUpVariants, scaleVariants, springs } from './variants';
 
 interface TransitionProps extends HTMLMotionProps<"div"> {

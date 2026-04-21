@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   describeSearchHistoryContext,
   type SearchHistoryItem,
@@ -54,7 +54,7 @@ interface SearchSuggestionsProps {
   onClose: () => void;
   onRemoveHistory?: (item: SearchHistoryItem) => void;
   onClearHistory?: () => void;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
   embedded?: boolean;
   preferenceAware?: boolean;
 }

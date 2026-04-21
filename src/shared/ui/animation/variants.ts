@@ -1,11 +1,11 @@
-import { Variants } from 'framer-motion';
+import { Variants } from 'motion/react';
 
 // 弹簧物理配置
 export const springs = {
-    stiff: { type: "spring", stiffness: 300, damping: 20 }, // 硬朗，适合小元素
-    soft: { type: "spring", stiffness: 100, damping: 20 },  // 柔和，适合大布局
-    bouncy: { type: "spring", stiffness: 400, damping: 10 }, // Q弹，适合强调
-    gentle: { type: "spring", stiffness: 120, damping: 14 }, // 温和，通用
+    stiff: { type: "spring", stiffness: 300, damping: 20 } as const, // 硬朗，适合小元素
+    soft: { type: "spring", stiffness: 100, damping: 20 } as const,  // 柔和，适合大布局
+    bouncy: { type: "spring", stiffness: 400, damping: 10 } as const, // Q弹，适合强调
+    gentle: { type: "spring", stiffness: 120, damping: 14 } as const, // 温和，通用
 };
 
 // 通用变体

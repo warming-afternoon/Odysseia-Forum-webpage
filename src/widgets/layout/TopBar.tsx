@@ -17,7 +17,7 @@ import { usePreviewStore } from "@/features/search/store/previewStore";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { SearchTokenInput } from "@/shared/ui/SearchTokenInput";
 import { AnimatedIcon } from "@/shared/ui/animation/AnimatedIcon";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
     Bell,
     Compass,

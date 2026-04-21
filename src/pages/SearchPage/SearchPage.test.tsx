@@ -5,7 +5,7 @@ import { SearchPage } from './index';
 import { useSearchURLParams } from '@/features/search/hooks/useSearchParams';
 
 // Mock 子组件和动画以简化环境
-vi.mock('framer-motion', () => ({
+vi.mock('motion/react', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
     h1: ({ children, ...props }: any) => <h1 {...props}>{children}</h1>,

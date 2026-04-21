@@ -1,4 +1,4 @@
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation } from 'motion/react';
 import { LucideIcon, LucideProps } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { springs } from './variants';
@@ -112,7 +112,7 @@ export function AnimatedIcon({
         return controls;
     };
 
-    const getTransition = () => {
+    const getTransition = (): any => {
         if (animation === 'spin') {
             return { duration: 1, ease: "linear", repeat: Infinity };
         }

@@ -1,4 +1,4 @@
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'motion/react';
 import { springs } from './variants';
 
 interface MotionWrapperProps extends HTMLMotionProps<"div"> {

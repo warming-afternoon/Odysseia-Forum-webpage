@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { RefreshCw, X, ChevronRight, ChevronLeft, Calendar } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 
 import type { Thread } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
@@ -150,7 +150,7 @@ export function DrawRevealOverlay({
   const activeThread = results[currentIndex] || null;
 
   // Animation constants matching reference `sine.inOut` and timing
-  const SINE_EASE = [0.445, 0.05, 0.55, 0.95];
+  const SINE_EASE = [0.445, 0.05, 0.55, 0.95] as any;
 
   return createPortal(
     <LayoutGroup>
