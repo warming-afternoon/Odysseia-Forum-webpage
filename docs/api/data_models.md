@@ -69,7 +69,11 @@
 - `exclude_authors: Optional[List[int]]`
   - 屏蔽这些作者的帖子。
 - `author_name: Optional[str]`
-  - 模糊搜索作者全局昵称或用户名。
+  - 模糊搜索作者全局昵称或用户名。**(前端已弃用此字段，改用在 `keywords` 中拼接 `author:"name"` 的方式向后端传递)**
+- `search_by_collection: Optional[bool]`
+  - 仅搜索当前用户收藏的帖子。
+- `exclude_thread_ids: Optional[List[int]]`
+  - 排除已展示的帖子 ID 列表。**(注意：受限于 JS 64 位整数精度，前端在请求中统一以 `string[]` 格式传递，依赖后端 Pydantic 自动转换为整型)**
 - `created_after / created_before: Optional[str]`
   - 发帖时间范围，支持绝对日期（`YYYY-MM-DD`）或相对时间（如 `-7d`）。
 - `active_after / active_before: Optional[str]`
@@ -93,7 +97,7 @@
 - `limit: int`
   - 每页返回数量，范围 1–100，默认 10。
 - `exclude_thread_ids: Optional[List[int]]`
-  - 已在前端展示的帖子 ID 列表，用于去重或无缝滚动。
+  - 已在前端展示的帖子 ID 列表，用于去重或无缝滚动。当使用此参数时，必须将 offset 设置为 0，防止后端在排除后的集合基础上产生跳页。
 - `search_by_collection: Optional[bool]`
   - 是否仅搜索当前用户已收藏的帖子。对应 Discord Bot 端的 `/查看收藏` 指令。
 - `offset: int`

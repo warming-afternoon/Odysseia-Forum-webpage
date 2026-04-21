@@ -79,7 +79,7 @@
     "sort_method": "comprehensive (可选)",
     "sort_order": "desc (可选)",
     "limit": 24,
-    "exclude_thread_ids": ["int (可选)"],
+    "exclude_thread_ids": ["string (可选)"],
     "search_by_collection": false
   }
   ```
@@ -500,7 +500,7 @@ const channelId: number = 1393246224072839168;
 
 1. **认证**: 始终在请求头中携带 `Authorization: Bearer <TOKEN>`
 2. **ID 处理**: 使用字符串存储和传输所有 Discord IDs
-3. **分页**: 使用 `exclude_thread_ids` 而非 `offset` 实现无缝滚动
+3. **分页**: 使用 `exclude_thread_ids`（传递 string 数组防丢失）而非 `offset` 实现无缝滚动。并且使用 `exclude_thread_ids` 时，须将 `offset` 保持为 0。
 4. **缓存**: 合理设置 `staleTime` 避免过度请求
 5. **错误处理**: 捕获 401 状态码并重定向到登录页
 6. **帖子删除**: 后端自动处理已删除帖子的隐藏，前端无需额外过滤

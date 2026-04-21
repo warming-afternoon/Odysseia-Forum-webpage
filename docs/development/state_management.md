@@ -63,6 +63,8 @@ export const useSearchStore = create<SearchUIState>()((set, get) => ({
 }));
 ```
 
+*(注：V2 重构后，原先在此 Store 中的“帖子预览”等复杂业务逻辑已通过 `previewStore.ts` 彻底解耦，而查询条件等状态则由 URL 参数系统全面接管。)*
+
 ### 3.2 使用规范 (防重渲染)
 
 由于 Zustand 是外部 store，在组件中使用时请**仅提取当前组件真正需要的字段**。这样可以避免不相关的状态改变触发整个组件的重渲染。
