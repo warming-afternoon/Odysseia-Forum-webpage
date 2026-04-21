@@ -214,7 +214,7 @@ export function SearchTokenInput({
       case "channel":
         return "border-amber-500/25 bg-amber-500/12 text-amber-300";
       default:
-        return "border-[var(--od-shell-line)] bg-[var(--od-surface-soft)] text-[var(--od-text-secondary)]";
+        return "border-(--od-shell-line) bg-(--od-surface-soft) text-(--od-text-secondary)";
     }
   };
 
@@ -226,7 +226,7 @@ export function SearchTokenInput({
       aria-expanded={tokens.length > 0 || inputValue.length > 0}
       aria-haspopup="listbox"
       aria-controls="search-suggestions-listbox"
-      className={`flex min-h-[40px] w-full min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden rounded-lg border-none bg-[var(--od-bg-secondary)] px-2 py-1.5 text-sm text-[var(--od-text-primary)] transition-all duration-200 ${className}`}
+      className={`flex min-h-[40px] w-full min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden rounded-lg border-none bg-(--od-bg-secondary) px-2 py-1.5 text-sm text-(--od-text-primary) transition-all duration-200 ${className}`}
     >
       {/* 显示 token chips */}
       {tokens
@@ -238,7 +238,7 @@ export function SearchTokenInput({
             <div
               key={`${token.type}-${token.value}-${index}`}
               className={`flex max-w-[42%] shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-all duration-200 ${
-                isEditing ? "ring-2 ring-[var(--od-accent)]" : "hover:scale-105"
+                isEditing ? "ring-2 ring-(--od-accent)" : "hover:scale-105"
               } ${getTokenColor(token)}`}
             >
               {getTokenIcon(token.type)}
@@ -261,7 +261,7 @@ export function SearchTokenInput({
                     }
                   }}
                   onBlur={() => handleFinishEdit(token, editingValue)}
-                  className="min-w-[48px] max-w-[96px] bg-transparent outline-none"
+                  className="min-w-[48px] max-w-[96px] bg-transparent outline-hidden"
                   style={{
                     width: `${Math.max(60, editingValue.length * 8)}px`,
                   }}
@@ -315,7 +315,7 @@ export function SearchTokenInput({
         onFocus={onFocus}
         onBlur={onBlur}
         placeholder={tokens.length === 0 ? placeholder : ""}
-        className="min-w-0 flex-1 bg-transparent text-[var(--od-text-primary)] placeholder:text-[var(--od-text-tertiary)] focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent text-(--od-text-primary) placeholder:text-(--od-text-tertiary) focus:outline-hidden"
       />
     </div>
   );

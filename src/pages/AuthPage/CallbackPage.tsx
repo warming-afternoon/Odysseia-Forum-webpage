@@ -50,11 +50,11 @@ export function CallbackPage() {
   }, [searchParams, navigate, refreshAuth]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--od-bg)]">
+    <div className="flex min-h-screen items-center justify-center bg-(--od-bg)">
       <div className="text-center">
         <OmicronLoader className="mx-auto mb-4 h-12 w-12" />
-        <p className="text-lg text-[var(--od-text-primary)]">正在登录...</p>
-        <p className="mt-2 text-sm text-[var(--od-text-secondary)]">请稍候</p>
+        <p className="text-lg text-(--od-text-primary)">正在登录...</p>
+        <p className="mt-2 text-sm text-(--od-text-secondary)">请稍候</p>
       </div>
     </div>
   );

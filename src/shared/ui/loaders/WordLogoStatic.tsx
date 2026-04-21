@@ -18,7 +18,7 @@ export function WordLogoStatic({ className }: WordLogoStaticProps) {
   const svgClass = 'h-full aspect-square overflow-visible';
 
   return (
-    <div className={cn('flex flex-nowrap items-center gap-[1px]', className)}>
+    <div className={cn('flex flex-nowrap items-center gap-px', className)}>
       {/* O (Omicron) - Static with Gap & Dot at 12 o'clock */}
       <svg viewBox="0 0 80 80" className={svgClass}>
         {/* 将 9点钟作为起始点的路径旋转90度，让缺口朝上 (12点方向) */}
@@ -31,7 +31,7 @@ export function WordLogoStatic({ className }: WordLogoStaticProps) {
           />
         </g>
         {/* 在正12点的断口处补充能量圆点 */}
-        <circle cx="40" cy="16" r="6" className="fill-[var(--od-accent)]" />
+        <circle cx="40" cy="16" r="6" className="fill-(--od-accent)" />
       </svg>
 
       {/* Δ (Delta) */}

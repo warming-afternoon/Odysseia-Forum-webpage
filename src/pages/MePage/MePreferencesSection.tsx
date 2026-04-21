@@ -41,7 +41,7 @@ export function MePreferencesSection({
       <FluidDivider label="Preferences" className="mb-8" />
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-[var(--od-accent)]" />
+          <Search className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">发现偏好</h2>
         </div>
         <button
@@ -60,10 +60,10 @@ export function MePreferencesSection({
       ) : (
         <div className="space-y-8">
           <div className="space-y-3">
-            <p className="text-sm font-medium text-[var(--od-text-primary)]">
+            <p className="text-sm font-medium text-(--od-text-primary)">
               偏好频道
             </p>
-            <p className="text-sm leading-6 text-[var(--od-text-secondary)]">
+            <p className="text-sm leading-6 text-(--od-text-secondary)">
               这些频道会在探索和搜索建议里优先生效，这样你就不会看到你不感兴趣的频道内容被推荐啦。
             </p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,8 +76,8 @@ export function MePreferencesSection({
                     onClick={() => onToggleChannel(channel.id)}
                     className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
                       active
-                        ? "border-[var(--od-accent)]/40 bg-[var(--od-accent)]/8 text-[var(--od-text-primary)] font-od-medium"
-                        : "border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] text-[var(--od-text-secondary)] font-od-normal"
+                        ? "border-(--od-accent)/40 bg-(--od-accent)/8 text-(--od-text-primary) font-od-medium"
+                        : "border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] text-(--od-text-secondary) font-od-normal"
                     }`}
                   >
                     {channel.name}
@@ -89,7 +89,7 @@ export function MePreferencesSection({
 
           <div className="grid gap-6 sm:grid-cols-2">
             <label className="block space-y-2">
-              <span className="block text-sm font-medium text-[var(--od-text-secondary)]">
+              <span className="block text-sm font-medium text-(--od-text-secondary)">
                 默认排序
               </span>
               <select
@@ -101,7 +101,7 @@ export function MePreferencesSection({
                       .value as PreferencesFormValue["sortMethod"],
                   }));
                 }}
-                className="w-full rounded-2xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-[var(--od-text-primary)]"
+                className="w-full rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-(--od-text-primary)"
               >
                 <option value="last_active_desc">最后活跃</option>
                 <option value="created_desc">最新发布</option>
@@ -112,7 +112,7 @@ export function MePreferencesSection({
             </label>
 
             <label className="block space-y-2">
-              <span className="block text-sm font-medium text-[var(--od-text-secondary)]">
+              <span className="block text-sm font-medium text-(--od-text-secondary)">
                 每页条数
               </span>
               <input
@@ -126,7 +126,7 @@ export function MePreferencesSection({
                     resultsPerPage: Number(e.target.value) || 24,
                   }));
                 }}
-                className="w-full rounded-2xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-[var(--od-text-primary)]"
+                className="w-full rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-(--od-text-primary)"
               />
             </label>
           </div>
@@ -182,7 +182,7 @@ export function MePreferencesSection({
 
           <div className="grid gap-6 sm:grid-cols-2">
             <label className="block space-y-2">
-              <span className="block text-sm font-medium text-[var(--od-text-secondary)]">
+              <span className="block text-sm font-medium text-(--od-text-secondary)">
                 关键词包含
               </span>
               <textarea
@@ -193,11 +193,11 @@ export function MePreferencesSection({
                     includeKeywordsText: e.target.value,
                   }));
                 }}
-                className="min-h-[110px] w-full rounded-2xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-[var(--od-text-primary)]"
+                className="min-h-[110px] w-full rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-(--od-text-primary)"
               />
             </label>
             <label className="block space-y-2">
-              <span className="block text-sm font-medium text-[var(--od-text-secondary)]">
+              <span className="block text-sm font-medium text-(--od-text-secondary)">
                 关键词排除
               </span>
               <textarea
@@ -208,12 +208,12 @@ export function MePreferencesSection({
                     excludeKeywordsText: e.target.value,
                   }));
                 }}
-                className="min-h-[110px] w-full rounded-2xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-[var(--od-text-primary)]"
+                className="min-h-[110px] w-full rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-(--od-text-primary)"
               />
             </label>
           </div>
 
-          <div className="rounded-[1.2rem] border border-[color-mix(in_srgb,var(--od-text-secondary)_14%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-input)_56%,transparent)] px-4 py-4 text-sm leading-6 text-[var(--od-text-secondary)]">
+          <div className="rounded-[1.2rem] border border-[color-mix(in_srgb,var(--od-text-secondary)_14%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-input)_56%,transparent)] px-4 py-4 text-sm leading-6 text-(--od-text-secondary)">
             这些偏好主要影响“发现流”，不会偷偷改你的搜索框，也不会压过你手动选的频道。空搜索、全频道探索和搜索建议会参考它们，但你的主动操作始终优先。
           </div>
 

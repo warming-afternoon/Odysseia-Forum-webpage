@@ -93,33 +93,33 @@ export function AppSidebar() {
   const navItemClass = (active: boolean) =>
     `group flex w-full items-center gap-2 px-2 py-1.5 text-sm transition-colors duration-200 ${
       active
-        ? 'font-medium text-[var(--od-text-primary)]'
-        : 'text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]'
+        ? 'font-medium text-(--od-text-primary)'
+        : 'text-(--od-text-secondary) hover:text-(--od-text-primary)'
     }`;
 
   const navIndicatorClass = (active: boolean) =>
     `h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
-      active ? 'bg-[var(--od-accent)]' : 'bg-[var(--od-text-tertiary)]/45 group-hover:bg-[var(--od-text-secondary)]'
+      active ? 'bg-(--od-accent)' : 'bg-(--od-text-tertiary)/45 group-hover:bg-(--od-text-secondary)'
     }`;
 
   return (
     <nav className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-3 py-4">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md">
           <img src={ServerIcon} alt="Server Icon" className="h-full w-full object-cover" />
         </div>
         <div className="flex min-w-0 flex-col justify-center gap-1">
-          <span className="truncate text-[12px] font-bold leading-none tracking-widest text-[var(--od-text-primary)]">
+          <span className="truncate text-[12px] font-bold leading-none tracking-widest text-(--od-text-primary)">
             类脑
           </span>
-          <WordLogoStatic className="h-[11px] flex-shrink-0 text-[var(--od-text-primary)]" />
+          <WordLogoStatic className="h-[11px] shrink-0 text-(--od-text-primary)" />
         </div>
       </div>
 
       <div className="scrollbar-invisible flex-1 overflow-y-auto px-3 py-2">
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between px-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--od-text-tertiary)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-(--od-text-tertiary)">
               主导航
             </h2>
             <ThemeToggle />
@@ -132,7 +132,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/'))} />
               <AnimatedIcon
                 icon={Compass}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/') ? 'text-(--od-accent)' : ''}`}
                 animation="scale"
                 trigger="hover"
               />
@@ -146,7 +146,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/search'))} />
               <AnimatedIcon
                 icon={SearchIcon}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/search') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/search') ? 'text-(--od-accent)' : ''}`}
                 animation="scale"
                 trigger="hover"
               />
@@ -160,7 +160,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/draw'))} />
               <AnimatedIcon
                 icon={Dices}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/draw') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/draw') ? 'text-(--od-accent)' : ''}`}
                 animation="pulse"
                 trigger="hover"
               />
@@ -174,9 +174,9 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/booklists') || location.pathname.startsWith('/booklists/'))} />
               <AnimatedIcon
                 icon={BookOpen}
-                className={`h-4 w-4 flex-shrink-0 ${
+                className={`h-4 w-4 shrink-0 ${
                   isActive('/booklists') || location.pathname.startsWith('/booklists/')
-                    ? 'text-[var(--od-accent)]'
+                    ? 'text-(--od-accent)'
                     : ''
                 }`}
                 animation="scale"
@@ -192,7 +192,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/tags'))} />
               <AnimatedIcon
                 icon={TagIcon}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/tags') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/tags') ? 'text-(--od-accent)' : ''}`}
                 animation="rotate"
                 trigger="hover"
               />
@@ -206,7 +206,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/settings'))} />
               <AnimatedIcon
                 icon={Settings}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/settings') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/settings') ? 'text-(--od-accent)' : ''}`}
                 animation="spin"
                 trigger="hover"
               />
@@ -220,7 +220,7 @@ export function AppSidebar() {
               <span className={navIndicatorClass(isActive('/about'))} />
               <AnimatedIcon
                 icon={Info}
-                className={`h-4 w-4 flex-shrink-0 ${isActive('/about') ? 'text-[var(--od-accent)]' : ''}`}
+                className={`h-4 w-4 shrink-0 ${isActive('/about') ? 'text-(--od-accent)' : ''}`}
                 animation="bounce"
                 trigger="hover"
               />
@@ -235,7 +235,7 @@ export function AppSidebar() {
                 <span className={navIndicatorClass(isActive('/test'))} />
                 <AnimatedIcon
                   icon={TestTube}
-                  className={`h-4 w-4 flex-shrink-0 ${isActive('/test') ? 'text-[var(--od-accent)]' : ''}`}
+                  className={`h-4 w-4 shrink-0 ${isActive('/test') ? 'text-(--od-accent)' : ''}`}
                   animation="pulse"
                   trigger="hover"
                 />
@@ -247,7 +247,7 @@ export function AppSidebar() {
 
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between px-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--od-text-tertiary)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-(--od-text-tertiary)">
               频道
             </h2>
           </div>
@@ -263,7 +263,7 @@ export function AppSidebar() {
 
             {groupedChannels.map((category) => (
               <div key={category.groupName} className="mt-4 first:mt-0" role="group" aria-labelledby={`group-${category.groupName}`}>
-                <div id={`group-${category.groupName}`} className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-[var(--od-text-tertiary)] opacity-60">
+                <div id={`group-${category.groupName}`} className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-(--od-text-tertiary) opacity-60">
                   {category.groupName}
                 </div>
                 <div className="space-y-0.5">
@@ -311,15 +311,15 @@ export function AppSidebar() {
 
       </div>
 
-      <div className="border-t border-[var(--od-border)] p-2">
-        <div className="od-fluid-panel rounded-xl p-2 shadow-sm transition-all hover:shadow-md">
+      <div className="border-t border-(--od-border) p-2">
+        <div className="od-fluid-panel rounded-xl p-2 shadow-xs transition-all hover:shadow-md">
           <div className="flex items-center gap-1">
             <Link
               to="/me"
               aria-label={`进入 ${user?.global_name || user?.username || 'Guest'} 的个人主页`}
-              className="group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg p-2 transition-colors hover:bg-[var(--od-bg-secondary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--od-accent)]"
+              className="group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg p-2 transition-colors hover:bg-(--od-bg-secondary) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-(--od-accent)"
             >
-              <div aria-hidden="true" className="relative h-8 w-8 flex-shrink-0">
+              <div aria-hidden="true" className="relative h-8 w-8 shrink-0">
                 <img
                   src={
                     user?.avatar
@@ -327,21 +327,21 @@ export function AppSidebar() {
                       : 'https://cdn.discordapp.com/embed/avatars/0.png'
                   }
                   alt=""
-                  className="h-full w-full rounded-full object-cover ring-2 ring-white/[0.08]"
+                  className="h-full w-full rounded-full object-cover ring-2 ring-white/8"
                 />
-                <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-white/[0.08] bg-green-500" />
+                <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-white/8 bg-green-500" />
               </div>
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                <span className="truncate text-xs font-bold text-[var(--od-text-primary)]">
+                <span className="truncate text-xs font-bold text-(--od-text-primary)">
                   {user?.global_name || user?.username || 'Guest'}
                 </span>
-                <span className="truncate text-[10px] text-[var(--od-text-tertiary)]">@{user?.username}</span>
+                <span className="truncate text-[10px] text-(--od-text-tertiary)">@{user?.username}</span>
               </div>
             </Link>
 
             <button
               onClick={handleLogout}
-              className="rounded-lg p-2 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-error)]"
+              className="rounded-lg p-2 text-(--od-text-tertiary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-error)"
               title="登出"
             >
               <AnimatedIcon icon={LogOut} className="h-5 w-5" animation="shake" trigger="hover" />

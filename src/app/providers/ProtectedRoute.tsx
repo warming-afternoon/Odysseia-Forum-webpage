@@ -29,10 +29,10 @@ export function ProtectedRoute() {
   // 显示加载界面直到认证检查完成或正在处理 Token
   if (isLoading || isProcessingToken) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--od-bg)]">
+      <div className="flex min-h-screen items-center justify-center bg-(--od-bg)">
         <div className="text-center">
           <OmicronLoader className="mx-auto mb-4 h-12 w-12" />
-          <p className="text-sm text-[var(--od-text-secondary)]">验证登录状态...</p>
+          <p className="text-sm text-(--od-text-secondary)">验证登录状态...</p>
         </div>
       </div>
     );

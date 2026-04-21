@@ -40,7 +40,7 @@ export function MeBooklistsSection({
       <FluidDivider label="Booklists" className="mb-8" />
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
         <div className="flex items-center gap-2 justify-center">
-          <BookOpen className="h-4 w-4 text-[var(--od-accent)]" />
+          <BookOpen className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">我的书单</h2>
         </div>
         <button
@@ -58,8 +58,8 @@ export function MeBooklistsSection({
           onClick={() => onSetSubTab('mine')}
           className={`od-pill-chip text-xs ${
             subTab === 'mine'
-              ? 'bg-[var(--od-accent)] text-white font-od-bold'
-              : 'text-[var(--od-text-secondary)] font-od-medium'
+              ? 'bg-(--od-accent) text-white font-od-bold'
+              : 'text-(--od-text-secondary) font-od-medium'
           }`}
         >
           我的创建
@@ -69,8 +69,8 @@ export function MeBooklistsSection({
           onClick={() => onSetSubTab('collected')}
           className={`od-pill-chip text-xs ${
             subTab === 'collected'
-              ? 'bg-[var(--od-accent)] text-white font-od-bold'
-              : 'text-[var(--od-text-secondary)] font-od-medium'
+              ? 'bg-(--od-accent) text-white font-od-bold'
+              : 'text-(--od-text-secondary) font-od-medium'
           }`}
         >
           我的收藏

@@ -28,7 +28,7 @@ export function MeThreadsSection({
       <FluidDivider label="Threads" className="mb-8" />
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
         <div className="flex items-center justify-center gap-2">
-          <FileText className="h-4 w-4 text-[var(--od-accent)]" />
+          <FileText className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">我的创建</h2>
         </div>
         <button
@@ -43,26 +43,26 @@ export function MeThreadsSection({
 
       <div className="mb-8 mx-auto grid max-w-4xl grid-cols-2 gap-x-6 gap-y-5 text-center sm:grid-cols-4">
         <div>
-          <p className="text-sm font-medium text-[var(--od-text-secondary)]">帖子数</p>
-          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-[var(--od-text-value)] tabular-nums">
+          <p className="text-sm font-medium text-(--od-text-secondary)">帖子数</p>
+          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-(--od-text-value) tabular-nums">
             {totalThreads}
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--od-text-secondary)]">累计点赞</p>
-          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-[var(--od-text-value)] tabular-nums">
+          <p className="text-sm font-medium text-(--od-text-secondary)">累计点赞</p>
+          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-(--od-text-value) tabular-nums">
             {totalReactions}
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--od-text-secondary)]">累计回复</p>
-          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-[var(--od-text-value)] tabular-nums">
+          <p className="text-sm font-medium text-(--od-text-secondary)">累计回复</p>
+          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-(--od-text-value) tabular-nums">
             {totalReplies}
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--od-text-secondary)]">当前加载</p>
-          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-[var(--od-text-value)] tabular-nums">
+          <p className="text-sm font-medium text-(--od-text-secondary)">当前加载</p>
+          <p className="mt-2 text-[1.5rem] font-semibold tracking-tight text-(--od-text-value) tabular-nums">
             {threads.length}
           </p>
         </div>

@@ -16,14 +16,14 @@ export function OmicronLoader({ className }: OmicronLoaderProps) {
           strokeWidth="8"
           strokeLinejoin="round"
           strokeLinecap="round"
-          className="omicron-loader-path text-[var(--od-text-primary)]"
+          className="omicron-loader-path text-(--od-text-primary)"
         />
         {/* Orbiting Dot */}
         <circle
           cx="0"
           cy="0"
           r="6"
-          className="omicron-loader-dot fill-[var(--od-accent)]"
+          className="omicron-loader-dot fill-(--od-accent)"
         />
       </svg>
     </div>

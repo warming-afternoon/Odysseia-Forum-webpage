@@ -27,7 +27,7 @@ export function FilterBar({
         <div>
           <label
             htmlFor="timeFrom"
-            className="mb-1.5 block text-xs font-medium text-[var(--od-text-secondary)]"
+            className="mb-1.5 block text-xs font-medium text-(--od-text-secondary)"
           >
             发帖不早于
           </label>
@@ -36,7 +36,7 @@ export function FilterBar({
             type="date"
             value={timeFrom}
             onChange={(e) => onTimeFromChange(e.target.value)}
-            className="w-full rounded-md border-none bg-[var(--od-bg-tertiary)] px-3 py-2 text-sm text-[var(--od-text-primary)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           />
         </div>
 
@@ -44,7 +44,7 @@ export function FilterBar({
         <div>
           <label
             htmlFor="timeTo"
-            className="mb-1.5 block text-xs font-medium text-[var(--od-text-secondary)]"
+            className="mb-1.5 block text-xs font-medium text-(--od-text-secondary)"
           >
             发帖不晚于
           </label>
@@ -53,7 +53,7 @@ export function FilterBar({
             type="date"
             value={timeTo}
             onChange={(e) => onTimeToChange(e.target.value)}
-            className="w-full rounded-md border-none bg-[var(--od-bg-tertiary)] px-3 py-2 text-sm text-[var(--od-text-primary)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           />
         </div>
 
@@ -61,7 +61,7 @@ export function FilterBar({
         <div>
           <label
             htmlFor="sortMethod"
-            className="mb-1.5 block text-xs font-medium text-[var(--od-text-secondary)]"
+            className="mb-1.5 block text-xs font-medium text-(--od-text-secondary)"
           >
             排序方式
           </label>
@@ -69,7 +69,7 @@ export function FilterBar({
             id="sortMethod"
             value={sortMethod}
             onChange={(e) => onSortMethodChange(e.target.value)}
-            className="w-full rounded-md border-none bg-[var(--od-bg-tertiary)] px-3 py-2 text-sm text-[var(--od-text-primary)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           >
             <option value="relevance">相关度</option>
             <option value="last_active_desc">最近活跃 ↓</option>
@@ -83,7 +83,7 @@ export function FilterBar({
         <div>
           <label
             htmlFor="tagLogic"
-            className="mb-1.5 block text-xs font-medium text-[var(--od-text-secondary)]"
+            className="mb-1.5 block text-xs font-medium text-(--od-text-secondary)"
           >
             标签逻辑
           </label>
@@ -91,7 +91,7 @@ export function FilterBar({
             id="tagLogic"
             value={tagLogic}
             onChange={(e) => onTagLogicChange(e.target.value as 'and' | 'or')}
-            className="w-full rounded-md border-none bg-[var(--od-bg-tertiary)] px-3 py-2 text-sm text-[var(--od-text-primary)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           >
             <option value="and">全部包含 (AND)</option>
             <option value="or">任一即可 (OR)</option>

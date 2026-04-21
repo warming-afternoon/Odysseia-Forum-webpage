@@ -87,13 +87,13 @@ export function BooklistDetailPage() {
 
   if (!/^\d+$/.test(booklistId)) {
     return (
-      <div className="p-8 text-sm text-[var(--od-error)]">无效书单 ID</div>
+      <div className="p-8 text-sm text-(--od-error)">无效书单 ID</div>
     );
   }
 
   if (detailQuery.isLoading || itemsQuery.isLoading) {
     return (
-      <div className="p-8 text-sm text-[var(--od-text-secondary)]">
+      <div className="p-8 text-sm text-(--od-text-secondary)">
         正在帮你加载书单...
       </div>
     );
@@ -101,7 +101,7 @@ export function BooklistDetailPage() {
 
   if (detailQuery.isError || !detailQuery.data) {
     return (
-      <div className="p-8 text-sm text-[var(--od-error)]">
+      <div className="p-8 text-sm text-(--od-error)">
         书单加载出错了，可能不存在或已经被删除了
       </div>
     );
@@ -114,25 +114,25 @@ export function BooklistDetailPage() {
     <>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 sm:p-6 lg:p-8">
         <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-6">
-          <div className="min-w-0 flex flex-col gap-4 border-b border-[var(--od-border)] pb-4">
+          <div className="min-w-0 flex flex-col gap-4 border-b border-(--od-border) pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <button
                   type="button"
                   onClick={() => navigate("/booklists")}
-                  className="mt-1 rounded-md border border-[var(--od-border)] p-2 text-[var(--od-text-secondary)] transition-colors hover:text-[var(--od-text-primary)]"
+                  className="mt-1 rounded-md border border-(--od-border) p-2 text-(--od-text-secondary) transition-colors hover:text-(--od-text-primary)"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
 
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-[var(--od-text-primary)]">
+                  <h1 className="text-2xl font-bold tracking-tight text-(--od-text-primary)">
                     {booklist.title}
                   </h1>
-                  <p className="mt-1 text-sm text-[var(--od-text-secondary)]">
+                  <p className="mt-1 text-sm text-(--od-text-secondary)">
                     {booklist.description || "暂无简介"}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--od-text-tertiary)]">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-(--od-text-tertiary)">
                     <span className="inline-flex items-center gap-1">
                       <BookOpen className="h-3.5 w-3.5" />
                       {booklist.item_count}
@@ -147,14 +147,14 @@ export function BooklistDetailPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-1 rounded-full border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+                <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
                   <button
                     type="button"
                     onClick={() => setItemViewMode("list")}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       itemViewMode === "list"
-                        ? "bg-[var(--od-accent)] text-white"
-                        : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                        ? "bg-(--od-accent) text-white"
+                        : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                     }`}
                   >
                     <Rows3 className="h-3.5 w-3.5" />
@@ -165,8 +165,8 @@ export function BooklistDetailPage() {
                     onClick={() => setItemViewMode("grid")}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       itemViewMode === "grid"
-                        ? "bg-[var(--od-accent)] text-white"
-                        : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                        ? "bg-(--od-accent) text-white"
+                        : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                     }`}
                   >
                     <LayoutGrid className="h-3.5 w-3.5" />
@@ -177,7 +177,7 @@ export function BooklistDetailPage() {
                 <button
                   type="button"
                   onClick={() => detailQuery.refetch()}
-                  className="inline-flex items-center gap-1 rounded-md border border-[var(--od-border)] px-3 py-1.5 text-xs text-[var(--od-text-secondary)]"
+                  className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   刷新
@@ -193,8 +193,8 @@ export function BooklistDetailPage() {
                   }
                   className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
                     booklist.collected_flag
-                      ? "bg-[var(--od-accent)]/15 text-[var(--od-accent)]"
-                      : "bg-[var(--od-bg-tertiary)] text-[var(--od-text-secondary)]"
+                      ? "bg-(--od-accent)/15 text-(--od-accent)"
+                      : "bg-(--od-bg-tertiary) text-(--od-text-secondary)"
                   }`}
                 >
                   {booklist.collected_flag ? "已收藏" : "收藏书单"}
@@ -205,7 +205,7 @@ export function BooklistDetailPage() {
                     <button
                       type="button"
                       onClick={() => setShowEdit(true)}
-                      className="inline-flex items-center gap-1 rounded-md border border-[var(--od-border)] px-3 py-1.5 text-xs text-[var(--od-text-secondary)]"
+                      className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
                     >
                       <Edit3 className="h-3.5 w-3.5" />
                       编辑
@@ -213,7 +213,7 @@ export function BooklistDetailPage() {
                     <button
                       type="button"
                       onClick={() => setShowAdd(true)}
-                      className="inline-flex items-center gap-1 rounded-md bg-[var(--od-accent)] px-3 py-1.5 text-xs font-semibold text-white"
+                      className="inline-flex items-center gap-1 rounded-md bg-(--od-accent) px-3 py-1.5 text-xs font-semibold text-white"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       添加帖子
@@ -227,7 +227,7 @@ export function BooklistDetailPage() {
                           return;
                         deleteMutation.mutate(Number(booklistId));
                       }}
-                      className="inline-flex items-center gap-1 rounded-md border border-[var(--od-border)] px-3 py-1.5 text-xs text-[var(--od-error)]"
+                      className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-error)"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       删除
@@ -239,11 +239,11 @@ export function BooklistDetailPage() {
           </div>
 
           {items.length === 0 ? (
-            <div className="rounded-xl border border-[var(--od-border)] bg-[var(--od-card)] p-10 text-center">
-              <p className="text-base font-semibold text-[var(--od-text-primary)]">
+            <div className="rounded-xl border border-(--od-border) bg-(--od-card) p-10 text-center">
+              <p className="text-base font-semibold text-(--od-text-primary)">
                 书单里还没有帖子
               </p>
-              <p className="mt-1 text-sm text-[var(--od-text-secondary)]">
+              <p className="mt-1 text-sm text-(--od-text-secondary)">
                 {isOwner
                   ? "可以点右上角添加帖子，开始充实你的书单吧。"
                   : "作者还在准备中，再等等看。"}
@@ -276,13 +276,13 @@ export function BooklistDetailPage() {
                     />
                   )}
                   {(isOwner || item.comment) && (
-                    <div className="rounded-lg border border-[var(--od-border)] bg-[var(--od-card)] px-3 py-2">
+                    <div className="rounded-lg border border-(--od-border) bg-(--od-card) px-3 py-2">
                       {isOwner && (
                         <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
                           <button
                             type="button"
                             onClick={() => setEditingItem(item)}
-                            className="rounded border border-[var(--od-border)] px-2 py-1 text-[var(--od-text-secondary)]"
+                            className="rounded border border-(--od-border) px-2 py-1 text-(--od-text-secondary)"
                           >
                             编辑条目
                           </button>
@@ -295,14 +295,14 @@ export function BooklistDetailPage() {
                               }
                               removeItemMutation.mutate(item.thread_id);
                             }}
-                            className="rounded border border-[var(--od-border)] px-2 py-1 text-[var(--od-error)]"
+                            className="rounded border border-(--od-border) px-2 py-1 text-(--od-error)"
                           >
                             移除
                           </button>
                         </div>
                       )}
                       {item.comment && (
-                        <p className={`${isOwner ? "mt-2" : ""} text-sm text-[var(--od-text-secondary)]`}>
+                        <p className={`${isOwner ? "mt-2" : ""} text-sm text-(--od-text-secondary)`}>
                           推荐语: {item.comment}
                         </p>
                       )}

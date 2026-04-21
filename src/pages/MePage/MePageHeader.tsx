@@ -62,8 +62,8 @@ export function MePageHeader({
                   onClick={() => onSelectTab(item.key)}
                   className={`od-pill-chip inline-flex items-center gap-1.5 text-xs transition-colors ${
                     active
-                      ? 'bg-[var(--od-accent)] text-white font-od-bold'
-                      : 'text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)] font-od-medium'
+                      ? 'bg-(--od-accent) text-white font-od-bold'
+                      : 'text-(--od-text-secondary) hover:text-(--od-text-primary) font-od-medium'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -72,7 +72,7 @@ export function MePageHeader({
               );
             })}
           </div>
-          <p className="text-sm leading-6 text-[var(--od-text-secondary)]">
+          <p className="text-sm leading-6 text-(--od-text-secondary)">
             在这里切换查看你的书单、关注、创建内容、足迹和搜索偏好，分类看更清晰。
           </p>
         </div>

@@ -57,10 +57,10 @@ function CardImage({ src, layoutId, isActive }: { src: string; layoutId: string;
   }, [src, hasImage]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[var(--od-surface-raised)]">
+    <div className="relative h-full w-full overflow-hidden bg-(--od-surface-raised)">
       {/* Fallback for no image */}
       {!hasImage && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-linear-to-br from-[#1a1a1a] to-[#0a0a0a]">
           <div className="h-20 w-20 opacity-10 filter grayscale">
             {/* Minimalist fallback icon/logo could go here */}
             <RefreshCw className="h-full w-full animate-pulse" />
@@ -70,7 +70,7 @@ function CardImage({ src, layoutId, isActive }: { src: string; layoutId: string;
 
       {/* Skeleton / Placeholder - only show if absolutely not loaded */}
       {hasImage && !isLoaded && (
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--od-surface-raised)] via-[var(--od-interactive-hover)] to-[var(--od-surface-raised)] bg-[length:200%_100%] animate-pulse" />
+        <div className="absolute inset-0 bg-linear-to-r from-(--od-surface-raised) via-(--od-interactive-hover) to-(--od-surface-raised) bg-size-[200%_100%] animate-pulse" />
       )}
 
       {hasImage && (
@@ -165,7 +165,7 @@ export function DrawRevealOverlay({
         >
           <div className="od-draw-overlay-panel">
             {/* Top Close Button */}
-            <div className="absolute top-8 left-8 z-[100]">
+            <div className="absolute top-8 left-8 z-100">
               <button
                 type="button"
                 onClick={onClose}
@@ -243,11 +243,11 @@ export function DrawRevealOverlay({
                         isActive={isActive}
                       />
                       
-                      {isActive && <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent pointer-events-none" />}
+                      {isActive && <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/20 to-transparent pointer-events-none" />}
                       
                       {!isActive && (
-                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                          <p className="text-[10px] font-bold text-[var(--od-accent)] uppercase tracking-wider mb-1">
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-linear-to-t from-black/80 to-transparent">
+                          <p className="text-[10px] font-bold text-(--od-accent) uppercase tracking-wider mb-1">
                             Discovery {index + 1}
                           </p>
                           <p className="text-white text-xs font-bold truncate">{thread.title}</p>
@@ -267,7 +267,7 @@ export function DrawRevealOverlay({
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.8, ease: SINE_EASE, delay: 0.4 }}
-                          className="text-[var(--od-accent)] font-bold tracking-[0.3em] uppercase text-xs"
+                          className="text-(--od-accent) font-bold tracking-[0.3em] uppercase text-xs"
                         >
                           Discovery Card {currentIndex + 1} / {results.length}
                         </motion.p>
@@ -327,7 +327,7 @@ export function DrawRevealOverlay({
                           exit={{ opacity: 0 }}
                           transition={{ delay: 0.85, duration: 0.6 }}
                           onClick={() => onPreview(activeThread)}
-                          className="rounded-full bg-white px-8 py-3 text-xs font-black uppercase tracking-widest text-black transition-all hover:bg-[var(--od-accent)] hover:text-white"
+                          className="rounded-full bg-white px-8 py-3 text-xs font-black uppercase tracking-widest text-black transition-all hover:bg-(--od-accent) hover:text-white"
                         >
                           查看详情
                         </motion.button>

@@ -203,7 +203,7 @@ export function UserProfilePage() {
             <div className="flex flex-wrap items-center gap-3">
               {/* 排序 */}
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-3.5 w-3.5 text-[var(--od-text-tertiary)]" />
+                <ArrowUpDown className="h-3.5 w-3.5 text-(--od-text-tertiary)" />
                 <div className="flex flex-wrap gap-1.5">
                   {SORT_OPTIONS.map((opt) => (
                     <button
@@ -222,7 +222,7 @@ export function UserProfilePage() {
 
             {/* 频道多选 */}
             <div className="flex flex-wrap items-start gap-2">
-              <Filter className="mt-1 h-3.5 w-3.5 flex-shrink-0 text-[var(--od-text-tertiary)]" />
+              <Filter className="mt-1 h-3.5 w-3.5 shrink-0 text-(--od-text-tertiary)" />
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
@@ -248,18 +248,18 @@ export function UserProfilePage() {
 
             {/* 已选频道指示器 */}
             {selectedChannelIds.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--od-text-secondary)]">
-                <span className="font-medium text-[var(--od-text-label)]">已选频道：</span>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-(--od-text-secondary)">
+                <span className="font-medium text-(--od-text-label)">已选频道：</span>
                 {selectedChannelIds.map((id) => (
                   <span
                     key={id}
-                    className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--od-accent)_12%,transparent)] px-2.5 py-0.5 text-[var(--od-text-primary)]"
+                    className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--od-accent)_12%,transparent)] px-2.5 py-0.5 text-(--od-text-primary)"
                   >
                     {channelNameMap.get(id) || id}
                     <button
                       type="button"
                       onClick={() => toggleChannel(id)}
-                      className="text-[var(--od-text-tertiary)] transition-colors hover:text-[var(--od-text-primary)]"
+                      className="text-(--od-text-tertiary) transition-colors hover:text-(--od-text-primary)"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -268,7 +268,7 @@ export function UserProfilePage() {
                 <button
                   type="button"
                   onClick={clearChannels}
-                  className="text-[var(--od-text-tertiary)] underline underline-offset-2 transition-colors hover:text-[var(--od-text-primary)]"
+                  className="text-(--od-text-tertiary) underline underline-offset-2 transition-colors hover:text-(--od-text-primary)"
                 >
                   清除
                 </button>
@@ -276,30 +276,30 @@ export function UserProfilePage() {
             )}
           </div>
 
-          <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--od-text-secondary)]">
-            <FileText className="h-4 w-4 text-[var(--od-accent)]" />
+          <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-(--od-text-secondary)">
+            <FileText className="h-4 w-4 text-(--od-accent)" />
             <span>这位作者的帖子</span>
-            <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
+            <span className="mx-1 text-(--od-text-tertiary)">·</span>
             <Heart className="h-4 w-4" />
             <span>{profile?.stats.reaction_count ?? '-'}</span>
-            <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
+            <span className="mx-1 text-(--od-text-tertiary)">·</span>
             <MessageCircle className="h-4 w-4" />
             <span>{profile?.stats.reply_count ?? '-'}</span>
             {threadsQuery.data?.total != null && (
               <>
-                <span className="mx-1 text-[var(--od-text-tertiary)]">·</span>
-                <span className="font-medium text-[var(--od-text-value)]">{threadsQuery.data.total}</span>
+                <span className="mx-1 text-(--od-text-tertiary)">·</span>
+                <span className="font-medium text-(--od-text-value)">{threadsQuery.data.total}</span>
                 <span>条结果</span>
               </>
             )}
           </div>
 
           {threadsQuery.isLoading ? (
-            <p className="text-sm text-[var(--od-text-secondary)]">正在加载这位作者的帖子...</p>
+            <p className="text-sm text-(--od-text-secondary)">正在加载这位作者的帖子...</p>
           ) : threadsQuery.isError ? (
-            <p className="text-sm text-[var(--od-error)]">加载失败了，稍后再试试吧。</p>
+            <p className="text-sm text-(--od-error)">加载失败了，稍后再试试吧。</p>
           ) : threads.length === 0 ? (
-            <p className="text-sm text-[var(--od-text-secondary)]">这位作者还没有发布过帖子。</p>
+            <p className="text-sm text-(--od-text-secondary)">这位作者还没有发布过帖子。</p>
           ) : (
             <ThreadResultsCollection
               threads={threads}

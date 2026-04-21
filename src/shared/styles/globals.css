@@ -1,4 +1,4 @@
-@import './tokens.css';
+@import './tokens.css' layer(base);
 @import './base.css';
 @import './typography.css';
 @import './primitives.css';
@@ -7,8 +7,111 @@
 @import './markdown.css';
 @import './discovery.css';
 @import './feedback.css';
-@import './utilities.css';
+@import './utilities.css' layer(base);
+@import './utilities.utilities.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  /* Colors */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-od-bg: var(--od-bg);
+  --color-od-shell: var(--od-surface-shell);
+  --color-od-content: var(--od-surface-content);
+  --color-od-raised: var(--od-surface-raised);
+  --color-od-floating: var(--od-surface-floating);
+  --color-od-input: var(--od-surface-input);
+  --color-od-soft: var(--od-surface-soft);
+  --color-od-hover: var(--od-interactive-hover);
+  --color-od-accent: var(--od-accent);
+  --color-od-accent-hover: var(--od-accent-hover);
+  --color-od-text-primary: var(--od-text-primary);
+  --color-od-text-secondary: var(--od-text-secondary);
+  --color-od-text-tertiary: var(--od-text-tertiary);
+  --color-od-border: var(--od-border);
+  --color-od-border-strong: var(--od-border-strong);
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Font */
+  --font-sans: var(--font-sans);
+
+  /* FontSize */
+  --font-size-od-xs: var(--od-text-xs);
+  --font-size-od-sm: var(--od-text-sm);
+  --font-size-od-base: var(--od-text-base);
+  --font-size-od-lg: var(--od-text-lg);
+  --font-size-od-section: var(--od-type-section);
+  --font-size-od-hero: var(--od-type-hero);
+
+  /* FontWeight */
+  --font-weight-od-normal: var(--od-font-normal);
+  --font-weight-od-medium: var(--od-font-medium);
+  --font-weight-od-bold: var(--od-font-bold);
+
+  /* Spacing */
+  --spacing-od-xs: var(--od-space-xs);
+  --spacing-od-sm: var(--od-space-sm);
+  --spacing-od-md: var(--od-space-md);
+  --spacing-od-lg: var(--od-space-lg);
+  --spacing-od-xl: var(--od-space-xl);
+  --spacing-od-modal-p: var(--od-modal-p);
+  --spacing-od-card-p: var(--od-card-p);
+  --spacing-od-card-gap: var(--od-card-gap);
+  --spacing-od-list-gap: var(--od-list-gap);
+
+  /* Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-shimmer: shimmer 2s infinite;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
+
+@plugin 'tailwindcss-animate';
+
+/*
+  Safelist 动态类适配
+*/
+@utility grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+@utility grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@utility grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@utility grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@utility grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+@source '../../**/*.tsx';
+

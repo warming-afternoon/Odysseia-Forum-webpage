@@ -65,20 +65,20 @@ export function QuickAddToBooklistModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
-        className="od-floating-panel-solid w-full max-w-lg rounded-xl border border-[var(--od-border)] shadow-2xl"
+        className="od-floating-panel-solid w-full max-w-lg rounded-xl border border-(--od-border) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--od-border)] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-[var(--od-text-primary)]">
+            <h2 className="text-base font-bold text-(--od-text-primary)">
               快捷收藏到书单
             </h2>
             {threadTitle && (
-              <p className="mt-1 truncate text-xs text-[var(--od-text-tertiary)]">
+              <p className="mt-1 truncate text-xs text-(--od-text-tertiary)">
                 {threadTitle}
               </p>
             )}
@@ -86,7 +86,7 @@ export function QuickAddToBooklistModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+            className="rounded p-1 text-(--od-text-tertiary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
           >
             <X className="h-4 w-4" />
           </button>
@@ -94,16 +94,16 @@ export function QuickAddToBooklistModal({
 
         <div className="space-y-3 p-5">
           {!/^\d+$/.test(threadId) ? (
-            <p className="text-sm text-[var(--od-error)]">
+            <p className="text-sm text-(--od-error)">
               当前帖子 ID 无效，暂时无法加入书单。
             </p>
           ) : myBooklistsQuery.isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-[var(--od-text-secondary)]">
+            <div className="flex items-center gap-2 text-sm text-(--od-text-secondary)">
               <Loader2 className="h-4 w-4 animate-spin" />
               正在加载你的书单...
             </div>
           ) : myBooklists.length === 0 ? (
-            <p className="text-sm text-[var(--od-text-secondary)]">
+            <p className="text-sm text-(--od-text-secondary)">
               你还没有创建书单，先去书单页新建一个吧。
             </p>
           ) : (
@@ -113,8 +113,8 @@ export function QuickAddToBooklistModal({
                   key={booklist.id}
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition-colors ${
                     selectedBooklistId === booklist.id
-                      ? "border-[var(--od-accent)] bg-[var(--od-accent)]/8"
-                      : "border-[var(--od-border)] hover:border-[var(--od-border-strong)]"
+                      ? "border-(--od-accent) bg-(--od-accent)/8"
+                      : "border-(--od-border) hover:border-(--od-border-strong)"
                   }`}
                 >
                   <input
@@ -125,10 +125,10 @@ export function QuickAddToBooklistModal({
                     className="mt-1"
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-[var(--od-text-primary)]">
+                    <span className="block truncate text-sm font-medium text-(--od-text-primary)">
                       {booklist.title}
                     </span>
-                    <span className="mt-0.5 block text-xs text-[var(--od-text-tertiary)]">
+                    <span className="mt-0.5 block text-xs text-(--od-text-tertiary)">
                       {booklist.item_count} 帖子 · {booklist.collection_count}{" "}
                       收藏
                     </span>
@@ -138,11 +138,11 @@ export function QuickAddToBooklistModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-[var(--od-border)] pt-4">
+          <div className="flex justify-end gap-2 border-t border-(--od-border) pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-3 py-2 text-sm text-[var(--od-text-secondary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+              className="rounded-lg px-3 py-2 text-sm text-(--od-text-secondary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
             >
               取消
             </button>
@@ -153,7 +153,7 @@ export function QuickAddToBooklistModal({
                 if (!selectedBooklistId) return;
                 addMutation.mutate(selectedBooklistId);
               }}
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--od-accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--od-accent-hover)] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--od-accent-hover) disabled:opacity-60"
             >
               {addMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

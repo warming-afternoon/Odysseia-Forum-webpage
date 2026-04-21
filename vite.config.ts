@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { analyzer } from 'vite-bundle-analyzer';
+import tailwindcss from '@tailwindcss/vite';
 
 const pkg = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
@@ -16,6 +17,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      tailwindcss(),
       react(),
       shouldAnalyzeBundle
         ? analyzer({

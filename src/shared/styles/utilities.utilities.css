@@ -1,0 +1,81 @@
+@utility animate-in {
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@utility fade-in {
+  animation-name: fade-in;
+}
+
+@utility slide-in-from-top-2 {
+  animation-name: slide-in-from-top;
+}
+
+@utility slide-in-from-top-4 {
+  animation-name: slide-in-from-top;
+}
+
+@utility slide-in-from-bottom-4 {
+  animation-name: slide-in-from-bottom;
+}
+
+@utility duration-300 {
+  animation-duration: 0.3s;
+}
+
+@utility duration-500 {
+  animation-duration: 0.5s;
+}
+
+@utility od-marquee-track {
+  will-change: transform;
+}
+
+@utility od-marquee-active {
+  animation-name: od-marquee-loop;
+  animation-duration: var(--od-marquee-duration, 8s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: 0.35s;
+}
+
+@utility notification-bell-wiggle {
+  transform-origin: top center;
+  animation: notification-bell-swing 900ms ease-in-out infinite;
+}
+
+@utility theme-radial-overlay {
+  position: fixed;
+  border-radius: 9999px;
+  background: var(--od-bg);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: lighten;
+}
+
+@utility theme-radial-overlay-expand {
+  transform: scale(0);
+  animation: theme-radial-expand 900ms ease-out forwards;
+}
+
+@utility theme-radial-overlay-collapse {
+  transform: scale(1.1);
+  animation: theme-radial-collapse 900ms ease-out forwards;
+}
+
+@utility od-theme-transition {
+  &html {
+    transition-property:
+      background-color, color, border-color, box-shadow, fill, stroke;
+    transition-duration: 0.8s;
+    transition-timing-function: ease-in-out;
+  }
+
+  & html * {
+    transition-property:
+      background-color, color, border-color, box-shadow, fill, stroke;
+    transition-duration: 0.8s;
+    transition-timing-function: ease-in-out;
+  }
+}

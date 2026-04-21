@@ -24,7 +24,7 @@ export function MeHistorySection({
       <FluidDivider label="History" className="mb-8" />
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
         <div className="flex items-center justify-center gap-2">
-          <Eye className="h-4 w-4 text-[var(--od-accent)]" />
+          <Eye className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">我的足迹</h2>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -60,7 +60,7 @@ export function MeHistorySection({
                 <button
                   type="button"
                   onClick={() => onOpenThread(item.threadId)}
-                  className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[var(--od-surface-soft)]"
+                  className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-(--od-surface-soft)"
                   title={`打开 ${item.title}`}
                 >
                   <LazyImage src={item.thumbnailUrl} alt={item.title} className="h-full w-full" />
@@ -69,7 +69,7 @@ export function MeHistorySection({
                 <button
                   type="button"
                   onClick={() => onOpenThread(item.threadId)}
-                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--od-surface-input)_68%,transparent)] text-[var(--od-text-tertiary)]"
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--od-surface-input)_68%,transparent)] text-(--od-text-tertiary)"
                   title={`打开 ${item.title}`}
                 >
                   <Eye className="h-5 w-5" />
@@ -80,11 +80,11 @@ export function MeHistorySection({
                 <button
                   type="button"
                   onClick={() => onOpenThread(item.threadId)}
-                  className="block max-w-full truncate text-left text-base font-semibold text-[var(--od-text-primary)] transition-colors hover:text-[var(--od-accent)]"
+                  className="block max-w-full truncate text-left text-base font-semibold text-(--od-text-primary) transition-colors hover:text-(--od-accent)"
                 >
                   {item.title}
                 </button>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--od-text-secondary)]">
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-(--od-text-secondary)">
                   {item.authorName && <span>@{item.authorName}</span>}
                   {item.channelId && <span>频道 {item.channelId}</span>}
                   <span>{new Date(item.visitedAt).toLocaleString('zh-CN', { hour12: false })}</span>
@@ -94,7 +94,7 @@ export function MeHistorySection({
               <button
                 type="button"
                 onClick={() => onRemove(item.threadId)}
-                className="shrink-0 p-2 text-[var(--od-text-tertiary)] transition-colors hover:text-[var(--od-text-primary)]"
+                className="shrink-0 p-2 text-(--od-text-tertiary) transition-colors hover:text-(--od-text-primary)"
                 title="删除这条足迹"
               >
                 <Trash2 className="h-4 w-4" />

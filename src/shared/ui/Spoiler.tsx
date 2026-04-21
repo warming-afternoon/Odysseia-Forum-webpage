@@ -14,7 +14,7 @@ export function Spoiler({ children }: SpoilerProps) {
     return (
         <span
             className={`inline-block rounded px-1 transition-all cursor-pointer ${revealed
-                    ? 'bg-[#3f3f46] text-[var(--od-text-primary)]'
+                    ? 'bg-[#3f3f46] text-(--od-text-primary)'
                     : 'bg-[#2d2d30] text-transparent select-none hover:bg-[#3a3a3d]'
                 }`}
             onClick={(e) => {

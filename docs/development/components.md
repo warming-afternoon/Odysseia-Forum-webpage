@@ -1,37 +1,70 @@
-# 🧱 组件开发指南 (Components)
+# 🧩 组件开发指南 (Components Guide)
 
-在 Feature-Sliced Design (FSD) 架构下，组件被横向切割为了不同级别的重用度与业务耦合度。本指南规定了组件应该如何被放置和开发。
+本指南介绍如何在 Odysseia Forum 项目中编写高质量、可维护的 React 组件。
 
-## 1. 基础 UI 组件 (`Shared/ui`)
+## 1. 组件标准 (React 19)
 
-放置在 `src/shared/ui/` 中的组件是**完全不包含业务逻辑的纯展示组件**（Dumb Components）。
+自项目升级至 **React 19** 后，组件编写方式发生了重大变化。
 
-### 1.1 设计要求
-- **零外部状态**: 不允许引入任何 `useQuery`、`useStore` 获取远端数据或全局状态。
-- **Props 驱动**: 外界通过 props 将需要的数据传入，通过回调 (`onClick`, `onChange` 等) 通知变更。
-- **组合封装**: 优先使用现有的组件进行二次封装（例如封装后的 `RippleButton` 或是具备通用业务无关逻辑的 `SearchTokenInput`）。
+### 1.1 弃用 `forwardRef`
+在 React 19 中，`ref` 作为一个普通的 Prop 传递。**禁止再写这种包裹代码**：
 
-**现有共享 UI 示例**:
-- `MarkdownText`: 负责安全地渲染 Markdown，不管数据来源。
-- `LazyImage`: 负责图片的懒加载与淡入，支持任何 src。
-- `ThemeToggle`: 纯粹改变全局背景和状态的主题切换开关。
+```tsx
+// ❌ 旧写法 (已过时)
+const MyButton = forwardRef((props, ref) => <button ref={ref} {...props} />);
 
-## 2. 业务组件 (`Features` & `Widgets`)
+// ✅ React 19 标准写法
+export const MyButton = ({ ref, ...props }: Props) => (
+  <button ref={ref} {...props} />
+);
+```
 
-### 2.1 Widgets (挂件)
-Widgets 通常是页面中非常大的一个功能区块（往往具备独立的请求和状态逻辑可以实现自我驱动）。
-- 目录示例: `src/widgets/layout/TopBar.tsx`, `src/widgets/sidebar/LeftSidebar.tsx`
-- **目的**: 让页面层 (`Pages`) 的代码极度清爽，Page 只负责像搭积木一样将 Widget 拼起来。
+### 1.2 使用 Actions 处理表单
+处理表单提交时，推荐使用 `useActionState`。这能自动处理提交中 (`pending`) 和结果 (`data/error`) 状态：
 
-### 2.2 Features (特性功能组件)
-处理特定用户用例的组件。比如：发帖表单、点赞按钮。
-他们应该**自带该功能的全部逻辑**。
-- 如果你要封装一个 `LikeButton`，它不应该把网络请求暴露给父级。相反，`LikeButton` 自己读取传入的 `threadId`，在自己内部调用 `useMutation(...)`，这样任何地方只要放置这个 `<LikeButton threadId={123} />` 就能工作，做到绝对解耦。
-- **状态同步示例 (`SearchFilterPanel`)**: 对于需要综合展示当前环境上下文的高级业务组件，可以独立读取并同步上游状态。如 `SearchFilterPanel` 会独立拉取用户的偏好（`preferenceIncludeTags` 等），并在组件内部控制是否与 URL Search Params（如包含/排除的标签和作者等）进行同步切换（`syncPreferenceTags`）。
+```tsx
+const [state, action, pending] = useActionState(submitForm, null);
 
-## 3. 组件性能与渲染优化
+return (
+  <form action={action}>
+    <input name="username" />
+    <button disabled={pending}>提交</button>
+  </form>
+);
+```
 
-由于 React 在父级渲染时会级联渲染所有子级，在开发组件时请注意：
-1. **优先提取状态**: 把那些频繁变动的状态拆解并封装到独立的子组件中，不让大范围布局一起陪着渲染（下放 State）。
-2. 使用 `useMemo` 与 `useCallback` 来包裹庞大计算或者传递给子组件（如果是 `React.memo`）的函数。
-3. 如果要在视图上绑定大量的循环数据呈现（如无限加载的帖子列表），请利用 `@tanstack/react-virtual` 虚拟大列表来渲染，它能将 DOM 元素保持在几十个的数量级，极大优化页面重排效率。
+---
+
+## 2. 目录结构
+
+组件应按 FSD 规范存放在对应的 `ui/` 或 `components/` 目录下。较复杂的组件应包含以下文件：
+- `index.ts` - 导出
+- `MyComponent.tsx` - 视图逻辑
+- `MyComponent.test.tsx` - 测试 (Vitest)
+- `styles.css` - (可选) 局部覆盖样式
+
+---
+
+## 3. 样式与原子类
+
+- **优先使用语义类**：如 `text-od-text-primary` 而非 `text-white`。
+- **动态类生成**：使用 `cn()` 函数合并类名。
+- **禁止硬编码颜色**：始终通过 `globals.css` 中的 `@theme` 变量操作。
+
+---
+
+## 4. 动画规范
+
+- **进场动画**：使用 `animate-in` 系列原子类。
+- **核心组件**：使用 `motion` (来自 `motion/react`)。
+- **性能**：避免在循环渲染的大量节点中应用复杂的 `layout` 动画。
+
+---
+
+## 5. 组件自检清单
+
+1. 是否使用了 React 19 的普通 `ref` 传参？
+2. 是否通过 `interface/type` 完整定义了 Props？
+3. `cn()` 是否正确接收了外部传入的 `className`？
+4. 是否在小屏幕下进行了响应式适配？
+5. 是否可以通过键盘操作（Tab 导航等）？

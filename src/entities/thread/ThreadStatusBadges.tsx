@@ -20,13 +20,13 @@ export function ThreadStatusBadges({
         return (
             <div className={`absolute left-2 top-2 z-20 flex flex-col gap-1.5 ${className}`}>
                 {hasUpdate && (
-                    <div className="flex items-center gap-1 rounded-full bg-[#23a55a]/90 px-2 py-0.5 text-xs font-semibold text-white shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-1 rounded-full bg-[#23a55a]/90 px-2 py-0.5 text-xs font-semibold text-white shadow-xs backdrop-blur-xs animate-in fade-in slide-in-from-top-2 duration-300">
                         <span className="inline-block h-2 w-2 rounded-full bg-white animate-[pulse_2.4s_ease-in-out_infinite]" />
                         <span>有更新</span>
                     </div>
                 )}
                 {isFollowing && (
-                    <div className="flex items-center gap-1 rounded-full bg-[var(--od-accent)]/90 px-2 py-0.5 text-xs font-semibold text-white shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300 delay-75">
+                    <div className="flex items-center gap-1 rounded-full bg-(--od-accent)/90 px-2 py-0.5 text-xs font-semibold text-white shadow-xs backdrop-blur-xs animate-in fade-in slide-in-from-top-2 duration-300 delay-75">
                         <Bell className="h-3 w-3 fill-current" />
                         <span>已关注</span>
                     </div>
@@ -52,7 +52,7 @@ export function ThreadStatusBadges({
             )}
             {isFollowing && (
                 <span
-                    className={`inline-flex items-center gap-1 rounded-full bg-[var(--od-accent)]/10 font-medium text-[var(--od-accent)] border border-[var(--od-accent)]/20 ${sizeClasses}`}
+                    className={`inline-flex items-center gap-1 rounded-full bg-(--od-accent)/10 font-medium text-(--od-accent) border border-(--od-accent)/20 ${sizeClasses}`}
                     title="你已关注此帖子"
                 >
                     <Bell className={`${iconSizes} fill-current`} />

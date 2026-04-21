@@ -15,7 +15,7 @@ export function WordLoader({ className }: WordLoaderProps) {
     strokeLinecap: 'round' as const,
   };
 
-  const letterClass = 'w-11 h-11 relative inline-block text-[var(--od-text-primary)]';
+  const letterClass = 'w-11 h-11 relative inline-block text-(--od-text-primary)';
   const svgClass = 'block w-full h-full overflow-visible';
 
   return (

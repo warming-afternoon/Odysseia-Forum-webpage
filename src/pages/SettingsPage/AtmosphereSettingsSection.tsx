@@ -51,8 +51,8 @@ export function AtmosphereSettingsSection({
         <div className="od-setting-subsection space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[1.1rem] font-semibold tracking-[-0.02em] text-[var(--od-text-primary)]">背景图</p>
-              <p className="mt-2 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">
+              <p className="text-[1.1rem] font-semibold tracking-[-0.02em] text-(--od-text-primary)">背景图</p>
+              <p className="mt-2 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">
                 图片资源和启用状态分开处理。你可以先存一张图，再决定要不要现在打开。
               </p>
             </div>
@@ -66,8 +66,8 @@ export function AtmosphereSettingsSection({
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
             <div className="space-y-4">
               <div className="od-setting-panel-soft">
-                <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">Presets</p>
-                <p className="mb-3 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">先选一张喜欢的底图，再微调透明度和磨砂感。</p>
+                <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">Presets</p>
+                <p className="mb-3 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">先选一张喜欢的底图，再微调透明度和磨砂感。</p>
                 <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                   {backgroundPresets.map((preset) => {
                     const isSelected = settings.backgroundImageUrl === preset.previewUrl && settings.backgroundImageEnabled;
@@ -90,8 +90,8 @@ export function AtmosphereSettingsSection({
                           className="h-24 w-full rounded-[0.95rem] bg-cover bg-center"
                           style={{ backgroundImage: `url(${preset.previewUrl})` }}
                         />
-                        <span className="text-sm font-medium text-[var(--od-text-primary)]">{preset.label}</span>
-                        <span className="text-[0.72rem] text-[var(--od-text-tertiary)]">{preset.description}</span>
+                        <span className="text-sm font-medium text-(--od-text-primary)">{preset.label}</span>
+                        <span className="text-[0.72rem] text-(--od-text-tertiary)">{preset.description}</span>
                       </button>
                     );
                   })}
@@ -99,19 +99,19 @@ export function AtmosphereSettingsSection({
               </div>
 
               <label className="block">
-                <span className="mb-1 block text-base font-semibold tracking-[-0.02em] text-[var(--od-text-primary)]">本地上传</span>
-                <span className="mb-2 block text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">直接从本地选张图，最大 5MB，会保存在你的浏览器里。</span>
+                <span className="mb-1 block text-base font-semibold tracking-[-0.02em] text-(--od-text-primary)">本地上传</span>
+                <span className="mb-2 block text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">直接从本地选张图，最大 5MB，会保存在你的浏览器里。</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => onUploadBackground(e.target.files?.[0] || null)}
-                  className="w-full cursor-pointer rounded-2xl border border-[var(--od-shell-line)] bg-[var(--od-surface-input)] px-3 py-2 text-sm text-[var(--od-text-primary)]"
+                  className="w-full cursor-pointer rounded-2xl border border-(--od-shell-line) bg-(--od-surface-input) px-3 py-2 text-sm text-(--od-text-primary)"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-1 block text-base font-semibold tracking-[-0.02em] text-[var(--od-text-primary)]">背景图 URL</span>
-                <span className="mb-2 block text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">也可以贴一个外部图片链接，换起来更方便。</span>
+                <span className="mb-1 block text-base font-semibold tracking-[-0.02em] text-(--od-text-primary)">背景图 URL</span>
+                <span className="mb-2 block text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">也可以贴一个外部图片链接，换起来更方便。</span>
                 <input
                   type="text"
                   value={settings.backgroundImageUrl}
@@ -122,13 +122,13 @@ export function AtmosphereSettingsSection({
                       backgroundImageBase64: '',
                     })
                   }
-                  className="w-full rounded-2xl border border-[var(--od-shell-line)] bg-[var(--od-surface-input)] px-3 py-2 text-sm text-[var(--od-text-primary)]"
+                  className="w-full rounded-2xl border border-(--od-shell-line) bg-(--od-surface-input) px-3 py-2 text-sm text-(--od-text-primary)"
                 />
               </label>
             </div>
 
             <div className="space-y-4">
-              <div className="overflow-hidden rounded-[1.3rem] border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]">
+              <div className="overflow-hidden rounded-[1.3rem] border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]">
                 <div className="relative h-52 w-full overflow-hidden">
                   {currentWallpaper ? (
                     <>
@@ -140,17 +140,17 @@ export function AtmosphereSettingsSection({
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-white/70">Preview</p>
                         <p className="mt-1 text-base font-semibold text-white">{settings.backgroundImageEnabled ? '当前背景已启用' : '背景已保存，当前未启用'}</p>
-                        <p className="mt-1 text-xs leading-[1.5] text-white/78">透明度 {opacityDraft}% · 磨砂 {blurDraft}px · {currentSourceLabel}</p>
+                        <p className="mt-1 text-xs leading-normal text-white/78">透明度 {opacityDraft}% · 磨砂 {blurDraft}px · {currentSourceLabel}</p>
                       </div>
                     </>
                   ) : (
-                    <div className="flex h-full items-center justify-center px-6 text-center text-sm leading-[1.6] text-[var(--od-text-secondary)]">
+                    <div className="flex h-full items-center justify-center px-6 text-center text-sm leading-[1.6] text-(--od-text-secondary)">
                       这里会显示当前背景图预览。先选预设图、上传本地图片，或者贴一个 URL 过来。
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between gap-3 border-t border-[var(--od-shell-line)] px-4 py-3">
-                  <span className="truncate text-[0.84rem] font-semibold leading-[1.35] text-[var(--od-text-emphasis)]">当前来源：{currentSourceLabel}</span>
+                <div className="flex items-center justify-between gap-3 border-t border-(--od-shell-line) px-4 py-3">
+                  <span className="truncate text-[0.84rem] font-semibold leading-[1.35] text-(--od-text-emphasis)">当前来源：{currentSourceLabel}</span>
                   <button type="button" onClick={onClearBackgroundImage} className="od-inline-action od-inline-action-ghost px-3 py-1">
                     清除背景图
                   </button>
@@ -159,8 +159,8 @@ export function AtmosphereSettingsSection({
 
               <div className="od-setting-row">
                 <div>
-                  <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">毛玻璃</p>
-                  <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">先用总开关决定是否启用，再选自动还是强制开启。</p>
+                  <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">毛玻璃</p>
+                  <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">先用总开关决定是否启用，再选自动还是强制开启。</p>
                 </div>
                 <SettingsToggle
                   checked={glassEnabled}
@@ -170,7 +170,7 @@ export function AtmosphereSettingsSection({
               </div>
 
               <div>
-                <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">Glass Strategy</p>
+                <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">Glass Strategy</p>
                 <div className="od-options-wrap">
                   {([
                     ['auto', '自动'],
@@ -184,7 +184,7 @@ export function AtmosphereSettingsSection({
                       data-active={settings.glassMode === mode}
                       className="od-option-inline"
                     >
-                      <span className="od-choice-title text-sm text-[var(--od-text-primary)]">{label}</span>
+                      <span className="od-choice-title text-sm text-(--od-text-primary)">{label}</span>
                     </button>
                   ))}
                 </div>
@@ -192,8 +192,8 @@ export function AtmosphereSettingsSection({
 
               <div className="od-setting-row">
                 <div>
-                  <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">无背景色模式</p>
-                  <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">去掉页面大面积底色，只保留文字、分隔和结构线。</p>
+                  <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">无背景色模式</p>
+                  <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">去掉页面大面积底色，只保留文字、分隔和结构线。</p>
                 </div>
                 <SettingsToggle
                   checked={settings.backgroundlessMode}
@@ -202,15 +202,15 @@ export function AtmosphereSettingsSection({
                 />
               </div>
 
-              <div className="flex items-start gap-3 rounded-[1.1rem] border border-[var(--od-shell-line)]/70 bg-[color-mix(in_srgb,var(--od-surface-input)_78%,transparent)] px-4 py-3 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">
-                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-[var(--od-text-emphasis)]" />
+              <div className="flex items-start gap-3 rounded-[1.1rem] border border-(--od-shell-line)/70 bg-[color-mix(in_srgb,var(--od-surface-input)_78%,transparent)] px-4 py-3 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-(--od-text-emphasis)" />
                 <p>放心，这个开关只影响页面大背景。弹窗、下拉框这些浮层还是保持实心的，不会看不清。</p>
               </div>
 
               <label className="block">
-                <span className="mb-2 flex items-center justify-between text-sm font-medium text-[var(--od-text-secondary)]">
+                <span className="mb-2 flex items-center justify-between text-sm font-medium text-(--od-text-secondary)">
                   <span>背景图透明度</span>
-                  <span className="text-[0.88rem] font-bold leading-[1.3] text-[var(--od-text-value)]">{opacityDraft}%</span>
+                  <span className="text-[0.88rem] font-bold leading-[1.3] text-(--od-text-value)">{opacityDraft}%</span>
                 </span>
                 <input
                   type="range"
@@ -222,14 +222,14 @@ export function AtmosphereSettingsSection({
                   onMouseUp={onCommitOpacity}
                   onTouchEnd={onCommitOpacity}
                   onKeyUp={onCommitOpacity}
-                  className="w-full accent-[var(--od-accent)]"
+                  className="w-full accent-(--od-accent)"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 flex items-center justify-between text-sm font-medium text-[var(--od-text-secondary)]">
+                <span className="mb-2 flex items-center justify-between text-sm font-medium text-(--od-text-secondary)">
                   <span>磨砂强度（Blur）</span>
-                  <span className="text-[0.88rem] font-bold leading-[1.3] text-[var(--od-text-value)]">{blurDraft}px</span>
+                  <span className="text-[0.88rem] font-bold leading-[1.3] text-(--od-text-value)">{blurDraft}px</span>
                 </span>
                 <input
                   type="range"
@@ -241,7 +241,7 @@ export function AtmosphereSettingsSection({
                   onMouseUp={onCommitBlur}
                   onTouchEnd={onCommitBlur}
                   onKeyUp={onCommitBlur}
-                  className="w-full accent-[var(--od-accent)]"
+                  className="w-full accent-(--od-accent)"
                 />
               </label>
             </div>
@@ -250,8 +250,8 @@ export function AtmosphereSettingsSection({
 
         <div className="od-setting-row">
           <div>
-            <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">紧凑模式</p>
-            <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">收紧界面间距，列表和卡片会更贴近，适合偏高密度的信息浏览。</p>
+            <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">紧凑模式</p>
+            <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">收紧界面间距，列表和卡片会更贴近，适合偏高密度的信息浏览。</p>
           </div>
           <SettingsToggle
             checked={settings.compactMode}

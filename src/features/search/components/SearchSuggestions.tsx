@@ -369,7 +369,7 @@ export function SearchSuggestions({
   const content = (
     <>
       {groups.flatItems.length === 0 ? (
-        <div className="p-4 text-sm text-[var(--od-text-tertiary)]">
+        <div className="p-4 text-sm text-(--od-text-tertiary)">
           暂无联想结果，继续输入更多关键词试试。
         </div>
       ) : (
@@ -377,17 +377,17 @@ export function SearchSuggestions({
         {groups.sectionedGroups.map((group, groupIndex) => (
           <div
             key={group.title}
-            className={`${groupIndex > 0 ? "mt-2 border-t border-[var(--od-border)] pt-2" : ""}`}
+            className={`${groupIndex > 0 ? "mt-2 border-t border-(--od-border) pt-2" : ""}`}
           >
             <div className="mb-2 flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-od-xs font-od-bold text-[var(--od-text-tertiary)]">
+              <div className="flex items-center gap-1.5 text-od-xs font-od-bold text-(--od-text-tertiary)">
                 <group.icon className="h-3.5 w-3.5" />
                 {group.title}
               </div>
               {group.title === "历史搜索" && history.length > 0 && (
                 <button
                   onClick={() => onClearHistory?.()}
-                  className="text-od-xs text-[var(--od-text-tertiary)] transition-colors hover:text-[var(--od-error)]"
+                  className="text-od-xs text-(--od-text-tertiary) transition-colors hover:text-(--od-error)"
                 >
                   清空
                 </button>
@@ -414,13 +414,13 @@ export function SearchSuggestions({
                     }}
                     className={`group flex w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left transition-colors ${
                       isSelected
-                        ? "bg-[var(--od-accent)]/20 text-[var(--od-text-primary)]"
-                        : "text-[var(--od-text-secondary)] hover:bg-[var(--od-bg-tertiary)]"
+                        ? "bg-(--od-accent)/20 text-(--od-text-primary)"
+                        : "text-(--od-text-secondary) hover:bg-(--od-bg-tertiary)"
                     }`}
                   >
                     {item.type === "thread" || item.type === "booklist" ? (
                       <div className="flex min-w-0 items-start gap-2">
-                        <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-[var(--od-bg-tertiary)]">
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-(--od-bg-tertiary)">
                           {item.thumbnailUrl ? (
                             <LazyImage
                               src={item.thumbnailUrl}
@@ -428,7 +428,7 @@ export function SearchSuggestions({
                               className="h-full w-full"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[var(--od-text-tertiary)]">
+                            <div className="flex h-full w-full items-center justify-center text-(--od-text-tertiary)">
                               {item.type === "booklist" ? (
                                 <BookOpen className="h-4 w-4" />
                               ) : (
@@ -438,16 +438,16 @@ export function SearchSuggestions({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold text-[var(--od-text-primary)]">
+                          <div className="truncate text-sm font-semibold text-(--od-text-primary)">
                             {item.display}
                           </div>
                           {item.snippet && (
-                            <p className="line-clamp-2 text-xs text-[var(--od-text-tertiary)]">
+                            <p className="line-clamp-2 text-xs text-(--od-text-tertiary)">
                               {item.snippet}
                             </p>
                           )}
                           {item.type === "thread" && item.authorName && (
-                            <p className="mt-0.5 text-[11px] text-[var(--od-text-tertiary)]">
+                            <p className="mt-0.5 text-[11px] text-(--od-text-tertiary)">
                               @{item.authorName}
                             </p>
                           )}
@@ -459,14 +459,14 @@ export function SearchSuggestions({
                           <LazyImage
                             src={item.avatar}
                             alt={item.display}
-                            className="h-5 w-5 flex-shrink-0 rounded-full"
+                            className="h-5 w-5 shrink-0 rounded-full"
                           />
                         ) : (
                           <item.icon
-                            className={`h-4 w-4 flex-shrink-0 ${
+                            className={`h-4 w-4 shrink-0 ${
                               isSelected
-                                ? "text-[var(--od-accent)]"
-                                : "text-[var(--od-text-tertiary)]"
+                                ? "text-(--od-accent)"
+                                : "text-(--od-text-tertiary)"
                             }`}
                           />
                         )}
@@ -475,7 +475,7 @@ export function SearchSuggestions({
                         </span>
                         {item.type === "history" &&
                           describeSearchHistoryContext(item.historyItem) && (
-                            <span className="truncate text-[11px] text-[var(--od-text-tertiary)]">
+                            <span className="truncate text-[11px] text-(--od-text-tertiary)">
                               {describeSearchHistoryContext(item.historyItem)}
                             </span>
                           )}
@@ -488,9 +488,9 @@ export function SearchSuggestions({
                           event.stopPropagation();
                           onRemoveHistory?.(item.historyItem);
                         }}
-                        className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[var(--od-card-hover)]"
+                        className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-(--od-card-hover)"
                       >
-                        <X className="h-3.5 w-3.5 text-[var(--od-text-tertiary)]" />
+                        <X className="h-3.5 w-3.5 text-(--od-text-tertiary)" />
                       </button>
                     )}
                   </div>
@@ -502,22 +502,22 @@ export function SearchSuggestions({
       </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-[var(--od-border)] bg-[var(--od-bg-tertiary)]/50 p-od-sm text-od-xs text-[var(--od-text-tertiary)]">
+      <div className="flex items-center justify-between border-t border-(--od-border) bg-(--od-bg-tertiary)/50 p-od-sm text-od-xs text-(--od-text-tertiary)">
         <div>
           {preferenceAware ? "智能搜索导航 · 建议已按偏好收束" : "智能搜索导航"}
         </div>
         <div className="flex items-center gap-od-sm">
           <span className="flex items-center gap-1">
-            <kbd className="rounded bg-[var(--od-border)] px-1 font-mono">
+            <kbd className="rounded bg-(--od-border) px-1 font-mono">
               ↑
             </kbd>
-            <kbd className="rounded bg-[var(--od-border)] px-1 font-mono">
+            <kbd className="rounded bg-(--od-border) px-1 font-mono">
               ↓
             </kbd>{" "}
             切换
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="rounded bg-[var(--od-border)] px-1 font-mono">
+            <kbd className="rounded bg-(--od-border) px-1 font-mono">
               ↵
             </kbd>{" "}
             确认
@@ -542,7 +542,7 @@ export function SearchSuggestions({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="od-floating-panel-solid absolute right-0 top-full z-50 mt-od-sm w-full origin-top overflow-hidden rounded-lg border border-[var(--od-border-strong)] shadow-2xl sm:w-[560px]"
+      className="od-floating-panel-solid absolute right-0 top-full z-50 mt-od-sm w-full origin-top overflow-hidden rounded-lg border border-(--od-border-strong) shadow-2xl sm:w-[560px]"
     >
       {content}
     </motion.div>

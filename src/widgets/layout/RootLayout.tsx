@@ -43,10 +43,10 @@ export function RootLayout() {
   }, [location.pathname, location.search, location.hash]);
 
   return (
-    <div className="od-app-shell relative flex h-screen w-full overflow-hidden text-[var(--od-text-primary)]">
+    <div className="od-app-shell relative flex h-screen w-full overflow-hidden text-(--od-text-primary)">
       <div className="pointer-events-none absolute inset-0 z-0 od-shell-surface" />
 
-      <div className="od-operation-base pointer-events-none absolute inset-0 z-[5]" />
+      <div className="od-operation-base pointer-events-none absolute inset-0 z-5" />
 
       {/* ── Sidebar (桌面端固定 / 移动端抽屉) ── */}
         <ResizableSidebar
@@ -71,13 +71,13 @@ export function RootLayout() {
         }`}
       >
         {/* 主滚动区 — 圆角面板 + 独立背景色，形成视觉层级 */}
-        <div className="od-content-surface relative z-10 mt-[3.25rem] flex-1 min-h-0 sm:mt-[4.25rem] sm:rounded-tl-[2.5rem] sm:overflow-hidden">
+        <div className="od-content-surface relative z-10 mt-13 flex-1 min-h-0 sm:mt-17 sm:rounded-tl-[2.5rem] sm:overflow-hidden">
           {/* 顶部高光渐变装饰 */}
-          <div className="pointer-events-none absolute left-0 right-0 top-0 z-0 hidden h-24 rounded-tl-[2.5rem] bg-gradient-to-b from-white/[0.02] to-transparent sm:block" />
+          <div className="pointer-events-none absolute left-0 right-0 top-0 z-0 hidden h-24 rounded-tl-[2.5rem] bg-linear-to-b from-white/2 to-transparent sm:block" />
           <main
             id="main-scroll-container"
             tabIndex={-1}
-            className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0 focus:outline-none flex flex-col"
+            className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0 focus:outline-hidden flex flex-col"
           >
             <Outlet />
             {/* 防止网速跟不上按 Tab 导致焦点滑出主区域 */}
@@ -85,7 +85,7 @@ export function RootLayout() {
               tabIndex={0}
               aria-live="polite"
               aria-atomic="true"
-              className="mt-auto sr-only focus:not-sr-only focus:p-6 focus:text-center focus:text-sm focus:font-medium focus:text-[var(--od-text-secondary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--od-accent)]"
+              className="mt-auto sr-only focus:not-sr-only focus:p-6 focus:text-center focus:text-sm focus:font-medium focus:text-(--od-text-secondary) focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-(--od-accent)"
               onFocus={(e) => {
                 const sentinel = e.currentTarget;
                 const mainContainer = sentinel.parentElement;

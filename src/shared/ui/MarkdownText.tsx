@@ -120,7 +120,7 @@ export function MarkdownText({ text }: MarkdownTextProps) {
   return (
     <>
       <div
-        className="od-md text-[var(--od-text-secondary)] text-xs sm:text-sm leading-relaxed"
+        className="od-md text-(--od-text-secondary) text-xs sm:text-sm leading-relaxed"
         onClickCapture={handleClickCapture}
         dangerouslySetInnerHTML={{ __html: html }}
       />

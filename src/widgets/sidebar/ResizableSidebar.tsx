@@ -26,7 +26,7 @@ export function ResizableSidebar({
       {/* 移动端遮罩 */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-all duration-300 lg:hidden animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs transition-all duration-300 lg:hidden animate-in fade-in"
           onClick={() => setIsMobileOpen?.(false)}
         />
       )}
@@ -47,7 +47,7 @@ export function ResizableSidebar({
         {/* 移动端关闭按钮 — 偏右上角，避开 logo 区域 */}
         <button
           onClick={() => setIsMobileOpen?.(false)}
-          className="absolute right-2 top-3 z-10 rounded-lg p-1.5 text-[var(--od-text-tertiary)] hover:bg-[var(--od-bg-tertiary)] hover:text-[var(--od-text-primary)] lg:hidden"
+          className="absolute right-2 top-3 z-10 rounded-lg p-1.5 text-(--od-text-tertiary) hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary) lg:hidden"
           aria-label="关闭菜单"
         >
           <X className="h-4 w-4" />
@@ -57,7 +57,7 @@ export function ResizableSidebar({
         {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed?.(true)}
-            className="absolute right-0 top-1/2 z-10 hidden h-16 -translate-y-1/2 rounded-l-full px-1 text-[var(--od-text-tertiary)] opacity-20 transition-all duration-200 hover:opacity-100 hover:bg-white/[0.06] hover:text-[var(--od-text-primary)] lg:flex lg:items-center lg:justify-center"
+            className="absolute right-0 top-1/2 z-10 hidden h-16 -translate-y-1/2 rounded-l-full px-1 text-(--od-text-tertiary) opacity-20 transition-all duration-200 hover:opacity-100 hover:bg-white/6 hover:text-(--od-text-primary) lg:flex lg:items-center lg:justify-center"
             aria-label="收起侧边栏"
           >
             <ChevronLeft className="h-4 w-4 transition-transform duration-300" />
@@ -72,7 +72,7 @@ export function ResizableSidebar({
       {isCollapsed && (
         <button
           onClick={() => setIsCollapsed?.(false)}
-          className="fixed left-0 top-1/2 z-40 hidden h-16 -translate-y-1/2 rounded-r-full border border-white/[0.06] bg-[var(--od-bg-tertiary)] px-1 text-[var(--od-text-tertiary)] opacity-20 transition-all duration-200 hover:opacity-100 hover:bg-white/[0.1] hover:text-[var(--od-text-primary)] lg:flex lg:items-center lg:justify-center"
+          className="fixed left-0 top-1/2 z-40 hidden h-16 -translate-y-1/2 rounded-r-full border border-white/6 bg-(--od-bg-tertiary) px-1 text-(--od-text-tertiary) opacity-20 transition-all duration-200 hover:opacity-100 hover:bg-white/10 hover:text-(--od-text-primary) lg:flex lg:items-center lg:justify-center"
           aria-label="展开侧边栏"
         >
           <ChevronLeft className="h-4 w-4 rotate-180 transition-transform duration-300" />

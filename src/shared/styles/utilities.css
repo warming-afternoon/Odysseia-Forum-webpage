@@ -43,45 +43,6 @@
     }
   }
 
-  .animate-in {
-    animation-duration: 0.3s;
-    animation-timing-function: ease-out;
-    animation-fill-mode: both;
-  }
-
-  .fade-in {
-    animation-name: fade-in;
-  }
-
-  .slide-in-from-top-2,
-  .slide-in-from-top-4 {
-    animation-name: slide-in-from-top;
-  }
-
-  .slide-in-from-bottom-4 {
-    animation-name: slide-in-from-bottom;
-  }
-
-  .duration-300 {
-    animation-duration: 0.3s;
-  }
-
-  .duration-500 {
-    animation-duration: 0.5s;
-  }
-
-  .od-marquee-track {
-    will-change: transform;
-  }
-
-  .od-marquee-active {
-    animation-name: od-marquee-loop;
-    animation-duration: var(--od-marquee-duration, 8s);
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-delay: 0.35s;
-  }
-
   @keyframes notification-bell-swing {
     0% { transform: rotate(0deg); }
     15% { transform: rotate(-12deg); }
@@ -90,11 +51,6 @@
     60% { transform: rotate(6deg); }
     75% { transform: rotate(-4deg); }
     100% { transform: rotate(0deg); }
-  }
-
-  .notification-bell-wiggle {
-    transform-origin: top center;
-    animation: notification-bell-swing 900ms ease-in-out infinite;
   }
 
   @keyframes theme-radial-expand {
@@ -129,32 +85,6 @@
       transform: scale(0);
       opacity: 0;
     }
-  }
-
-  .theme-radial-overlay {
-    position: fixed;
-    border-radius: 9999px;
-    background: var(--od-bg);
-    pointer-events: none;
-    z-index: 9999;
-    mix-blend-mode: lighten;
-  }
-
-  .theme-radial-overlay-expand {
-    transform: scale(0);
-    animation: theme-radial-expand 900ms ease-out forwards;
-  }
-
-  .theme-radial-overlay-collapse {
-    transform: scale(1.1);
-    animation: theme-radial-collapse 900ms ease-out forwards;
-  }
-
-  html.od-theme-transition,
-  html.od-theme-transition * {
-    transition-property: background-color, color, border-color, box-shadow, fill, stroke;
-    transition-duration: 0.8s;
-    transition-timing-function: ease-in-out;
   }
 }
 

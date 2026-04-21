@@ -126,10 +126,10 @@ function ThreadCardImpl({
 
   const mediaAspectClass =
     cardSize === "compact"
-      ? "aspect-[3/4]"
+      ? "aspect-3/4"
       : cardSize === "large"
-        ? "aspect-[5/7]"
-        : "aspect-[3/4]";
+        ? "aspect-5/7"
+        : "aspect-3/4";
 
   return (
 <>
@@ -138,7 +138,7 @@ function ThreadCardImpl({
         aria-label={ariaLabel}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="group flex h-full w-full cursor-pointer flex-col animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--od-accent)] rounded-[1.45rem]"
+        className="group flex h-full w-full cursor-pointer flex-col animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both focus:outline-hidden focus-visible:ring-2 focus-visible:ring-(--od-accent) rounded-[1.45rem]"
         style={{
           animationDelay: `${(index % 24) * 40}ms`,
           WebkitTapHighlightColor: 'transparent',
@@ -161,7 +161,7 @@ function ThreadCardImpl({
             }
           }}
         >
-          <div className="flex flex-col gap-2 px-1 pb-3 pt-1 text-[var(--od-text-primary)]">
+          <div className="flex flex-col gap-2 px-1 pb-3 pt-1 text-(--od-text-primary)">
             <div className="flex min-w-0 items-center gap-2 overflow-hidden">
               <button
                 type="button"
@@ -170,18 +170,18 @@ function ThreadCardImpl({
               >
                 <AuthorAvatar
                   author={thread.author}
-                  className="h-6 w-6 md:h-7 md:w-7 ring-1 ring-[var(--od-border-strong)]/25"
+                  className="h-6 w-6 md:h-7 md:w-7 ring-1 ring-(--od-border-strong)/25"
                 />
               </button>
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
                   onClick={handleAuthorClick}
-                  className="block max-w-[140px] truncate text-xs font-medium text-[var(--od-text-secondary)] transition-colors duration-200 group-hover:text-[var(--od-text-primary)] hover:text-[var(--od-text-primary)]"
+                  className="block max-w-[140px] truncate text-xs font-medium text-(--od-text-secondary) transition-colors duration-200 group-hover:text-(--od-text-primary) hover:text-(--od-text-primary)"
                 >
                   {authorName}
                 </button>
-                <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[var(--od-text-tertiary)]">
+                <div className="mt-0.5 flex items-center gap-2 text-[10px] text-(--od-text-tertiary)">
                   <span className="inline-flex items-center gap-1 whitespace-nowrap">
                     <Calendar className="h-3 w-3 shrink-0" />
                     <span>{createdTime}</span>
@@ -200,7 +200,7 @@ function ThreadCardImpl({
 
             <div className="overflow-hidden">
               <h3
-                className={`whitespace-nowrap ${fontSizes.title} text-[var(--od-text-primary)] transition-colors duration-200 group-hover:text-[color-mix(in_srgb,var(--od-text-primary)_82%,var(--od-accent))]`}
+                className={`whitespace-nowrap ${fontSizes.title} text-(--od-text-primary) transition-colors duration-200 group-hover:text-[color-mix(in_srgb,var(--od-text-primary)_82%,var(--od-accent))]`}
               >
                 <span
                   ref={titleViewportRef}
@@ -223,19 +223,19 @@ function ThreadCardImpl({
                       <HighlightText
                         text={thread.title}
                         highlight={searchQuery}
-                        className="text-[var(--od-text-primary)]"
+                        className="text-(--od-text-primary)"
                       />
                     </span>
                     {titleShift > 0 && (
                       <>
-                        <span className="mx-7 shrink-0 text-[var(--od-text-tertiary)]/55">
+                        <span className="mx-7 shrink-0 text-(--od-text-tertiary)/55">
                           /
                         </span>
                         <span className="shrink-0">
                           <HighlightText
                             text={thread.title}
                             highlight={searchQuery}
-                            className="text-[var(--od-text-primary)]"
+                            className="text-(--od-text-primary)"
                           />
                         </span>
                       </>
@@ -247,7 +247,7 @@ function ThreadCardImpl({
           </div>
 
           <div
-            className={`relative w-full overflow-hidden rounded-[1.45rem] border border-[var(--od-shell-line)] bg-[var(--od-surface-shell)] shadow-[var(--od-shadow-soft)] ${mediaAspectClass}`}
+            className={`relative w-full overflow-hidden rounded-[1.45rem] border border-(--od-shell-line) bg-(--od-surface-shell) shadow-(--od-shadow-soft) ${mediaAspectClass}`}
           >
             {thumbnailSrc ? (
               <LazyImage
@@ -260,7 +260,7 @@ function ThreadCardImpl({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[color-mix(in_srgb,var(--od-surface-raised)_15%,transparent)]">
-                <ImageIcon className="h-12 w-12 text-[var(--od-text-tertiary)]/20" />
+                <ImageIcon className="h-12 w-12 text-(--od-text-tertiary)/20" />
               </div>
             )}
 
@@ -292,11 +292,11 @@ function ThreadCardImpl({
             />
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 px-1 pt-3 text-[var(--od-text-primary)]">
-            <div className="min-h-[2.75rem]">
+          <div className="flex flex-1 flex-col gap-3 px-1 pt-3 text-(--od-text-primary)">
+            <div className="min-h-11">
               {hasExcerpt && (
                 <p
-                  className={`${fontSizes.content} line-clamp-2 leading-relaxed text-[var(--od-text-secondary)] transition-colors duration-200 group-hover:text-[color-mix(in_srgb,var(--od-text-secondary)_72%,var(--od-text-primary))]`}
+                  className={`${fontSizes.content} line-clamp-2 leading-relaxed text-(--od-text-secondary) transition-colors duration-200 group-hover:text-[color-mix(in_srgb,var(--od-text-secondary)_72%,var(--od-text-primary))]`}
                 >
                   <DiscordMarkdownText
                     text={thread.first_message_excerpt || ""}
@@ -305,7 +305,7 @@ function ThreadCardImpl({
               )}
             </div>
 
-            <div className="min-h-[2.75rem] content-start">
+            <div className="min-h-11 content-start">
               {(thread.tags.length > 0 || virtualOnlyTags.length > 0) && (
                 <div className="flex flex-wrap gap-1.5">
                   {thread.tags.slice(0, 3).map((tag) => (
@@ -315,13 +315,13 @@ function ThreadCardImpl({
                         e.stopPropagation();
                         onTagClick?.(tag);
                       }}
-                      className="rounded-md border border-[var(--od-border)]/30 bg-[var(--od-surface-raised)]/60 px-2 py-0.5 text-[10px] text-[var(--od-text-secondary)] transition-colors hover:bg-[var(--od-surface-raised)] hover:text-[var(--od-text-primary)]"
+                      className="rounded-md border border-(--od-border)/30 bg-(--od-surface-raised)/60 px-2 py-0.5 text-[10px] text-(--od-text-secondary) transition-colors hover:bg-(--od-surface-raised) hover:text-(--od-text-primary)"
                     >
                       {tag}
                     </button>
                   ))}
                   {thread.tags.length > 3 && (
-                    <span className="rounded-md border border-[var(--od-border)]/30 bg-[var(--od-surface-raised)]/60 px-2 py-0.5 text-[10px] text-[var(--od-text-secondary)]">
+                    <span className="rounded-md border border-(--od-border)/30 bg-(--od-surface-raised)/60 px-2 py-0.5 text-[10px] text-(--od-text-secondary)">
                       +{thread.tags.length - 3}
                     </span>
                   )}
@@ -337,7 +337,7 @@ function ThreadCardImpl({
               )}
             </div>
 
-            <div className="mt-auto grid grid-cols-3 gap-2 text-[var(--od-text-tertiary)]">
+            <div className="mt-auto grid grid-cols-3 gap-2 text-(--od-text-tertiary)">
               <span
                 className="inline-flex min-w-0 items-center gap-1 text-[11px]"
                 title="浏览量"

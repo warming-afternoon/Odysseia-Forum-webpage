@@ -86,7 +86,7 @@ export function ThreadActions({ threadId, channelId, guildId, size = 'md', varia
     // 颜色样式
     const colorClasses = variant === 'white'
         ? 'text-white/80 hover:text-white hover:bg-white/10'
-        : 'text-[var(--od-text-tertiary)] hover:text-[var(--od-text-primary)] hover:bg-[var(--od-bg-tertiary)]';
+        : 'text-(--od-text-tertiary) hover:text-(--od-text-primary) hover:bg-(--od-bg-tertiary)';
 
     // 可见性样式
     const visibilityClasses = alwaysVisible

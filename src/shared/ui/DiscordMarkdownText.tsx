@@ -52,7 +52,7 @@ export function DiscordMarkdownText({ text, className = '', truncateClassName = 
               href={part.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-[var(--od-accent)] hover:underline"
+              className="font-medium text-(--od-accent) hover:underline"
               onClick={(e) => e.stopPropagation()}
               title={part.url}
             >
@@ -64,10 +64,10 @@ export function DiscordMarkdownText({ text, className = '', truncateClassName = 
           return <Spoiler key={index}>{part.content}</Spoiler>;
         }
         if (part.type === 'bold') {
-          return <strong key={index} className="font-bold text-[var(--od-text-primary)]">{part.content}</strong>;
+          return <strong key={index} className="font-bold text-(--od-text-primary)">{part.content}</strong>;
         }
         if (part.type === 'code') {
-          return <code key={index} className="rounded-md bg-[var(--od-surface-shelled)] px-1 py-0.5 font-mono text-[0.85em] text-[var(--od-text-primary)]">{part.content}</code>;
+          return <code key={index} className="rounded-md bg-(--od-surface-shelled) px-1 py-0.5 font-mono text-[0.85em] text-(--od-text-primary)">{part.content}</code>;
         }
         return <span key={index}>{part.content}</span>;
       })}

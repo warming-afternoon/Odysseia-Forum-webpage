@@ -34,7 +34,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-white/[0.06] backdrop-blur-xl md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-white/6 backdrop-blur-xl md:hidden"
       style={{
         backgroundColor: 'color-mix(in srgb, var(--od-bg-secondary) 90%, transparent)',
         height: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
@@ -50,11 +50,11 @@ export function MobileTabBar() {
             to={tab.path}
             className={`flex w-full flex-col items-center justify-center space-y-1 transition-colors ${
               active
-                ? 'text-[var(--od-accent)]'
-                : 'text-[var(--od-text-tertiary)] hover:text-[var(--od-text-primary)]'
+                ? 'text-(--od-accent)'
+                : 'text-(--od-text-tertiary) hover:text-(--od-text-primary)'
             }`}
           >
-            <Icon className={`h-5 w-5 ${active ? 'fill-[var(--od-accent)]/20' : ''}`} />
+            <Icon className={`h-5 w-5 ${active ? 'fill-(--od-accent)/20' : ''}`} />
             <span className="text-[10px] font-medium">{tab.label}</span>
           </Link>
         );

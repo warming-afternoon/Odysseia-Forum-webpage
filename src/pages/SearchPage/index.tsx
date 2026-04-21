@@ -144,14 +144,14 @@ export function SearchPage() {
         <FluidDivider label="Search" tone="strong" className="mb-6" />
         <div className="mb-6 flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--od-surface-soft)] text-[var(--od-accent)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-(--od-surface-soft) text-(--od-accent)">
               <Compass className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[var(--od-text-primary)]">
+              <h1 className="text-2xl font-bold tracking-tight text-(--od-text-primary)">
                 {query ? `搜索: ${query}` : "探索社区"}
               </h1>
-              <div className="flex items-center gap-2 text-sm text-[var(--od-text-secondary)]">
+              <div className="flex items-center gap-2 text-sm text-(--od-text-secondary)">
                 <span>
                   找到 {isThreadTab ? totalResults : booklistTotal} 条结果
                 </span>
@@ -178,14 +178,14 @@ export function SearchPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1 rounded-full border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+            <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
               <button
                 type="button"
                 onClick={() => setParams({ type: "thread" })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   params.type === "thread"
-                    ? "bg-[var(--od-accent)] text-white"
-                    : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                 }`}
               >
                 帖子
@@ -195,8 +195,8 @@ export function SearchPage() {
                 onClick={() => setParams({ type: "booklist" })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   params.type === "booklist"
-                    ? "bg-[var(--od-accent)] text-white"
-                    : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                 }`}
               >
                 书单
@@ -204,7 +204,7 @@ export function SearchPage() {
             </div>
 
             {isThreadTab && (
-              <label className="inline-flex items-center gap-2 rounded-full border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] px-3 py-2 text-xs font-medium text-[var(--od-text-secondary)]">
+              <label className="inline-flex items-center gap-2 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] px-3 py-2 text-xs font-medium text-(--od-text-secondary)">
                 <ArrowUpDown className="h-3.5 w-3.5" />
                 <select
                   aria-label="选择排序方式"
@@ -214,7 +214,7 @@ export function SearchPage() {
                       sortMethod: e.target.value as typeof params.sortMethod,
                     })
                   }
-                  className="min-w-[6.25rem] bg-transparent text-[var(--od-text-primary)] outline-none"
+                  className="min-w-25 bg-transparent text-(--od-text-primary) outline-hidden"
                 >
                   <option value="last_active_desc">最近活跃</option>
                   <option value="created_desc">最新发布</option>
@@ -225,14 +225,14 @@ export function SearchPage() {
               </label>
             )}
 
-            <div className="inline-flex items-center gap-1 rounded-full border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+            <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
               <button
                 type="button"
                 onClick={() => updateSettings({ layoutMode: "list" })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "list"
-                    ? "bg-[var(--od-accent)] text-white"
-                    : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                 }`}
                 aria-label="切换到列表展示"
                 title="列表展示"
@@ -245,8 +245,8 @@ export function SearchPage() {
                 onClick={() => updateSettings({ layoutMode: "grid" })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "grid"
-                    ? "bg-[var(--od-accent)] text-white"
-                    : "text-[var(--od-text-secondary)] hover:text-[var(--od-text-primary)]"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                 }`}
                 aria-label="切换到网格展示"
                 title="网格展示"
@@ -408,10 +408,10 @@ export function SearchPage() {
               <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 text-red-500">
                 <SlidersHorizontal className="h-10 w-10" />
               </div>
-              <h3 className="mb-2 text-xl font-bold text-[var(--od-text-primary)]">
+              <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
                 搜索出错了
               </h3>
-              <p className="mb-6 text-[var(--od-text-secondary)]">
+              <p className="mb-6 text-(--od-text-secondary)">
                 暂时拉不到结果，稍后再试试吧。
               </p>
               <button
@@ -438,15 +438,15 @@ export function SearchPage() {
                 className="flex items-center justify-center py-8"
               >
                 {isFetchingNextPage ? (
-                  <span className="text-sm text-[var(--od-text-tertiary)]">
+                  <span className="text-sm text-(--od-text-tertiary)">
                     正在加载更多结果…
                   </span>
                 ) : hasNextPage ? (
-                  <span className="text-sm text-[var(--od-text-tertiary)]">
+                  <span className="text-sm text-(--od-text-tertiary)">
                     继续下滑以加载更多
                   </span>
                 ) : (
-                  <span className="text-sm text-[var(--od-text-tertiary)]">
+                  <span className="text-sm text-(--od-text-tertiary)">
                     已经到底了
                   </span>
                 )}
@@ -454,15 +454,15 @@ export function SearchPage() {
             </div>
           ) : (
             <div className="animate-in fade-in zoom-in-95 duration-500 flex flex-col items-center justify-center py-20 text-center">
-              <div className="mb-4 text-[var(--od-text-tertiary)] opacity-20">
+              <div className="mb-4 text-(--od-text-tertiary) opacity-20">
                 <Search className="mx-auto h-24 w-24" />
               </div>
-              <h3 className="mb-2 text-xl font-bold text-[var(--od-text-primary)]">
+              <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
                 {hasSearchFilters
                   ? "没有找到匹配的结果"
                   : "开始你的探索之旅吧～"}
               </h3>
-              <p className="text-[var(--od-text-secondary)]">
+              <p className="text-(--od-text-secondary)">
                 {hasSearchFilters
                   ? "试试换个关键词，或者清掉筛选条件看看"
                   : "在上面搜索框输入内容，或从侧边栏选个频道开始"}
@@ -483,10 +483,10 @@ export function SearchPage() {
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 text-red-500">
               <SlidersHorizontal className="h-10 w-10" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-[var(--od-text-primary)]">
+            <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
               书单搜索出错了
             </h3>
-            <p className="mb-6 text-[var(--od-text-secondary)]">
+            <p className="mb-6 text-(--od-text-secondary)">
               暂时拉不到书单结果，稍后再试试吧。
             </p>
             <button
@@ -518,13 +518,13 @@ export function SearchPage() {
           </div>
         ) : (
           <div className="animate-in fade-in zoom-in-95 duration-500 flex flex-col items-center justify-center py-20 text-center">
-            <div className="mb-4 text-[var(--od-text-tertiary)] opacity-20">
+            <div className="mb-4 text-(--od-text-tertiary) opacity-20">
               <Search className="mx-auto h-24 w-24" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-[var(--od-text-primary)]">
+            <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
               没有找到匹配书单
             </h3>
-            <p className="text-[var(--od-text-secondary)]">
+            <p className="text-(--od-text-secondary)">
               试试换个关键词，或者切回帖子分类继续探索。
             </p>
           </div>
@@ -546,11 +546,11 @@ export function SearchPage() {
         <ul className="list-disc space-y-1 pl-5 text-sm opacity-90">
           <li>
             顶上的搜索框很好用哦，像{" "}
-            <code className="rounded bg-[var(--od-bg-tertiary)] px-1 font-mono text-[0.9em]">
+            <code className="rounded bg-(--od-bg-tertiary) px-1 font-mono text-[0.9em]">
               $author:
             </code>
             、
-            <code className="rounded bg-[var(--od-bg-tertiary)] px-1 font-mono text-[0.9em]">
+            <code className="rounded bg-(--od-bg-tertiary) px-1 font-mono text-[0.9em]">
               -$tag:
             </code>{" "}
             等高级语法

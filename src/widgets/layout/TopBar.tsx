@@ -227,14 +227,14 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-40 flex h-[3.25rem] shrink-0 items-center justify-between bg-transparent px-3 transition-[left] duration-300 sm:h-[4.25rem] sm:px-4 ${
+      className={`fixed left-0 right-0 top-0 z-40 flex h-13 shrink-0 items-center justify-between bg-transparent px-3 transition-[left] duration-300 sm:h-17 sm:px-4 ${
         sidebarCollapsed ? "lg:left-0" : "lg:left-[170px]"
       }`}
     >
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="p-2 text-[var(--od-text-secondary)] transition-colors duration-200 hover:text-[var(--od-text-primary)] lg:hidden"
+          className="p-2 text-(--od-text-secondary) transition-colors duration-200 hover:text-(--od-text-primary) lg:hidden"
           aria-label="打开菜单"
         >
           <AnimatedIcon
@@ -247,8 +247,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
 
         {breadcrumb && (
           <div className="hidden items-center gap-2 pl-2 sm:flex">
-            <breadcrumb.icon className="hidden h-4 w-4 text-[var(--od-text-tertiary)] md:block" />
-            <span className="hidden max-w-[100px] truncate text-sm font-semibold text-[var(--od-text-primary)] md:block md:max-w-none">
+            <breadcrumb.icon className="hidden h-4 w-4 text-(--od-text-tertiary) md:block" />
+            <span className="hidden max-w-[100px] truncate text-sm font-semibold text-(--od-text-primary) md:block md:max-w-none">
               {breadcrumb.label}
             </span>
           </div>
@@ -260,8 +260,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
         ref={searchContainerRef}
       >
         <div className="relative min-w-0 flex-1 max-w-[560px]">
-          <div className="od-chrome-surface flex min-h-[44px] items-center overflow-hidden rounded-[24px] border border-white/[0.06] transition-colors duration-200 hover:border-white/20">
-            <div className="shrink-0 p-2 text-[var(--od-text-tertiary)]">
+          <div className="od-chrome-surface flex min-h-[44px] items-center overflow-hidden rounded-[24px] border border-white/6 transition-colors duration-200 hover:border-white/20">
+            <div className="shrink-0 p-2 text-(--od-text-tertiary)">
               <Search className="h-4 w-4" />
             </div>
 
@@ -287,7 +287,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                   applyInputChange("");
                   executeSearch("");
                 }}
-                className="relative mr-1 shrink-0 p-1.5 text-[var(--od-text-tertiary)] hover:text-[var(--od-text-primary)] transition-colors duration-200"
+                className="relative mr-1 shrink-0 p-1.5 text-(--od-text-tertiary) hover:text-(--od-text-primary) transition-colors duration-200"
                 aria-label="清除搜索词"
                 title="清除并重置"
               >
@@ -300,15 +300,15 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                 onClick={toggleFilters}
                 className={`relative mr-2 shrink-0 p-1.5 transition-colors duration-200 ${
                   showFilters || hasPanelFilters
-                    ? "text-[var(--od-accent)]"
-                    : "text-[var(--od-text-tertiary)] hover:text-[var(--od-text-primary)]"
+                    ? "text-(--od-accent)"
+                    : "text-(--od-text-tertiary) hover:text-(--od-text-primary)"
                 }`}
                 aria-label="筛选"
                 title="打开筛选面板"
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 {hasPanelFilters && (
-                  <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--od-accent)]" />
+                  <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-(--od-accent)" />
                 )}
               </button>
             )}
@@ -321,10 +321,10 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 320, damping: 26 }}
-                className="od-floating-panel-solid fixed top-[4.25rem] inset-x-3 z-50 mt-2 overflow-hidden rounded-2xl border border-[var(--od-border-strong)] shadow-2xl mx-auto w-auto max-w-md sm:absolute sm:top-full sm:inset-x-auto sm:left-auto sm:right-0 sm:mx-0 sm:w-[560px] sm:max-w-none"
+                className="od-floating-panel-solid fixed top-17 inset-x-3 z-50 mt-2 overflow-hidden rounded-2xl border border-(--od-border-strong) shadow-2xl mx-auto w-auto max-w-md sm:absolute sm:top-full sm:inset-x-auto sm:left-auto sm:right-0 sm:mx-0 sm:w-[560px] sm:max-w-none"
               >
                 {needsFilter && (
-                  <div className="flex items-center gap-2 border-b border-white/[0.06] p-2">
+                  <div className="flex items-center gap-2 border-b border-white/6 p-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -333,8 +333,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                       }}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         showSuggestions
-                          ? "bg-[var(--od-accent)]/20 text-[var(--od-accent)]"
-                          : "text-[var(--od-text-secondary)] hover:bg-[var(--od-bg-tertiary)]"
+                          ? "bg-(--od-accent)/20 text-(--od-accent)"
+                          : "text-(--od-text-secondary) hover:bg-(--od-bg-tertiary)"
                       }`}
                     >
                       搜索建议
@@ -347,8 +347,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                       }}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         showFilters
-                          ? "bg-[var(--od-accent)]/20 text-[var(--od-accent)]"
-                          : "text-[var(--od-text-secondary)] hover:bg-[var(--od-bg-tertiary)]"
+                          ? "bg-(--od-accent)/20 text-(--od-accent)"
+                          : "text-(--od-text-secondary) hover:bg-(--od-bg-tertiary)"
                       }`}
                     >
                       高级筛选
@@ -424,11 +424,11 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
         <button
           type="button"
           onClick={() => navigate("/me?tab=history")}
-          className={`relative flex h-8 w-8 shrink-0 items-center justify-center text-[var(--od-text-tertiary)] transition-colors sm:h-[34px] sm:w-[34px] ${
+          className={`relative flex h-8 w-8 shrink-0 items-center justify-center text-(--od-text-tertiary) transition-colors sm:h-[34px] sm:w-[34px] ${
             location.pathname === "/me" &&
             new URLSearchParams(location.search).get("tab") === "history"
-              ? "text-[var(--od-accent)]"
-              : "hover:text-[var(--od-text-primary)]"
+              ? "text-(--od-accent)"
+              : "hover:text-(--od-text-primary)"
           }`}
           aria-label="打开浏览足迹"
           title="浏览足迹"
@@ -446,10 +446,10 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
             aria-label="打开通知中心"
             aria-expanded={notificationOpen}
             onClick={() => setNotificationOpen((prev) => !prev)}
-            className={`relative flex h-8 w-8 shrink-0 items-center justify-center text-[var(--od-text-tertiary)] transition-colors sm:h-[34px] sm:w-[34px] ${
+            className={`relative flex h-8 w-8 shrink-0 items-center justify-center text-(--od-text-tertiary) transition-colors sm:h-[34px] sm:w-[34px] ${
               notificationOpen
-                ? "text-[var(--od-accent)]"
-                : "hover:text-[var(--od-text-primary)]"
+                ? "text-(--od-accent)"
+                : "hover:text-(--od-text-primary)"
             }`}
           >
             <AnimatedIcon
@@ -459,7 +459,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
               trigger="hover"
             />
             {hasUnreadNotifications && (
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full border border-[var(--od-bg)] bg-red-500" />
+              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full border border-(--od-bg) bg-red-500" />
             )}
           </button>
           <NotificationCenter

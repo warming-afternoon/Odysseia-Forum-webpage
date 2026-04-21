@@ -87,7 +87,7 @@ export function SettingsPage() {
   const commitBlur = () => updateSettings({ glassBlur: blurDraft });
 
   return (
-    <div className="px-4 py-4 text-[var(--od-text-primary)] sm:px-6 lg:px-8">
+    <div className="px-4 py-4 text-(--od-text-primary) sm:px-6 lg:px-8">
       <SettingsPageHeader />
 
       <div className="mt-4 space-y-10 px-1">
@@ -111,8 +111,8 @@ export function SettingsPage() {
         <VersionSettingsSection />
 
         <div className="rounded-[1.3rem] bg-[color-mix(in_oklab,var(--od-accent)_8%,transparent)] p-4">
-          <p className="text-sm text-[var(--od-text-secondary)]">
-            💡 <span className="font-medium text-[var(--od-text-primary)]">小提醒：</span>
+          <p className="text-sm text-(--od-text-secondary)">
+            💡 <span className="font-medium text-(--od-text-primary)">小提醒：</span>
             你的设置都保存在本地浏览器里。清除浏览器数据的话，这些设置也会一起消失。
           </p>
         </div>

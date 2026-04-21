@@ -73,19 +73,19 @@ export function LazyImage({
         // 节省流量模式
         <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_oklab,var(--od-bg-tertiary)_85%,transparent)]">
           <div className="flex flex-col items-center gap-1">
-            <div className="h-8 w-8 rounded-md border border-[var(--od-border-strong)] bg-[color-mix(in_oklab,var(--od-bg-secondary)_85%,transparent)]" />
-            <span className="text-[10px] text-[var(--od-text-tertiary)]">图片已关闭</span>
+            <div className="h-8 w-8 rounded-md border border-(--od-border-strong) bg-[color-mix(in_oklab,var(--od-bg-secondary)_85%,transparent)]" />
+            <span className="text-[10px] text-(--od-text-tertiary)">图片已关闭</span>
           </div>
         </div>
       ) : (
         <>
           {/* 占位符 / 骨架屏 */}
           {!isLoaded && (
-            <div className="absolute inset-0 bg-[var(--od-surface-raised)]">
+            <div className="absolute inset-0 bg-(--od-surface-raised)">
               {placeholder ? (
                 <img src={placeholder} alt="" className="h-full w-full object-cover opacity-50" />
               ) : (
-                <div className="h-full w-full animate-pulse bg-gradient-to-r from-[var(--od-surface-raised)] via-[var(--od-interactive-hover)] to-[var(--od-surface-raised)] bg-[length:200%_100%]" />
+                <div className="h-full w-full animate-pulse bg-linear-to-r from-(--od-surface-raised) via-(--od-interactive-hover) to-(--od-surface-raised) bg-size-[200%_100%]" />
               )}
             </div>
           )}

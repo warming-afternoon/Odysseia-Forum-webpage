@@ -47,9 +47,9 @@ export function PreferenceTagSelector({
 
   return (
     <div className="block space-y-2">
-      <span className="block text-sm font-medium text-[var(--od-text-secondary)]">{label}</span>
+      <span className="block text-sm font-medium text-(--od-text-secondary)">{label}</span>
 
-      <div className="rounded-2xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] p-3">
+      <div className="rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] p-3">
         <div className="flex flex-wrap gap-2">
           {selectedTags.map((tag) => (
             <button
@@ -63,7 +63,7 @@ export function PreferenceTagSelector({
             </button>
           ))}
           {selectedTags.length === 0 && (
-            <span className="text-sm text-[var(--od-text-tertiary)]">{placeholder}</span>
+            <span className="text-sm text-(--od-text-tertiary)">{placeholder}</span>
           )}
         </div>
 
@@ -73,7 +73,7 @@ export function PreferenceTagSelector({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="搜索并选择标签..."
-            className="w-full rounded-xl border border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-shell)_78%,transparent)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+            className="w-full rounded-xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-shell)_78%,transparent)] px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
           />
 
           <div className="flex max-h-[150px] flex-wrap gap-2 overflow-y-auto">
@@ -83,13 +83,13 @@ export function PreferenceTagSelector({
                   key={tag}
                   type="button"
                   onClick={() => addTag(tag)}
-                  className="rounded-full border border-[var(--od-shell-line)] px-3 py-1 text-xs text-[var(--od-text-secondary)] transition-colors hover:border-[var(--od-accent)]/40 hover:text-[var(--od-text-primary)]"
+                  className="rounded-full border border-(--od-shell-line) px-3 py-1 text-xs text-(--od-text-secondary) transition-colors hover:border-(--od-accent)/40 hover:text-(--od-text-primary)"
                 >
                   {tag}
                 </button>
               ))
             ) : (
-              <span className="text-xs text-[var(--od-text-tertiary)]">没有更多可选标签</span>
+              <span className="text-xs text-(--od-text-tertiary)">没有更多可选标签</span>
             )}
           </div>
         </div>

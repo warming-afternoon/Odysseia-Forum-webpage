@@ -53,7 +53,7 @@ export function ScrollToTop() {
     <button
       tabIndex={isVisible ? 0 : -1}
       onClick={scrollToTop}
-      className={`fixed bottom-20 right-4 z-50 flex items-center justify-center leading-none rounded-full bg-[var(--od-accent)] p-3 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[var(--od-accent-hover)] hover:shadow-xl lg:bottom-8 ${isVisible
+      className={`fixed bottom-20 right-4 z-50 flex items-center justify-center leading-none rounded-full bg-(--od-accent) p-3 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-(--od-accent-hover) hover:shadow-xl lg:bottom-8 ${isVisible
         ? 'pointer-events-auto opacity-100 translate-y-0'
         : 'pointer-events-none opacity-0 translate-y-4'
         }`}

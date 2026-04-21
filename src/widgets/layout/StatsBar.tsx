@@ -22,12 +22,12 @@ export function StatsBar({
   return (
     <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
       {/* 结果统计 */}
-      <div className="text-sm text-[var(--od-text-secondary)]">
-        共 <span className="font-semibold text-[var(--od-text-primary)]">{totalCount}</span> 条结果
+      <div className="text-sm text-(--od-text-secondary)">
+        共 <span className="font-semibold text-(--od-text-primary)">{totalCount}</span> 条结果
         {typeof currentPage === 'number' &&
           typeof totalPages === 'number' &&
           totalPages > 0 && (
-            <span className="ml-2 text-xs text-[var(--od-text-tertiary)]">
+            <span className="ml-2 text-xs text-(--od-text-tertiary)">
               第 {currentPage} / {totalPages} 页
             </span>
           )}
@@ -36,12 +36,12 @@ export function StatsBar({
       {/* 控制选项 */}
       <div className="flex flex-wrap items-center gap-3">
         {/* 布局切换 */}
-        <div className="flex items-center gap-1 rounded-md bg-[var(--od-bg-secondary)] p-1">
+        <div className="flex items-center gap-1 rounded-md bg-(--od-bg-secondary) p-1">
           <button
             onClick={() => updateSettings({ layoutMode: 'grid' })}
             className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${layoutMode === 'grid'
-              ? 'bg-[var(--od-accent)] text-white'
-              : 'text-[var(--od-text-secondary)] hover:bg-[var(--od-bg-tertiary)] hover:text-[var(--od-text-primary)]'
+              ? 'bg-(--od-accent) text-white'
+              : 'text-(--od-text-secondary) hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary)'
               }`}
             title="网格布局"
           >
@@ -51,8 +51,8 @@ export function StatsBar({
           <button
             onClick={() => updateSettings({ layoutMode: 'list' })}
             className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${layoutMode === 'list'
-              ? 'bg-[var(--od-accent)] text-white'
-              : 'text-[var(--od-text-secondary)] hover:bg-[var(--od-bg-tertiary)] hover:text-[var(--od-text-primary)]'
+              ? 'bg-(--od-accent) text-white'
+              : 'text-(--od-text-secondary) hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary)'
               }`}
             title="列表布局"
           >
@@ -63,7 +63,7 @@ export function StatsBar({
 
         {/* 每页显示数量 */}
         <div className="flex items-center gap-2">
-          <label htmlFor="perPage" className="text-xs text-[var(--od-text-secondary)]">
+          <label htmlFor="perPage" className="text-xs text-(--od-text-secondary)">
             每页
           </label>
           <select
@@ -73,7 +73,7 @@ export function StatsBar({
               const value = Number(e.target.value);
               onPerPageChange(Number.isNaN(value) ? 24 : value);
             }}
-            className="rounded-md bg-[var(--od-bg-tertiary)] px-2 py-1 text-sm text-[var(--od-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="rounded-md bg-(--od-bg-tertiary) px-2 py-1 text-sm text-(--od-text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           >
             <option value={12}>12</option>
             <option value={24}>24</option>
@@ -83,14 +83,14 @@ export function StatsBar({
 
         {/* 跳转方式 */}
         <div className="flex items-center gap-2">
-          <label htmlFor="openMode" className="text-xs text-[var(--od-text-secondary)]">
+          <label htmlFor="openMode" className="text-xs text-(--od-text-secondary)">
             跳转方式
           </label>
           <select
             id="openMode"
             value={openMode}
             onChange={(e) => updateSettings({ openMode: e.target.value as 'app' | 'web' })}
-            className="rounded-md bg-[var(--od-bg-tertiary)] px-2 py-1 text-sm text-[var(--od-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--od-accent)]"
+            className="rounded-md bg-(--od-bg-tertiary) px-2 py-1 text-sm text-(--od-text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
           >
             <option value="app">App</option>
             <option value="web">网页</option>

@@ -30,7 +30,7 @@ export function MascotBar() {
     return (
         <div
             aria-hidden="true"
-            className={`pointer-events-none fixed bottom-20 left-1/2 z-40 flex -translate-x-1/2 flex-col-reverse items-center gap-4 transition-all duration-500 md:bottom-0 lg:left-[11.5rem] lg:translate-x-0 lg:flex-row lg:items-center ${
+            className={`pointer-events-none fixed bottom-20 left-1/2 z-40 flex -translate-x-1/2 flex-col-reverse items-center gap-4 transition-all duration-500 md:bottom-0 lg:left-46 lg:translate-x-0 lg:flex-row lg:items-center ${
                 isVisible
                     ? 'translate-y-0 opacity-100'
                     : 'pointer-events-none translate-y-6 opacity-0'
@@ -64,9 +64,9 @@ export function MascotBar() {
 
             {/* Dialogue Box */}
             <div className="pointer-events-auto relative max-w-[300px] lg:max-w-md">
-                <div className="group relative overflow-hidden rounded-[1.35rem] border border-[color-mix(in_srgb,var(--od-border)_75%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-floating)_88%,transparent)] px-4 py-3 shadow-[var(--od-shadow-floating)] backdrop-blur-md lg:px-5">
+                <div className="group relative overflow-hidden rounded-[1.35rem] border border-[color-mix(in_srgb,var(--od-border)_75%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-floating)_88%,transparent)] px-4 py-3 shadow-(--od-shadow-floating) backdrop-blur-md lg:px-5">
                     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--od-accent)_10%,transparent),transparent_48%,color-mix(in_srgb,var(--od-text-primary)_5%,transparent))]" />
-                    <p className="text-sm font-medium text-[var(--od-text-primary)]">
+                    <p className="text-sm font-medium text-(--od-text-primary)">
                         {message}
                     </p>
 
@@ -74,17 +74,17 @@ export function MascotBar() {
                     <button
                         tabIndex={-1}
                         onClick={() => setVisible(false)}
-                        className="absolute right-2 top-2 rounded-full bg-[var(--od-bg-tertiary)] p-1 text-[var(--od-text-tertiary)] opacity-0 shadow-sm transition-all hover:bg-[var(--od-error)] hover:text-white hover:opacity-100 group-hover:opacity-100"
+                        className="absolute right-2 top-2 rounded-full bg-(--od-bg-tertiary) p-1 text-(--od-text-tertiary) opacity-0 shadow-xs transition-all hover:bg-(--od-error) hover:text-white hover:opacity-100 group-hover:opacity-100"
                     >
                         <X size={12} />
                     </button>
                 </div>
 
                 {/* Bubble Tail - Mobile (Bottom Center) */}
-                <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-[var(--od-border)] bg-[var(--od-bg-secondary)] lg:hidden" />
+                <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-(--od-border) bg-(--od-bg-secondary) lg:hidden" />
 
                 {/* Bubble Tail - Desktop (Left Side) */}
-                <div className="absolute -left-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 rotate-45 border-b border-l border-[var(--od-border)] bg-[var(--od-bg-secondary)] lg:block" />
+                <div className="absolute -left-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 rotate-45 border-b border-l border-(--od-border) bg-(--od-bg-secondary) lg:block" />
             </div>
         </div>
     );

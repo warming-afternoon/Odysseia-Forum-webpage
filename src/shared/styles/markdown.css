@@ -1,44 +1,54 @@
-@layer components {
-  .od-md {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: var(--od-text-secondary);
-  }
+@utility od-md {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--od-text-secondary);
 
-  .od-md h1,
-  .od-md h2,
-  .od-md h3 {
+  & h1 {
     font-weight: 700;
     color: var(--od-text-primary);
     margin: 0.5rem 0 0.3rem;
   }
 
-  .od-md h1 {
+  & h2 {
+    font-weight: 700;
+    color: var(--od-text-primary);
+    margin: 0.5rem 0 0.3rem;
+  }
+
+  & h3 {
+    font-weight: 700;
+    color: var(--od-text-primary);
+    margin: 0.5rem 0 0.3rem;
+  }
+
+  & h1 {
     font-size: 1.05rem;
     border-bottom: 1px solid var(--od-border);
     padding-bottom: 0.25rem;
   }
 
-  .od-md strong {
+  & strong {
     color: var(--od-text-primary);
     font-weight: 700;
   }
 
-  .od-md em {
+  & em {
     color: var(--od-text-secondary);
   }
 
-  .od-md code {
+  & code {
     background: var(--od-bg-secondary);
     padding: 2px 4px;
     border-radius: 3px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
     font-size: 0.85em;
     color: var(--od-text-primary);
     border: 1px solid var(--od-border);
   }
 
-  .od-md pre {
+  & pre {
     background: var(--od-bg-secondary);
     padding: 10px;
     border-radius: 6px;
@@ -47,40 +57,48 @@
     border: 1px solid var(--od-border);
   }
 
-  .od-md .discord-h1 {
+  & .discord-h1 {
     font-size: 1.2em;
     font-weight: 700;
     color: var(--od-text-primary);
     margin: 0.5rem 0 0.3rem;
   }
 
-  .od-md .discord-h2 {
+  & .discord-h2 {
     font-size: 1.1em;
     font-weight: 700;
     color: var(--od-text-primary);
     margin: 0.4rem 0 0.25rem;
   }
 
-  .od-md .discord-h3 {
+  & .discord-h3 {
     font-size: 1em;
     font-weight: 700;
     color: var(--od-text-primary);
     margin: 0.3rem 0 0.2rem;
   }
 
-  .od-md .discord-link,
-  .od-md a {
+  & .discord-link {
     color: var(--od-link);
     text-decoration: none;
   }
 
-  .od-md .discord-link:hover,
-  .od-md a:hover {
+  & a {
+    color: var(--od-link);
+    text-decoration: none;
+  }
+
+  & .discord-link:hover {
     color: var(--od-link-hover);
     text-decoration: underline;
   }
 
-  .od-md .discord-quote {
+  & a:hover {
+    color: var(--od-link-hover);
+    text-decoration: underline;
+  }
+
+  & .discord-quote {
     display: block;
     border-left: 4px solid #4e5058;
     padding-left: 12px;
@@ -88,7 +106,7 @@
     color: var(--od-text-secondary);
   }
 
-  .od-md .inline-code {
+  & .inline-code {
     background: rgba(79, 84, 92, 0.38);
     padding: 0.2em 0.4em;
     border-radius: 3px;
@@ -97,31 +115,33 @@
     color: var(--od-text-primary);
   }
 
-  .od-md .spoiler {
+  & .spoiler {
     background-color: #2d2d30;
     color: transparent;
     border-radius: 3px;
     padding: 0 2px;
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
   }
 
-  .od-md .spoiler:hover {
+  & .spoiler:hover {
     background-color: #3a3a3d;
   }
 
-  .od-md u {
+  & u {
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
-  .od-md del {
+  & del {
     text-decoration: line-through;
     opacity: 0.7;
   }
 
-  .od-md blockquote {
+  & blockquote {
     border-left: 3px solid var(--od-border);
     padding-left: 0.75rem;
     margin: 0.5rem 0;
@@ -129,8 +149,86 @@
     font-style: italic;
   }
 
-  .od-md ul {
+  & ul {
     list-style-type: disc;
     padding-left: 20px;
+  }
+}
+
+@utility discord-h1 {
+  .od-md & {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--od-text-primary);
+    margin: 0.5rem 0 0.3rem;
+  }
+}
+
+@utility discord-h2 {
+  .od-md & {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--od-text-primary);
+    margin: 0.4rem 0 0.25rem;
+  }
+}
+
+@utility discord-h3 {
+  .od-md & {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--od-text-primary);
+    margin: 0.3rem 0 0.2rem;
+  }
+}
+
+@utility discord-link {
+  .od-md & {
+    color: var(--od-link);
+    text-decoration: none;
+  }
+
+  .od-md &:hover {
+    color: var(--od-link-hover);
+    text-decoration: underline;
+  }
+}
+
+@utility discord-quote {
+  .od-md & {
+    display: block;
+    border-left: 4px solid #4e5058;
+    padding-left: 12px;
+    margin: 4px 0;
+    color: var(--od-text-secondary);
+  }
+}
+
+@utility inline-code {
+  .od-md & {
+    background: rgba(79, 84, 92, 0.38);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.875em;
+    color: var(--od-text-primary);
+  }
+}
+
+@utility spoiler {
+  .od-md & {
+    background-color: #2d2d30;
+    color: transparent;
+    border-radius: 3px;
+    padding: 0 2px;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
+  }
+
+  .od-md &:hover {
+    background-color: #3a3a3d;
   }
 }

@@ -18,7 +18,7 @@ export function AuthorAvatar({ author, className = 'h-8 w-8' }: AuthorAvatarProp
         'https://cdn.discordapp.com/embed/avatars/0.png';
 
     return (
-        <div className={`relative flex-shrink-0 overflow-hidden rounded-full bg-[var(--od-bg-tertiary)] ${className}`}>
+        <div className={`relative shrink-0 overflow-hidden rounded-full bg-(--od-bg-tertiary) ${className}`}>
             <LazyImage src={avatarUrl} alt={authorName} className="h-full w-full object-cover" />
         </div>
     );

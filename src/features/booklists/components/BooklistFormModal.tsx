@@ -64,19 +64,19 @@ export function BooklistFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="od-floating-panel-solid w-full max-w-xl rounded-xl border border-[var(--od-border)] shadow-2xl"
+        className="od-floating-panel-solid w-full max-w-xl rounded-xl border border-(--od-border) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--od-border)] px-5 py-4">
-          <h2 className="text-base font-bold text-[var(--od-text-primary)]">
+        <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
+          <h2 className="text-base font-bold text-(--od-text-primary)">
             {initialValue ? '编辑书单' : '创建书单'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+            className="rounded p-1 text-(--od-text-tertiary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
           >
             <X className="h-4 w-4" />
           </button>
@@ -84,51 +84,51 @@ export function BooklistFormModal({
 
         <form onSubmit={handleSubmit((values) => onSubmit(values))} className="space-y-4 p-5">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">标题 *</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">标题 *</label>
             <input
               {...register('title')}
-              className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+              className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               placeholder="输入书单标题"
             />
-            {errors.title && <p className="mt-1 text-xs text-[var(--od-error)]">{errors.title.message}</p>}
+            {errors.title && <p className="mt-1 text-xs text-(--od-error)">{errors.title.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">简介</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">简介</label>
             <textarea
               {...register('description')}
               rows={4}
-              className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+              className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               placeholder="写一段简介，说明这个书单的主题"
             />
             {errors.description && (
-              <p className="mt-1 text-xs text-[var(--od-error)]">{errors.description.message}</p>
+              <p className="mt-1 text-xs text-(--od-error)">{errors.description.message}</p>
             )}
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">封面图链接</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">封面图链接</label>
             <input
               {...register('cover_image_url')}
-              className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+              className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               placeholder="https://..."
             />
             {errors.cover_image_url && (
-              <p className="mt-1 text-xs text-[var(--od-error)]">{errors.cover_image_url.message}</p>
+              <p className="mt-1 text-xs text-(--od-error)">{errors.cover_image_url.message}</p>
             )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex items-center gap-2 rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-secondary)]">
+            <label className="flex items-center gap-2 rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-secondary)">
               <input type="checkbox" {...register('is_public')} />
               公开书单
             </label>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">展示顺序</label>
+              <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">展示顺序</label>
               <select
                 {...register('display_type', { valueAsNumber: true })}
-                className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+                className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               >
                 <option value={1}>按加入时间（新到旧）</option>
                 <option value={2}>按自定义排序（display_order）</option>
@@ -136,18 +136,18 @@ export function BooklistFormModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-[var(--od-border)] pt-4">
+          <div className="flex justify-end gap-2 border-t border-(--od-border) pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-3 py-2 text-sm text-[var(--od-text-secondary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+              className="rounded-lg px-3 py-2 text-sm text-(--od-text-secondary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--od-accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--od-accent-hover)] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--od-accent-hover) disabled:opacity-60"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {initialValue ? '保存修改' : '创建书单'}

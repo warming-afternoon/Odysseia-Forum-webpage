@@ -30,7 +30,7 @@ export function MeFollowsSection({
       <FluidDivider label="Follows" className="mb-8" />
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
         <div className="flex items-center justify-center gap-2">
-          <Bookmark className="h-4 w-4 text-[var(--od-accent)]" />
+          <Bookmark className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">我的关注</h2>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -55,7 +55,7 @@ export function MeFollowsSection({
       </div>
 
       {selectedChannel && (
-        <p className="mb-5 text-center text-sm leading-6 text-[var(--od-text-secondary)]">
+        <p className="mb-5 text-center text-sm leading-6 text-(--od-text-secondary)">
           现在只在当前频道里看关注内容，侧栏切频道会直接刷新这里的范围。
         </p>
       )}
@@ -63,7 +63,7 @@ export function MeFollowsSection({
       {isLoading ? (
         <p className="od-text-body">正在加载关注列表...</p>
       ) : isError ? (
-        <p className="od-text-body text-[var(--od-text-emphasis)]">关注列表加载失败了，稍后试试看。</p>
+        <p className="od-text-body text-(--od-text-emphasis)">关注列表加载失败了，稍后试试看。</p>
       ) : !hasAnyResults ? (
         <p className="od-text-body">还没有关注任何内容，去广场看看有没有感兴趣的吧。</p>
       ) : threads.length === 0 ? (

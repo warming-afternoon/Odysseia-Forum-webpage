@@ -70,11 +70,11 @@ export function TestPage() {
   const resetPending = resetMutation.status === 'pending';
 
   return (
-    <div className="min-h-screen bg-[var(--od-bg)] px-6 py-6 text-[var(--od-text-primary)]">
+    <div className="min-h-screen bg-(--od-bg) px-6 py-6 text-(--od-text-primary)">
       <h1 className="mb-6 text-2xl font-bold">开发模式测试页面</h1>
 
       {/* 环境信息 */}
-      <div className="space-y-3 rounded-xl border border-[var(--od-border)] bg-[var(--od-card)] p-4 text-sm">
+      <div className="space-y-3 rounded-xl border border-(--od-border) bg-(--od-card) p-4 text-sm">
         <div>
           <span className="font-semibold">API Mocking：</span>
           <span>{isMocking ? '✅ 已启用（MSW）' : '❌ 未启用'}</span>
@@ -85,12 +85,12 @@ export function TestPage() {
         </div>
         <div>
           <span className="font-semibold">Token 值：</span>
-          <pre className="mt-2 max-h-24 overflow-auto rounded bg-[var(--od-bg-secondary)] p-2 text-xs">
+          <pre className="mt-2 max-h-24 overflow-auto rounded bg-(--od-bg-secondary) p-2 text-xs">
             {token || 'none'}
           </pre>
         </div>
         {!isMocking && (
-          <p className="mt-2 text-xs text-[var(--od-text-tertiary)]">
+          <p className="mt-2 text-xs text-(--od-text-tertiary)">
             提示：只有在本地开发并启用 VITE_API_MOCKING=true 时，下方的 Mock 控制台才会工作。
           </p>
         )}
@@ -98,11 +98,11 @@ export function TestPage() {
 
       {/* Mock 状态总览 + 动作面板 */}
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-xl border border-[var(--od-border)] bg-[var(--od-card)] p-4 text-sm">
+        <div className="space-y-3 rounded-xl border border-(--od-border) bg-(--od-card) p-4 text-sm">
           <h2 className="text-sm font-semibold">Mock 数据总览</h2>
           {isMocking ? (
             isLoading || !data ? (
-              <p className="text-[var(--od-text-tertiary)]">加载中…</p>
+              <p className="text-(--od-text-tertiary)">加载中…</p>
             ) : (
               <>
                 <p>总帖子数：{data.threads.length}</p>
@@ -111,18 +111,18 @@ export function TestPage() {
               </>
             )
           ) : (
-            <p className="text-[var(--od-text-tertiary)]">Mock 未启用。</p>
+            <p className="text-(--od-text-tertiary)">Mock 未启用。</p>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-[var(--od-border)] bg-[var(--od-card)] p-4 text-sm">
+        <div className="space-y-3 rounded-xl border border-(--od-border) bg-(--od-card) p-4 text-sm">
           <h2 className="text-sm font-semibold">快速动作</h2>
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               disabled={!isMocking || addPending}
               onClick={() => addThreadMutation.mutate({})}
-              className="rounded bg-[var(--od-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded bg-(--od-accent) px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               新增随机帖子
             </button>
@@ -130,7 +130,7 @@ export function TestPage() {
               type="button"
               disabled={!isMocking || addPending}
               onClick={() => addThreadMutation.mutate({ follow: true })}
-              className="rounded bg-[var(--od-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded bg-(--od-accent) px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               新增并关注
             </button>
@@ -151,7 +151,7 @@ export function TestPage() {
               重置 Mock 数据
             </button>
           </div>
-          <p className="mt-1 text-[10px] text-[var(--od-text-tertiary)]">
+          <p className="mt-1 text-[10px] text-(--od-text-tertiary)">
             所有操作都会直接影响 /v1/search、/v1/follows、/v1/follows/unread-count 等接口返回的数据结构，
             用于模拟真实生产环境的数据流。
           </p>

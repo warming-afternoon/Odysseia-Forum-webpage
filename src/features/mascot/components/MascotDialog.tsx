@@ -59,7 +59,7 @@ export function MascotDialog({
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${visible ? 'bg-black/60 backdrop-blur-sm opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
+            className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-all duration-300 ${visible ? 'bg-black/60 backdrop-blur-xs opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
                 }`}
             onClick={onClose}
         >
@@ -69,9 +69,9 @@ export function MascotDialog({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Character Image - Galgame Style (Left) */}
-                <div className="relative z-10 -mb-8 md:-mr-12 md:mb-0 flex-shrink-0">
+                <div className="relative z-10 -mb-8 md:-mr-12 md:mb-0 shrink-0">
                     {!imageLoaded && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-[1.5rem] bg-white/8 backdrop-blur-sm">
+                        <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-white/8 backdrop-blur-xs">
                             <div className="h-32 w-24 animate-pulse rounded-[1.2rem] bg-white/10 md:h-56 md:w-40" />
                         </div>
                     )}
@@ -104,7 +104,7 @@ export function MascotDialog({
                         <div className="mb-2 flex items-center justify-between">
                             {title && (
                                 <h3 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 drop-shadow-md">
-                                    <span className="inline-block h-2 w-2 rounded-full bg-[var(--od-accent)] animate-pulse shadow-[0_0_8px_var(--od-accent)]" />
+                                    <span className="inline-block h-2 w-2 rounded-full bg-(--od-accent) animate-pulse shadow-[0_0_8px_var(--od-accent)]" />
                                     {title}
                                 </h3>
                             )}
@@ -119,7 +119,7 @@ export function MascotDialog({
                         </div>
 
                         {/* Content */}
-                        <div className="text-white/90 leading-relaxed text-sm md:text-lg font-medium drop-shadow-sm">
+                        <div className="text-white/90 leading-relaxed text-sm md:text-lg font-medium drop-shadow-xs">
                             {children}
                         </div>
 

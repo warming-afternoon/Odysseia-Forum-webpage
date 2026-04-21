@@ -79,7 +79,7 @@ export function ImageCarousel({
 
   return (
     <div
-      className={`group relative flex w-full overflow-hidden bg-[var(--od-bg-tertiary)] ${className}`}
+      className={`group relative flex w-full overflow-hidden bg-(--od-bg-tertiary) ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -136,7 +136,7 @@ export function ImageCarousel({
             }}
             className={`h-2 rounded-full transition-all duration-300 ${
               idx === currentIndex
-                ? 'w-6 bg-[var(--od-accent)]'
+                ? 'w-6 bg-(--od-accent)'
                 : 'w-2 bg-white/50 hover:bg-white/80'
             }`}
             aria-label={`Go to slide ${idx + 1}`}

@@ -54,17 +54,17 @@ export function BooklistItemEditorModal({
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-xl border border-[var(--od-border)] bg-[var(--od-bg)] shadow-2xl"
+        className="w-full max-w-lg rounded-xl border border-(--od-border) bg-(--od-bg) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--od-border)] px-5 py-4">
-          <h2 className="text-base font-bold text-[var(--od-text-primary)]">编辑书单项</h2>
+        <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
+          <h2 className="text-base font-bold text-(--od-text-primary)">编辑书单项</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+            className="rounded p-1 text-(--od-text-tertiary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
           >
             <X className="h-4 w-4" />
           </button>
@@ -81,43 +81,43 @@ export function BooklistItemEditorModal({
           className="space-y-4 p-5"
         >
           <div>
-            <p className="line-clamp-2 text-sm font-semibold text-[var(--od-text-primary)]">{item.title}</p>
-            <p className="mt-1 text-xs text-[var(--od-text-tertiary)]">Thread ID: {item.thread_id}</p>
+            <p className="line-clamp-2 text-sm font-semibold text-(--od-text-primary)">{item.title}</p>
+            <p className="mt-1 text-xs text-(--od-text-tertiary)">Thread ID: {item.thread_id}</p>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">备注</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">备注</label>
             <textarea
               {...register('comment')}
               rows={5}
-              className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+              className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
             />
-            {errors.comment && <p className="mt-1 text-xs text-[var(--od-error)]">{errors.comment.message}</p>}
+            {errors.comment && <p className="mt-1 text-xs text-(--od-error)">{errors.comment.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[var(--od-text-secondary)]">排序权重</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">排序权重</label>
             <input
               {...register('display_order')}
-              className="w-full rounded-lg border border-[var(--od-border)] bg-[var(--od-bg-secondary)] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+              className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
             />
             {errors.display_order && (
-              <p className="mt-1 text-xs text-[var(--od-error)]">{errors.display_order.message}</p>
+              <p className="mt-1 text-xs text-(--od-error)">{errors.display_order.message}</p>
             )}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-[var(--od-border)] pt-4">
+          <div className="flex justify-end gap-2 border-t border-(--od-border) pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-3 py-2 text-sm text-[var(--od-text-secondary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+              className="rounded-lg px-3 py-2 text-sm text-(--od-text-secondary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--od-accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--od-accent-hover)] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--od-accent-hover) disabled:opacity-60"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               保存

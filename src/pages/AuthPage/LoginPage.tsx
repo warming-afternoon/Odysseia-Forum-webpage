@@ -82,7 +82,7 @@ export function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="absolute inset-0 z-0 bg-black/58 backdrop-blur-sm"
+            className="absolute inset-0 z-0 bg-black/58 backdrop-blur-xs"
           />
         )}
       </AnimatePresence>
@@ -113,16 +113,16 @@ export function LoginPage() {
 
             {/* 标题：将普通文字升级为 SVG 图形标题 */}
             <div className="flex flex-col items-center justify-center mb-10 gap-2 max-w-full overflow-hidden">
-              <span className="text-xl font-bold tracking-[0.2em] text-[var(--od-text-primary)]">类脑</span>
-              <WordLogoStatic className="h-5 shrink-0 text-[var(--od-text-primary)] sm:h-6" />
+              <span className="text-xl font-bold tracking-[0.2em] text-(--od-text-primary)">类脑</span>
+              <WordLogoStatic className="h-5 shrink-0 text-(--od-text-primary) sm:h-6" />
             </div>
 
-            <p className="mb-10 text-[var(--od-text-secondary)]">使用 Discord 登录以继续</p>
+            <p className="mb-10 text-(--od-text-secondary)">使用 Discord 登录以继续</p>
 
             {/* 登录按钮 */}
             <button
               onClick={handleLogin}
-              className="w-full rounded-2xl bg-[var(--od-accent)] px-8 py-5 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="w-full rounded-2xl bg-(--od-accent) px-8 py-5 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
             >
               <div className="flex items-center justify-center gap-3">
                 <DiscordIcon className="h-7 w-7" />
@@ -133,7 +133,7 @@ export function LoginPage() {
             </button>
 
             {/* 说明文字 */}
-            <p className="mt-8 text-sm text-[var(--od-text-tertiary)]">
+            <p className="mt-8 text-sm text-(--od-text-tertiary)">
               我们仅读取你的基本信息，不会发送任何消息
             </p>
           </motion.div>
@@ -154,7 +154,7 @@ export function LoginPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="mt-12 animate-pulse text-base font-semibold tracking-[0.2em] text-[var(--od-text-primary)]"
+              className="mt-12 animate-pulse text-base font-semibold tracking-[0.2em] text-(--od-text-primary)"
             >
               INITIALIZING CONNECTION...
             </motion.p>

@@ -13,7 +13,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={handleClick}
-      className="group inline-flex items-center gap-1.5 text-[var(--od-text-tertiary)] transition-colors duration-200 hover:text-[var(--od-text-primary)]"
+      className="group inline-flex items-center gap-1.5 text-(--od-text-tertiary) transition-colors duration-200 hover:text-(--od-text-primary)"
       aria-label={nextLabel}
       title={nextLabel}
     >
@@ -21,15 +21,15 @@ export function ThemeToggle() {
         <Sun
           className={`absolute h-4 w-4 transition-all duration-250 ${
             isDarkTheme
-              ? 'scale-75 opacity-0 text-[var(--od-text-tertiary)]'
-              : 'scale-100 opacity-100 text-[var(--od-accent)]'
+              ? 'scale-75 opacity-0 text-(--od-text-tertiary)'
+              : 'scale-100 opacity-100 text-(--od-accent)'
           }`}
         />
         <Moon
           className={`absolute h-4 w-4 transition-all duration-250 ${
             isDarkTheme
-              ? 'scale-100 opacity-100 text-[var(--od-accent)]'
-              : 'scale-75 opacity-0 text-[var(--od-text-tertiary)]'
+              ? 'scale-100 opacity-100 text-(--od-accent)'
+              : 'scale-75 opacity-0 text-(--od-text-tertiary)'
           }`}
         />
       </span>

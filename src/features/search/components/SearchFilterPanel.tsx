@@ -61,11 +61,11 @@ export function SearchFilterPanel({
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--od-text-primary)]">高级筛选</h3>
+        <h3 className="text-sm font-semibold text-(--od-text-primary)">高级筛选</h3>
         {hasPanelFilters && (
           <button
             onClick={onClearFilters}
-            className="text-xs text-[var(--od-accent)] hover:underline"
+            className="text-xs text-(--od-accent) hover:underline"
           >
             清空筛选
           </button>
@@ -74,14 +74,14 @@ export function SearchFilterPanel({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="topbar-tagLogic" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-[var(--od-text-tertiary)]">
+          <label htmlFor="topbar-tagLogic" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-(--od-text-tertiary)">
             标签逻辑
           </label>
           <select
             id="topbar-tagLogic"
             value={tagLogic}
             onChange={(e) => onTagLogicChange(e.target.value as TagLogic)}
-            className="od-chrome-surface w-full rounded-xl border border-white/[0.06] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+            className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
           >
             <option value="and">全部包含 (AND)</option>
             <option value="or">任一即可 (OR)</option>
@@ -89,7 +89,7 @@ export function SearchFilterPanel({
         </div>
 
         <div>
-          <label htmlFor="topbar-timeFrom" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-[var(--od-text-tertiary)]">
+          <label htmlFor="topbar-timeFrom" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-(--od-text-tertiary)">
             不早于
           </label>
           <input
@@ -97,12 +97,12 @@ export function SearchFilterPanel({
             type="date"
             value={timeFrom}
             onChange={(e) => onTimeFromChange(e.target.value)}
-            className="od-chrome-surface w-full rounded-xl border border-white/[0.06] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+            className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
           />
         </div>
 
         <div>
-          <label htmlFor="topbar-timeTo" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-[var(--od-text-tertiary)]">
+          <label htmlFor="topbar-timeTo" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-(--od-text-tertiary)">
             不晚于
           </label>
           <input
@@ -110,7 +110,7 @@ export function SearchFilterPanel({
             type="date"
             value={timeTo}
             onChange={(e) => onTimeToChange(e.target.value)}
-            className="od-chrome-surface w-full rounded-xl border border-white/[0.06] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+            className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
           />
         </div>
       </div>
@@ -118,19 +118,19 @@ export function SearchFilterPanel({
       <div className="mt-4 space-y-4">
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--od-text-tertiary)]">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-(--od-text-tertiary)">
               标签筛选
             </h4>
             <div className="flex items-center gap-3">
-              <span className="text-[11px] text-[var(--od-text-tertiary)] text-right">
+              <span className="text-[11px] text-(--od-text-tertiary) text-right">
                 点击标签切换包含 / 排除 / 取消，不在这里显示删除按钮
               </span>
               <div className={`flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 ${
                 hasPreferenceTags
-                  ? 'border-[var(--od-shell-line)] bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]'
+                  ? 'border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]'
                   : 'border-[color-mix(in_srgb,var(--od-text-secondary)_10%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-input)_42%,transparent)] opacity-60'
               }`}>
-                <span className="text-[11px] font-semibold text-[var(--od-text-secondary)]">同步偏好标签</span>
+                <span className="text-[11px] font-semibold text-(--od-text-secondary)">同步偏好标签</span>
                 <button
                   type="button"
                   onClick={onPreferenceTagSyncToggle}
@@ -144,7 +144,7 @@ export function SearchFilterPanel({
               </div>
             </div>
           </div>
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-[var(--od-text-tertiary)]">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-(--od-text-tertiary)">
             <span>发现偏好标签</span>
             {hasPreferenceTags ? (
               <>
@@ -185,7 +185,7 @@ export function SearchFilterPanel({
                           ? 'bg-emerald-500/20 text-emerald-300'
                           : isExcluded
                             ? 'bg-rose-500/20 text-rose-300'
-                            : 'text-[var(--od-text-secondary)] hover:bg-emerald-500/10 hover:text-emerald-300'
+                            : 'text-(--od-text-secondary) hover:bg-emerald-500/10 hover:text-emerald-300'
                       }`}
                     >
                       {isIncluded ? '✓ ' : isExcluded ? '✕ ' : ''}{tag}
@@ -194,14 +194,14 @@ export function SearchFilterPanel({
                 );
               })
             ) : (
-              <span className="text-sm text-[var(--od-text-tertiary)]">当前上下文暂时没有可用标签</span>
+              <span className="text-sm text-(--od-text-tertiary)">当前上下文暂时没有可用标签</span>
             )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[var(--od-text-tertiary)]">
+            <label className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--od-text-tertiary)">
               <User className="h-3.5 w-3.5" />
               包含作者
             </label>
@@ -216,7 +216,7 @@ export function SearchFilterPanel({
                   }
                 }}
                 placeholder="输入昵称或用户名"
-                className="od-chrome-surface w-full rounded-xl border border-white/[0.06] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+                className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               />
               <button
                 type="button"
@@ -242,7 +242,7 @@ export function SearchFilterPanel({
           </div>
 
           <div>
-            <label className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[var(--od-text-tertiary)]">
+            <label className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--od-text-tertiary)">
               <User className="h-3.5 w-3.5" />
               排除作者
             </label>
@@ -257,7 +257,7 @@ export function SearchFilterPanel({
                   }
                 }}
                 placeholder="输入昵称或用户名"
-                className="od-chrome-surface w-full rounded-xl border border-white/[0.06] px-3 py-2 text-sm text-[var(--od-text-primary)] outline-none transition-colors focus:border-[var(--od-accent)]"
+                className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
               />
               <button
                 type="button"

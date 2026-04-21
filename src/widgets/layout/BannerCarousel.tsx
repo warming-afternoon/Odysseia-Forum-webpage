@@ -48,13 +48,13 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
   if (banners.length === 0) {
     return (
       <div className="group relative mb-4 overflow-hidden rounded-xl">
-        <div className="relative aspect-[21/9]">
+        <div className="relative aspect-21/9">
           <LazyImage
             src={defaultBannerImage}
             alt="欢迎来到 Odysseia"
             className="h-full w-full"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h2 className="mb-2 text-2xl font-bold text-white line-clamp-1">
               欢迎来到类脑Odysseia索引页
@@ -89,7 +89,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
       onClick={() => onBannerClick?.(currentBanner)}
     >
       {/* Banner 图片 */}
-      <div className="relative aspect-[21/9]">
+      <div className="relative aspect-21/9">
         <LazyImage
           src={currentBanner.image}
           alt={currentBanner.title}
@@ -97,7 +97,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
         />
 
         {/* 渐变遮罩 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
 
         {/* 内容 */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -162,7 +162,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
           <div className="absolute top-full left-0 mt-2 w-32 origin-top-left scale-95 opacity-0 invisible transition-all duration-200 group-hover/apply:scale-100 group-hover/apply:opacity-100 group-hover/apply:visible">
             <button
               onClick={() => setIsApplyModalOpen(true)}
-              className="flex w-full items-center gap-2 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white backdrop-blur-md hover:bg-[var(--od-accent)] transition-colors shadow-lg"
+              className="flex w-full items-center gap-2 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white backdrop-blur-md hover:bg-(--od-accent) transition-colors shadow-lg"
             >
               <ImageIcon className="w-4 h-4" />
               申请 Banner

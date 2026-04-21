@@ -181,30 +181,30 @@ export function DrawPage() {
       <section className="relative p-2 sm:p-6 lg:p-8">
         <div className="relative z-10 flex flex-col gap-10 max-w-4xl">
           <div>
-            <div className="od-editorial-kicker mb-4 text-[var(--od-text-tertiary)]">
+            <div className="od-editorial-kicker mb-4 text-(--od-text-tertiary)">
               <Sparkles className="h-3.5 w-3.5" />
               Surprise Discovery Ritual
             </div>
-            <h1 className="od-hero-title max-w-3xl text-[var(--od-text-primary)]">
+            <h1 className="od-hero-title max-w-3xl text-(--od-text-primary)">
               随机抽卡
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--od-text-secondary)] sm:text-base sm:leading-7">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-(--od-text-secondary) sm:text-base sm:leading-7">
               你要是懒得自己翻，我就帮你抽呀。抽出来的内容像拆小盲盒一样，一张张看会很有意思呢。
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-2 text-xs text-[var(--od-text-secondary)]">
-              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
-                <BadgeCheck className="h-3.5 w-3.5 text-[var(--od-accent)]" />
+            <div className="mt-7 flex flex-wrap items-center gap-2 text-xs text-(--od-text-secondary)">
+              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
+                <BadgeCheck className="h-3.5 w-3.5 text-(--od-accent)" />
                 {preferenceContext
                   ? "偏好过滤已生效"
                   : "尚未设置偏好，当前使用全社区池"}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
-                <Layers3 className="h-3.5 w-3.5 text-[var(--od-accent)]" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
+                <Layers3 className="h-3.5 w-3.5 text-(--od-accent)" />
                 当前范围：{activeScopeLabel}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--od-border)] bg-[var(--od-surface-input)] px-3 py-1.5">
-                <Dices className="h-3.5 w-3.5 text-[var(--od-accent)]" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
+                <Dices className="h-3.5 w-3.5 text-(--od-accent)" />
                 后台全库真随机已就绪
               </span>
             </div>
@@ -213,13 +213,13 @@ export function DrawPage() {
           <div className="space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--od-text-label)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--od-text-label)">
                   Draw Flow
                 </p>
-                <p className="mt-2 text-sm font-semibold text-[var(--od-text-primary)]">
+                <p className="mt-2 text-sm font-semibold text-(--od-text-primary)">
                   先圈个大概范围，再决定抽一张还是抽十张
                 </p>
-                <p className="mt-1 text-xs leading-5 text-[var(--od-text-secondary)]">
+                <p className="mt-1 text-xs leading-5 text-(--od-text-secondary)">
                   我不会故意抽到你偏好外面去的，放心吧。
                 </p>
               </div>
@@ -235,7 +235,7 @@ export function DrawPage() {
 
             <div className="space-y-4">
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
                   抽卡范围
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -244,8 +244,8 @@ export function DrawPage() {
                     onClick={() => setScopeMode("preferences")}
                     className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
                       scopeMode === "preferences"
-                        ? "border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm"
-                        : "border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50"
+                        ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
+                        : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
                     }`}
                   >
                     按我的偏好抽
@@ -255,8 +255,8 @@ export function DrawPage() {
                     onClick={() => setScopeMode("channel")}
                     className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
                       scopeMode === "channel"
-                        ? "border-[var(--od-accent)] bg-[var(--od-surface-input)] text-[var(--od-accent)] shadow-sm"
-                        : "border-[var(--od-border)] bg-[var(--od-surface-input)] text-[var(--od-text-secondary)] hover:border-[var(--od-accent)]/50"
+                        ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
+                        : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
                     }`}
                   >
                     指定频道抽
@@ -265,7 +265,7 @@ export function DrawPage() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
                   频道选择
                 </p>
                 <select
@@ -275,7 +275,7 @@ export function DrawPage() {
                     scopeMode !== "channel" ||
                     availableScopeChannels.length === 0
                   }
-                  className="w-full rounded-2xl border border-[var(--od-border)] bg-[var(--od-surface-input)] px-4 py-3 text-sm text-[var(--od-text-primary)] outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-[var(--od-accent)]"
+                  className="w-full rounded-2xl border border-(--od-border) bg-(--od-surface-input) px-4 py-3 text-sm text-(--od-text-primary) outline-hidden transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-(--od-accent)"
                 >
                   {availableScopeChannels.length === 0 ? (
                     <option value="">当前没有可抽取频道</option>
@@ -284,7 +284,7 @@ export function DrawPage() {
                       <option
                         key={channel.id}
                         value={channel.id}
-                        className="text-[var(--od-text-primary)]"
+                        className="text-(--od-text-primary)"
                       >
                         {channel.name}
                       </option>
@@ -294,10 +294,10 @@ export function DrawPage() {
               </div>
 
               <div className="pt-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--od-text-label)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
                   揭晓方式
                 </p>
-                <p className="mt-2 text-xs leading-5 text-[var(--od-text-secondary)]">
+                <p className="mt-2 text-xs leading-5 text-(--od-text-secondary)">
                   想随手碰碰运气就单抽，想一次看热闹一点就十连呀。
                 </p>
               </div>
@@ -365,16 +365,16 @@ export function DrawPage() {
       <section>
         <FluidDivider label="Pool Status" tone="strong" className="mb-6" />
         {isDrawing ? (
-          <div className="od-draw-slot text-sm text-[var(--od-text-secondary)]">
+          <div className="od-draw-slot text-sm text-(--od-text-secondary)">
             <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-3" />
             正在为你从几万张帖子里挑这一张…
           </div>
         ) : error ? (
           <div className="od-draw-slot">
-            <p className="text-base font-semibold text-[var(--od-text-primary)]">
+            <p className="text-base font-semibold text-(--od-text-primary)">
               哎呀，抽卡失败了
             </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">
+            <p className="mt-2 text-sm leading-6 text-(--od-text-secondary)">
               {error}
             </p>
             <button
@@ -387,7 +387,7 @@ export function DrawPage() {
             </button>
           </div>
         ) : drawResults.length === 0 ? (
-          <div className="od-draw-slot text-sm text-[var(--od-text-secondary)]">
+          <div className="od-draw-slot text-sm text-(--od-text-secondary)">
             准备好啦。你想先轻轻试一张也行，想热闹一点直接十连也行，我都陪你。
           </div>
         ) : null}
@@ -399,7 +399,7 @@ export function DrawPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-12">
               <div className="space-y-4">
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--od-accent)_18%,transparent)] bg-[color-mix(in_srgb,var(--od-accent)_10%,transparent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--od-accent)]">
+                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--od-accent)_18%,transparent)] bg-[color-mix(in_srgb,var(--od-accent)_10%,transparent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-(--od-accent)">
                   <Sparkles className="h-3.5 w-3.5" />
                   {lastDrawCount > 1 ? "十连主卡" : "本次命中"}
                 </div>
@@ -441,17 +441,17 @@ export function DrawPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--od-text-primary)]">
+                    <p className="text-sm font-semibold text-(--od-text-primary)">
                       其余结果
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-[var(--od-text-secondary)]">
+                    <p className="mt-1 text-xs leading-5 text-(--od-text-secondary)">
                       {drawResults.length > 1
                         ? "剩下那些我也整整齐齐摆在旁边啦，你可以一起对着看。"
                         : "现在是单抽，所以这里只会在多抽的时候热闹起来。"}
                     </p>
                   </div>
                   {drawResults.length > 1 && (
-                    <span className="rounded-full border border-[var(--od-shell-line)] bg-[var(--od-surface-soft)] px-3 py-1 text-[11px] font-semibold text-[var(--od-text-secondary)]">
+                    <span className="rounded-full border border-(--od-shell-line) bg-(--od-surface-soft) px-3 py-1 text-[11px] font-semibold text-(--od-text-secondary)">
                       已揭晓 {Math.max(0, revealedCount - 1)} /{" "}
                       {Math.max(0, drawResults.length - 1)}
                     </span>
@@ -471,7 +471,7 @@ export function DrawPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="od-draw-slot od-draw-slot-muted text-center text-sm text-[var(--od-text-secondary)]">
+                  <div className="od-draw-slot od-draw-slot-muted text-center text-sm text-(--od-text-secondary)">
                     等你十连的时候，这里就会一下子铺开很多张，看起来会更有抽卡的感觉哦。
                   </div>
                 )}
@@ -480,13 +480,13 @@ export function DrawPage() {
           </div>
         ) : (
           <div className="od-draw-slot od-draw-slot-muted p-10 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--od-surface-soft)] text-[var(--od-accent)]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-(--od-surface-soft) text-(--od-accent)">
               <Sparkles className="h-7 w-7" />
             </div>
-            <h3 className="mt-5 text-xl font-bold tracking-tight text-[var(--od-text-primary)]">
+            <h3 className="mt-5 text-xl font-bold tracking-tight text-(--od-text-primary)">
               第一张卡还在等你揭晓哦～
             </h3>
-            <p className="mt-2 text-sm leading-6 text-[var(--od-text-secondary)]">
+            <p className="mt-2 text-sm leading-6 text-(--od-text-secondary)">
               先挑一下这轮想在哪片地方碰运气，再决定抽一张还是十张。我会把结果乖乖送到你面前的。
             </p>
           </div>

@@ -89,19 +89,19 @@ export function PlazaPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-10 p-4 sm:p-6 lg:p-8">
-      <section className="relative min-h-[22rem]">
+      <section className="relative min-h-88">
         <div className="relative z-10 flex flex-col justify-between pt-6 sm:pt-8 lg:pt-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
             <div className="max-w-3xl">
-              <div className="od-editorial-kicker mb-3 text-[var(--od-text-tertiary)]">
+              <div className="od-editorial-kicker mb-3 text-(--od-text-tertiary)">
                 <Compass className="h-3.5 w-3.5" />
                 Plaza Spotlight
               </div>
-              <h1 className="od-hero-title max-w-2xl text-[var(--od-text-primary)]">内容广场</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--od-text-secondary)] sm:text-base sm:leading-7">
+              <h1 className="od-hero-title max-w-2xl text-(--od-text-primary)">内容广场</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-(--od-text-secondary) sm:text-base sm:leading-7">
                 我把今天广场里比较热闹、比较值得先看一眼的内容都理到这边啦。你不用急着挑，顺着往下逛就好，说不定一下子就碰到喜欢的。
               </p>
-              <p className="mt-4 max-w-xl text-xs font-medium uppercase tracking-[0.2em] text-[var(--od-text-tertiary)] sm:text-[0.78rem]">
+              <p className="mt-4 max-w-xl text-xs font-medium uppercase tracking-[0.2em] text-(--od-text-tertiary) sm:text-[0.78rem]">
                 先看看大家现在都在聊什么，再慢慢往下挖呀。
               </p>
             </div>
@@ -128,7 +128,7 @@ export function PlazaPage() {
 
           <div className="w-full">
             {bannersQuery.isLoading ? (
-              <div className="h-48 w-full animate-pulse rounded-[1.35rem] bg-[var(--od-surface-input)] xl:h-64" />
+              <div className="h-48 w-full animate-pulse rounded-[1.35rem] bg-(--od-surface-input) xl:h-64" />
             ) : bannersQuery.data && bannersQuery.data.length > 0 ? (
               <BannerCarousel
                 banners={bannersQuery.data.map((b) => ({
@@ -153,13 +153,13 @@ export function PlazaPage() {
               />
             ) : (
               <div className="group relative overflow-hidden rounded-xl">
-                <div className="relative aspect-[21/9]">
+                <div className="relative aspect-21/9">
                   <img
                     src={defaultBannerImage}
                     alt="欢迎来到 Odysseia"
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h2 className="mb-2 text-2xl font-bold text-white line-clamp-1">
                       欢迎来到 类脑Odysseia
@@ -239,12 +239,12 @@ export function PlazaPage() {
           </div>
         )}
         <div className="flex items-start gap-3 mt-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--od-surface-soft)] text-[var(--od-accent)]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-(--od-surface-soft) text-(--od-accent)">
             <Compass className="h-5 w-5" />
           </div>
           <div>
             <h2 className="od-section-title">正在发生</h2>
-            <p className="mt-1 text-sm text-[var(--od-text-secondary)]">我把它们分成几条比较好逛的轨道啦，你可以先看新的，也可以挑热闹的那条慢慢翻。</p>
+            <p className="mt-1 text-sm text-(--od-text-secondary)">我把它们分成几条比较好逛的轨道啦，你可以先看新的，也可以挑热闹的那条慢慢翻。</p>
           </div>
         </div>
       </section>
@@ -260,7 +260,7 @@ export function PlazaPage() {
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="od-section-title">{rail.title}</h2>
-                  <p className="mt-1 text-sm text-[var(--od-text-secondary)]">{rail.subtitle}</p>
+                  <p className="mt-1 text-sm text-(--od-text-secondary)">{rail.subtitle}</p>
                 </div>
                 <Link
                   to={`/?sort=${railSortMap[rail.key]}`}
@@ -289,7 +289,7 @@ export function PlazaPage() {
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
             <h2 className="od-section-title">书单精选</h2>
-            <p className="mt-1 text-sm text-[var(--od-text-secondary)]">这些都是大家比较爱收的书单，我替你放在前面啦，说不定会刚好合你胃口。</p>
+            <p className="mt-1 text-sm text-(--od-text-secondary)">这些都是大家比较爱收的书单，我替你放在前面啦，说不定会刚好合你胃口。</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -313,7 +313,7 @@ export function PlazaPage() {
         {booklistsQuery.isLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <div key={idx} className="h-72 animate-pulse rounded-xl bg-[var(--od-bg-tertiary)]" />
+              <div key={idx} className="h-72 animate-pulse rounded-xl bg-(--od-bg-tertiary)" />
             ))}
           </div>
         ) : booklistsQuery.data && booklistsQuery.data.length > 0 ? (
@@ -334,15 +334,15 @@ export function PlazaPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-[1.25rem] bg-[var(--od-surface-input)] p-6 text-sm text-[var(--od-text-secondary)]">
+          <div className="rounded-[1.25rem] bg-(--od-surface-input) p-6 text-sm text-(--od-text-secondary)">
             这会儿还没有我想先塞给你的书单呢，晚点再来看看也许就有啦。
           </div>
         )}
       </section>
 
-      <div className="px-1 text-xs text-[var(--od-text-tertiary)]">
+      <div className="px-1 text-xs text-(--od-text-tertiary)">
         <div className="inline-flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-[var(--od-accent)]" />
+          <Sparkles className="h-4 w-4 text-(--od-accent)" />
           这些内容是我按最近的热度和时间顺手排出来的，先给你一个好逛的起点呀。
         </div>
       </div>

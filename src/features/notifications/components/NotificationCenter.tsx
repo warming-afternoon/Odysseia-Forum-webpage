@@ -189,35 +189,35 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
       role="dialog"
       aria-modal="true"
       aria-label="通知中心"
-      className={`${backgroundImageEnabled ? 'od-floating-glass' : 'od-floating-panel-solid'} fixed inset-x-3 top-20 z-50 mx-auto flex max-h-[70vh] w-auto max-w-md flex-col items-stretch rounded-xl border border-[var(--od-border-strong)] shadow-2xl shadow-black/50 animate-in fade-in slide-in-from-top-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:max-h-[600px] sm:w-[360px]`}
+      className={`${backgroundImageEnabled ? 'od-floating-glass' : 'od-floating-panel-solid'} fixed inset-x-3 top-20 z-50 mx-auto flex max-h-[70vh] w-auto max-w-md flex-col items-stretch rounded-xl border border-(--od-border-strong) shadow-2xl shadow-black/50 animate-in fade-in slide-in-from-top-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:max-h-[600px] sm:w-[360px]`}
     >
-      <div className="flex items-start justify-between border-b border-[var(--od-border-strong)] px-4 py-3">
+      <div className="flex items-start justify-between border-b border-(--od-border-strong) px-4 py-3">
         <div>
           <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-[var(--od-accent)]" />
-            <h2 className="text-sm font-semibold text-[var(--od-text-primary)]">通知中心</h2>
+            <Bell className="h-4 w-4 text-(--od-accent)" />
+            <h2 className="text-sm font-semibold text-(--od-text-primary)">通知中心</h2>
           </div>
-          <p className="mt-1 text-xs text-[var(--od-text-secondary)]">
+          <p className="mt-1 text-xs text-(--od-text-secondary)">
             包含关注帖子更新与索引页/系统更新公告。
           </p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--od-text-tertiary)] transition-colors hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-(--od-text-tertiary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
           aria-label="关闭通知中心"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 text-xs text-[var(--od-text-secondary)]">
+      <div className="flex items-center justify-between px-4 py-2 text-xs text-(--od-text-secondary)">
               <span>当前共有 {effectiveUnreadCount} 个关注更新</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleClearAllNotifications}
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[var(--od-text-tertiary)] hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full text-(--od-text-tertiary) hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
             title="清除所有通知"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -225,7 +225,7 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
           <button
             type="button"
             onClick={handleGoToFollows}
-            className="text-[var(--od-accent)] hover:underline"
+            className="text-(--od-accent) hover:underline"
           >
             前往「我的关注」
           </button>
@@ -245,15 +245,15 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
         )}
 
         {(isError || isStaticError) && !(isLoading || isStaticLoading) && (
-          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-xs text-[var(--od-text-secondary)]">
-            <AlertCircle className="h-5 w-5 text-[var(--od-error)]" />
+          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-xs text-(--od-text-secondary)">
+            <AlertCircle className="h-5 w-5 text-(--od-error)" />
             <p>加载通知失败，请稍后重试。</p>
           </div>
         )}
 
         {!isLoading && !isStaticLoading && !isError && !isStaticError && !hasAnyNotification && (
-          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-xs text-[var(--od-text-secondary)]">
-            <Bell className="h-6 w-6 text-[var(--od-border-strong)]" />
+          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-xs text-(--od-text-secondary)">
+            <Bell className="h-6 w-6 text-(--od-border-strong)" />
             <p>当前没有新的通知。</p>
             <p>可以在「我的关注」中管理帖子更新。</p>
           </div>
@@ -265,18 +265,18 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
               <div
                 key={item.id}
                 onClick={() => handleNotificationClick(item)}
-                className="group cursor-pointer rounded-lg border border-[var(--od-border)] bg-[var(--od-card)] p-3 text-xs transition-colors hover:border-[var(--od-accent)] hover:bg-[color-mix(in_oklab,var(--od-bg-secondary)_85%,transparent)]"
+                className="group cursor-pointer rounded-lg border border-(--od-border) bg-(--od-card) p-3 text-xs transition-colors hover:border-(--od-accent) hover:bg-[color-mix(in_oklab,var(--od-bg-secondary)_85%,transparent)]"
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <p className="line-clamp-1 font-semibold text-[var(--od-text-primary)]">{item.title}</p>
+                  <p className="line-clamp-1 font-semibold text-(--od-text-primary)">{item.title}</p>
                   <div className="flex items-center gap-1">
                     {item.kind === 'release_update' && (
-                      <span className="rounded bg-[var(--od-bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--od-text-tertiary)]">
+                      <span className="rounded bg-(--od-bg-tertiary) px-1.5 py-0.5 text-[10px] text-(--od-text-tertiary)">
                         {item.source === 'system' ? '系统更新' : '索引页更新'}
                       </span>
                     )}
                     {item.created_at && (
-                      <span className="whitespace-nowrap text-[10px] text-[var(--od-text-tertiary)]">
+                      <span className="whitespace-nowrap text-[10px] text-(--od-text-tertiary)">
                         {new Date(item.created_at).toLocaleString()}
                       </span>
                     )}
@@ -284,7 +284,7 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
                       <button
                         type="button"
                         onClick={(e) => handleDismissStatic(item.id, e)}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[var(--od-text-tertiary)] hover:bg-[var(--od-bg-secondary)] hover:text-[var(--od-text-primary)]"
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-(--od-text-tertiary) hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
                         aria-label="关闭该通知"
                       >
                         <X className="h-3 w-3" />
@@ -294,7 +294,7 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
                 </div>
                 {item.kind === 'follow_update' && item.thread && (
                   <div className="mb-2 flex items-start gap-2">
-                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-[var(--od-bg-tertiary)]">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-(--od-bg-tertiary)">
                       {item.thread.thumbnail_urls && item.thread.thumbnail_urls.length > 0 ? (
                         <LazyImage
                           src={item.thread.thumbnail_urls[0]}
@@ -302,26 +302,26 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
                           className="h-full w-full"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[var(--od-text-tertiary)]">
+                        <div className="flex h-full w-full items-center justify-center text-(--od-text-tertiary)">
                           <Bell className="h-4 w-4" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-[11px] text-[var(--od-text-tertiary)]">
+                      <p className="truncate text-[11px] text-(--od-text-tertiary)">
                         {item.thread.author?.display_name ??
                           item.thread.author?.global_name ??
                           item.thread.author?.name ??
                           '未知作者'}
                       </p>
-                      <p className="line-clamp-2 text-[11px] text-[var(--od-text-secondary)]">
+                      <p className="line-clamp-2 text-[11px] text-(--od-text-secondary)">
                         {item.message}
                       </p>
                     </div>
                   </div>
                 )}
                 {item.kind !== 'follow_update' && (
-                  <p className="line-clamp-2 text-[var(--od-text-secondary)]">{item.message}</p>
+                  <p className="line-clamp-2 text-(--od-text-secondary)">{item.message}</p>
                 )}
               </div>
             ))}

@@ -16,8 +16,8 @@ export function NotificationsSettingsSection({ settings, updateSettings }: Notif
       <div className="space-y-3">
         <div className="od-setting-row">
           <div>
-            <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">新帖通知</p>
-            <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">关注的频道有新帖了，我会第一时间告诉你。</p>
+            <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">新帖通知</p>
+            <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">关注的频道有新帖了，我会第一时间告诉你。</p>
           </div>
           <SettingsToggle
             checked={settings.notifications.newPosts}
@@ -28,8 +28,8 @@ export function NotificationsSettingsSection({ settings, updateSettings }: Notif
 
         <div className="od-setting-row">
           <div>
-            <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">回复通知</p>
-            <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">有人回复了你的帖子，我会提醒你过去看看。</p>
+            <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">回复通知</p>
+            <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">有人回复了你的帖子，我会提醒你过去看看。</p>
           </div>
           <SettingsToggle
             checked={settings.notifications.replies}
@@ -40,8 +40,8 @@ export function NotificationsSettingsSection({ settings, updateSettings }: Notif
 
         <div className="od-setting-row">
           <div>
-            <p className="od-choice-title text-base font-semibold text-[var(--od-text-primary)]">提及通知</p>
-            <p className="mt-1 text-[0.82rem] leading-[1.55] text-[var(--od-text-secondary)]">有人 @ 了你，可能在找你聊天哦。</p>
+            <p className="od-choice-title text-base font-semibold text-(--od-text-primary)">提及通知</p>
+            <p className="mt-1 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">有人 @ 了你，可能在找你聊天哦。</p>
           </div>
           <SettingsToggle
             checked={settings.notifications.mentions}
