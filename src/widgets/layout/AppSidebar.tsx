@@ -98,8 +98,10 @@ export function AppSidebar() {
     }`;
 
   const navIndicatorClass = (active: boolean) =>
-    `h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
-      active ? 'bg-(--od-accent)' : 'bg-(--od-text-tertiary)/45 group-hover:bg-(--od-text-secondary)'
+    `h-1.5 w-1.5 rounded-full transition-all duration-300 ${
+      active
+        ? 'bg-(--od-accent) opacity-100 scale-100'
+        : 'bg-(--od-text-tertiary)/45 opacity-0 group-hover:opacity-100 scale-0 group-hover:scale-100'
     }`;
 
   return (
