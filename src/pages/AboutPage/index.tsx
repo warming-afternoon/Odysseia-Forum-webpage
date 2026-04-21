@@ -8,10 +8,10 @@ import backgroundImage from '@/assets/images/background/spring.png';
 import { APP_VERSION } from '@/shared/config/appInfo';
 import { WordLogoStatic } from '@/shared/ui/loaders/WordLogoStatic';
 
-const GITHUB_REPO_URL = 'https://github.com/shiyue137mh-netizen/Odysseia-Forum-Newpage';
+const GITHUB_REPO_URL = 'https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage';
 const CONTRIBUTORS_URL = `${GITHUB_REPO_URL}/graphs/contributors`;
 const CONTRIBUTORS_API_URL =
-  'https://api.github.com/repos/shiyue137mh-netizen/Odysseia-Forum-Newpage/contributors?per_page=100';
+  'https://api.github.com/repos/shiyue137mh-netizen/Odysseia-Forum-webpage/contributors?per_page=100';
 const WIKI_URL = 'https://wiki.xn--35zx7g.org/';
 
 function GitHubIcon({ className }: { className?: string }) {

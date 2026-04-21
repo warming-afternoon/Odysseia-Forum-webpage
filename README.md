@@ -30,9 +30,9 @@
 
 <!-- 动态仓库状态徽章 -->
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/shiyue137mh-netizen/Odysseia-Forum-Newpage?style=flat&color=success&logo=git&logoColor=white" alt="Last Commit" />
-  <img src="https://img.shields.io/github/contributors/shiyue137mh-netizen/Odysseia-Forum-Newpage?style=flat&color=orange" alt="Contributors" />
-  <img src="https://img.shields.io/github/issues/shiyue137mh-netizen/Odysseia-Forum-Newpage?style=flat&color=red" alt="Issues" />
+  <img src="https://img.shields.io/github/last-commit/shiyue137mh-netizen/Odysseia-Forum-webpage?style=flat&color=success&logo=git&logoColor=white" alt="Last Commit" />
+  <img src="https://img.shields.io/github/contributors/shiyue137mh-netizen/Odysseia-Forum-webpage?style=flat&color=orange" alt="Contributors" />
+  <img src="https://img.shields.io/github/issues/shiyue137mh-netizen/Odysseia-Forum-webpage?style=flat&color=red" alt="Issues" />
 </p>
 
 欢迎来到 Odysseia Forum Webpage 的前端大本营！让我来给大家带路吧！希望在这里，大家能像晒着向日葵的太阳一样觉得暖洋洋的！
@@ -100,8 +100,8 @@ npm run dev
 
 没有大家的爱，就不会有现在的类脑娘！感谢下面所有在冰天雪地里帮忙递过砖块的大家：
 
-<a href="https://github.com/shiyue137mh-netizen/Odysseia-Forum-Newpage/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=shiyue137mh-netizen/Odysseia-Forum-Newpage" alt="Contributors" />
+<a href="https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=shiyue137mh-netizen/Odysseia-Forum-webpage" alt="Contributors" />
 </a>
 
 ---

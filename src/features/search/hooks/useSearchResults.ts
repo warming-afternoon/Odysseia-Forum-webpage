@@ -56,7 +56,7 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
         ? null
         : resolveDiscoveryPreferencePatch({
             preferences,
-            mode: 'browse-empty',
+            mode: 'search-active',
             query,
             selectedChannel,
             hasExplicitFilters,
@@ -68,8 +68,8 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   
   const effectivePerPage = discoveryPreferencePatch?.limit || perPage;
   const effectiveChannelIds = selectedChannel ? [selectedChannel] : discoveryPreferencePatch?.channel_ids;
-  const effectiveIncludeTags = includeTags.length > 0 ? includeTags : discoveryPreferencePatch?.include_tags || [];
-  const effectiveExcludeTags = excludeTags.length > 0 ? excludeTags : discoveryPreferencePatch?.exclude_tags || [];
+  const effectiveIncludeTags = Array.from(new Set([...includeTags, ...(discoveryPreferencePatch?.include_tags || [])]));
+  const effectiveExcludeTags = Array.from(new Set([...excludeTags, ...(discoveryPreferencePatch?.exclude_tags || [])]));
 
   useEffect(() => {
     if (query.trim() || selectedChannel || hasExplicitFilters) {
@@ -171,15 +171,17 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   }, [queryState.fetchNextPage, queryState.hasNextPage, queryState.isFetchingNextPage]);
 
   const hasSearchFilters = !!query || hasExplicitFilters;
-  const isPreferenceFilteredBrowse =
-    !query.trim() && !selectedChannel && !hasExplicitFilters && Boolean(discoveryPreferencePatch);
+  const isPreferenceActive = Boolean(discoveryPreferencePatch);
+  const showPreferenceBanner =
+    !query.trim() && !selectedChannel && !hasExplicitFilters && isPreferenceActive;
 
   return {
     discoveryPreferenceContext,
     hasExplicitFilters,
     hasSearchFilters,
     ignoreDiscoveryPreferences,
-    isPreferenceFilteredBrowse,
+    isPreferenceActive,
+    showPreferenceBanner,
     loadMoreRef,
     queryState,
     results,

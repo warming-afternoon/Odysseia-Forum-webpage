@@ -90,10 +90,20 @@ export function useTopBarSearchController({
   }, []);
 
   useEffect(() => {
-    const nextQuery = params.query || getPersistedDraftQuery();
-    setSearchInput(nextQuery);
-    setPersistedDraftQuery(nextQuery);
-  }, [params.query]);
+    const persisted = getPersistedDraftQuery();
+    
+    if (params.query) {
+      setSearchInput(params.query);
+      setPersistedDraftQuery(params.query);
+    } else if (persisted) {
+      setSearchInput(persisted);
+      if (isSearchPage) {
+        setParams({ query: persisted });
+      }
+    } else {
+      setSearchInput("");
+    }
+  }, [params.query, isSearchPage, setParams]);
 
   useEffect(() => {
     setPersistedDraftChannel(params.channel);

@@ -25,17 +25,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const mixWithTransparency = (color: string, transparencyPercent: number) =>
       `color-mix(in srgb, ${color}, transparent ${clamp(transparencyPercent, 0, 100)}%)`;
 
-    // 仅在“主题切换”时做全局过渡，避免拖动透明度/磨砂滑杆时整页闪烁
-    const shouldAnimateThemeTransition =
-      previousThemeRef.current !== null && previousThemeRef.current !== currentTheme;
-
-    if (shouldAnimateThemeTransition) {
-      root.classList.add('od-theme-transition');
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      root.classList.remove('od-theme-transition');
-    }, shouldAnimateThemeTransition ? 380 : 0);
+    previousThemeRef.current = currentTheme;
 
     root.style.setProperty('--od-text-primary', colors.textPrimary);
     root.style.setProperty('--od-text-secondary', colors.textSecondary);
@@ -322,8 +312,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     };
 
     return () => {
-      root.classList.remove('od-theme-transition');
-      window.clearTimeout(timeoutId);
     };
   }, [theme, currentTheme, settings.fontMode, settings.backgroundImageEnabled, settings.backgroundImageOpacity, settings.backgroundImageUrl, settings.backgroundImageBase64, settings.glassMode, settings.glassBlur, settings.backgroundlessMode]);
 

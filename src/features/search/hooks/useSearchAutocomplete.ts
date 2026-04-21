@@ -76,7 +76,11 @@ export function useSearchAutocomplete({
 
   const globalAvailableTags = useMemo(() => {
     const tagSet = new Set<string>();
-    for (const channel of channelTagCatalog) {
+    const scopedCatalog = params.channel
+      ? channelTagCatalog.filter((channel) => channel.channel_id === params.channel)
+      : channelTagCatalog;
+
+    for (const channel of scopedCatalog) {
       for (const tag of channel.available_tags || []) {
         if (tag?.trim()) tagSet.add(tag.trim());
       }
@@ -85,7 +89,7 @@ export function useSearchAutocomplete({
       }
     }
     return Array.from(tagSet);
-  }, [channelTagCatalog]);
+  }, [channelTagCatalog, params.channel]);
 
   const virtualTagOriginChannelMap = useMemo(() => {
     const map = new Map<string, string>();

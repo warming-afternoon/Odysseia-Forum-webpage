@@ -16,7 +16,7 @@ import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferen
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { useLayoutMode } from "@/shared/hooks/useSettings";
 import { useChannels } from "@/shared/hooks/useChannels";
-import { addToken } from "@/shared/lib/searchTokenizer";
+import { addToken, parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import {
   ArrowUpDown,
@@ -55,7 +55,8 @@ export function SearchPage() {
     hasExplicitFilters,
     hasSearchFilters,
     ignoreDiscoveryPreferences,
-    isPreferenceFilteredBrowse,
+    isPreferenceActive,
+    showPreferenceBanner,
     loadMoreRef,
     queryState: {
       isLoading,
@@ -148,8 +149,42 @@ export function SearchPage() {
               <Compass className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-(--od-text-primary)">
-                {query ? `搜索: ${query}` : "探索社区"}
+              <h1 className="text-2xl font-bold tracking-tight text-(--od-text-primary) flex items-center flex-wrap gap-x-2 gap-y-1">
+                {query ? (
+                  <>
+                    <span>搜索:</span>
+                    {parseSearchQuery(query).map((token, i) => {
+                      if (token.type === "text") {
+                        return <span key={i} className="truncate max-w-[200px] sm:max-w-md">{token.value}</span>;
+                      }
+
+                      const isNegative = token.mode === "exclude";
+                      const colorClass = isNegative
+                        ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                        : "bg-[color-mix(in_srgb,var(--od-accent)_16%,transparent)] text-(--od-accent) border border-[color-mix(in_srgb,var(--od-accent)_26%,transparent)]";
+                      
+                      const prefix =
+                        token.type === "author"
+                          ? "@"
+                          : token.type === "channel"
+                            ? "#"
+                            : "";
+
+                      return (
+                        <span
+                          key={i}
+                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-base font-medium ${colorClass}`}
+                        >
+                          {isNegative && "-"}
+                          {prefix}
+                          {token.value}
+                        </span>
+                      );
+                    })}
+                  </>
+                ) : (
+                  "探索社区"
+                )}
               </h1>
               <div className="flex items-center gap-2 text-sm text-(--od-text-secondary)">
                 <span>
@@ -167,7 +202,7 @@ export function SearchPage() {
                     <span>频道 {selectedChannelName}</span>
                   </>
                 )}
-                {isPreferenceFilteredBrowse && (
+                {isPreferenceActive && (
                   <>
                     <span className="opacity-30">•</span>
                     <span>已按偏好展示</span>
@@ -257,11 +292,19 @@ export function SearchPage() {
             </div>
 
             {isThreadTab &&
+              !ignoreDiscoveryPreferences &&
+              discoveryPreferenceContext && (
+                <button
+                  type="button"
+                  onClick={() => setIgnoreDiscoveryPreferences(true)}
+                  className="od-inline-action od-inline-action-soft"
+                >
+                  取消偏好以扩大范围
+                </button>
+              )}
+            {isThreadTab &&
               ignoreDiscoveryPreferences &&
-              discoveryPreferenceContext &&
-              !query.trim() &&
-              !selectedChannel &&
-              !hasExplicitFilters && (
+              discoveryPreferenceContext && (
                 <button
                   type="button"
                   onClick={() => setIgnoreDiscoveryPreferences(false)}
@@ -290,7 +333,7 @@ export function SearchPage() {
         </div>
 
         {isThreadTab &&
-          isPreferenceFilteredBrowse &&
+          showPreferenceBanner &&
           discoveryPreferenceContext && (
             <section className="mb-7 px-1">
               <div className="od-inline-notice" data-tone="accent">

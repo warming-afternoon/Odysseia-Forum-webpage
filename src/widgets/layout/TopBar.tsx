@@ -118,7 +118,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   const {
     activeVirtualTag,
     availableTags,
-    mergedTagState,
     preferenceSuggestedTags,
     suggestionAuthors,
     suggestionPreferencePatch,
@@ -135,11 +134,9 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
     showSuggestions,
   });
 
-  const { handlePreferenceTagSyncToggle, syncPreferenceTags, toggleTagToken } =
+  const { toggleTagToken } =
     useTopBarFilterState({
       params,
-      preferenceExcludeTags: preferenceTagState.excludeTags,
-      preferenceIncludeTags: preferenceTagState.includeTags,
       updateQuery,
       updateQueryFromTokenMutation,
       virtualTagOriginChannelMap,
@@ -364,12 +361,11 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                     hasPanelFilters={hasPanelFilters}
                     includeAuthorDraft={includeAuthorDraft}
                     includeAuthorTokens={includeAuthorTokens}
-                    mergedExcludeTags={mergedTagState.excludeTags}
-                    mergedIncludeTags={mergedTagState.includeTags}
+                    mergedExcludeTags={params.excludeTags}
+                    mergedIncludeTags={params.includeTags}
                     onClearFilters={clearFilters}
                     onExcludeAuthorDraftChange={setExcludeAuthorDraft}
                     onIncludeAuthorDraftChange={setIncludeAuthorDraft}
-                    onPreferenceTagSyncToggle={handlePreferenceTagSyncToggle}
                     onRemoveAuthorToken={removeAuthorToken}
                     onSubmitAuthorDraft={submitAuthorDraft}
                     onTagLogicChange={(value: TagLogic) =>
@@ -384,7 +380,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                     onToggleTagToken={toggleTagToken}
                     preferenceExcludeTags={preferenceTagState.excludeTags}
                     preferenceIncludeTags={preferenceTagState.includeTags}
-                    syncPreferenceTags={syncPreferenceTags}
                     tagLogic={params.tagLogic}
                     timeFrom={params.timeFrom}
                     timeTo={params.timeTo}

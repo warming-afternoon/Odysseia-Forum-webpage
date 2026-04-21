@@ -15,7 +15,6 @@ interface SearchFilterPanelProps {
   onClearFilters: () => void;
   onExcludeAuthorDraftChange: (value: string) => void;
   onIncludeAuthorDraftChange: (value: string) => void;
-  onPreferenceTagSyncToggle: () => void;
   onRemoveAuthorToken: (token: SearchToken) => void;
   onSubmitAuthorDraft: (mode: 'include' | 'exclude') => void;
   onTagLogicChange: (value: TagLogic) => void;
@@ -24,7 +23,6 @@ interface SearchFilterPanelProps {
   onToggleTagToken: (tagName: string, mode: 'include' | 'exclude') => void;
   preferenceExcludeTags: string[];
   preferenceIncludeTags: string[];
-  syncPreferenceTags: boolean;
   tagLogic: TagLogic;
   timeFrom: string;
   timeTo: string;
@@ -42,7 +40,6 @@ export function SearchFilterPanel({
   onClearFilters,
   onExcludeAuthorDraftChange,
   onIncludeAuthorDraftChange,
-  onPreferenceTagSyncToggle,
   onRemoveAuthorToken,
   onSubmitAuthorDraft,
   onTagLogicChange,
@@ -51,7 +48,6 @@ export function SearchFilterPanel({
   onToggleTagToken,
   preferenceExcludeTags,
   preferenceIncludeTags,
-  syncPreferenceTags,
   tagLogic,
   timeFrom,
   timeTo,
@@ -125,23 +121,6 @@ export function SearchFilterPanel({
               <span className="text-[11px] text-(--od-text-tertiary) text-right">
                 点击标签切换包含 / 排除 / 取消，不在这里显示删除按钮
               </span>
-              <div className={`flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 ${
-                hasPreferenceTags
-                  ? 'border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]'
-                  : 'border-[color-mix(in_srgb,var(--od-text-secondary)_10%,transparent)] bg-[color-mix(in_srgb,var(--od-surface-input)_42%,transparent)] opacity-60'
-              }`}>
-                <span className="text-[11px] font-semibold text-(--od-text-secondary)">同步偏好标签</span>
-                <button
-                  type="button"
-                  onClick={onPreferenceTagSyncToggle}
-                  data-checked={syncPreferenceTags}
-                  disabled={!hasPreferenceTags}
-                  className="od-toggle scale-[0.88] disabled:cursor-not-allowed disabled:opacity-50"
-                  title={hasPreferenceTags ? '同步偏好标签' : '先在偏好页设置标签'}
-                >
-                  <div className="od-toggle-thumb" />
-                </button>
-              </div>
             </div>
           </div>
           <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-(--od-text-tertiary)">

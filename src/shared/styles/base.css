@@ -191,3 +191,77 @@
     scrollbar-color: var(--od-border-strong) var(--od-bg-secondary);
   }
 }
+
+/* ========================================
+    VIEW TRANSITIONS API: Theme Switching
+    ======================================== */
+::view-transition-group(root) {
+  animation-duration: 3.6s;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: inherit;
+  animation-timing-function: inherit;
+  mix-blend-mode: normal;
+  /* 优化性能，减少卡顿 */
+  will-change: clip-path, opacity;
+  isolation: isolate;
+  /* 允许点击穿透，防止动画期间页面“由于正在播放动画”而无法交互 */
+  pointer-events: none;
+}
+
+/* 1. Circle Reveal */
+[data-theme-transition='circle']::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+[data-theme-transition='circle']::view-transition-new(root) {
+  animation: circle-in 3.6s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+@keyframes circle-in {
+  0% {
+    clip-path: circle(0px at var(--click-x, 50%) var(--click-y, 50%));
+  }
+  100% {
+    clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+  }
+}
+
+/* 2. Wipe Right */
+[data-theme-transition='wipe-right']::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+[data-theme-transition='wipe-right']::view-transition-new(root) {
+  animation: wipe-right 2.7s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+@keyframes wipe-right {
+  0% {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  }
+}
+
+/* 3. Wipe Down */
+[data-theme-transition='wipe-down']::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+[data-theme-transition='wipe-down']::view-transition-new(root) {
+  animation: wipe-down 2.7s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+@keyframes wipe-down {
+  0% {
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}

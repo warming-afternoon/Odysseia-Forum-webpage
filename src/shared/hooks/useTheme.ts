@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { themes, type ThemeName, type Theme } from '@/shared/styles/themes';
 import { useSettings, useThemeSettings } from '@/shared/hooks/useSettings';
 import type { UserSettings } from '@/shared/lib/settings';
@@ -100,19 +101,49 @@ export function useTheme() {
 
   const theme: Theme = themes[currentThemeName];
 
+  const applyTransitionSettings = (nextSettingsTheme: UserSettings['theme'], animType: 'circle' | 'wipe-right' | 'wipe-down', e?: React.MouseEvent) => {
+    if (!document.startViewTransition) {
+      updateSettings({ theme: nextSettingsTheme });
+      return;
+    }
+
+    const root = document.documentElement;
+    root.setAttribute('data-theme-transition', animType);
+    
+    if (e && animType === 'circle') {
+      const x = e.clientX || window.innerWidth / 2;
+      const y = e.clientY || window.innerHeight / 2;
+      root.style.setProperty('--click-x', `${x}px`);
+      root.style.setProperty('--click-y', `${y}px`);
+    }
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        updateSettings({ theme: nextSettingsTheme });
+      });
+    });
+
+    transition.finished.then(() => {
+      root.removeAttribute('data-theme-transition');
+    });
+  };
+
   // 切换主题：只在浅色/深色之间切换，不轮播整套主题列表
-  const toggleTheme = () => {
+  const toggleTheme = (e?: React.MouseEvent) => {
     const nextSettingsTheme: UserSettings['theme'] = isLightThemeName(currentThemeName)
       ? 'claude-dark'
       : 'discord-light';
 
-    updateSettings({ theme: nextSettingsTheme });
+    // 快捷切换模式使用向上或向右擦除，这里为了配合效果随机选擦除
+    const wipeAnim = Math.random() > 0.5 ? 'wipe-right' : 'wipe-down';
+    applyTransitionSettings(nextSettingsTheme, wipeAnim, e);
   };
 
   // 设置指定主题（来自设置页、颜色盘等）
-  const setTheme = (themeName: ThemeName) => {
+  const setTheme = (themeName: ThemeName, e?: React.MouseEvent) => {
     const next = mapThemeNameToSettings(themeName);
-    updateSettings({ theme: next });
+    // 设置页点击色块统一使用 circle 波纹
+    applyTransitionSettings(next, 'circle', e);
   };
 
   return {
@@ -121,5 +152,6 @@ export function useTheme() {
     isDarkTheme: !isLightThemeName(currentThemeName),
     toggleTheme,
     setTheme,
+    setThemeWithTransition: applyTransitionSettings,
   };
 }

@@ -2,7 +2,7 @@ import type { UserPreferencesResponse } from '@/features/preferences/api/prefere
 import { toPreferencesFormValue } from '@/features/preferences/lib/preferencesMapper';
 import type { UISortMethod } from '@/features/search/api/searchApi';
 
-export type DiscoveryPreferenceMode = 'browse-empty' | 'suggestion' | 'plaza';
+export type DiscoveryPreferenceMode = 'search-active' | 'suggestion' | 'plaza';
 
 export interface DiscoveryPreferenceContext {
   preferredChannelIds: string[];
@@ -147,13 +147,11 @@ export function resolveDiscoveryPreferencePatch({
 
   const normalizedQuery = (query || '').trim();
 
-  if (mode === 'browse-empty') {
-    if (normalizedQuery || selectedChannel || hasExplicitFilters) {
-      return null;
-    }
-
+  if (mode === 'search-active') {
     return {
-      channel_ids: context.preferredChannelIds.length > 0 ? context.preferredChannelIds : undefined,
+      channel_ids: selectedChannel ? undefined : (context.preferredChannelIds.length > 0 ? context.preferredChannelIds : undefined),
+      include_tags: context.includeTags.length > 0 ? context.includeTags : undefined,
+      exclude_tags: context.excludeTags.length > 0 ? context.excludeTags : undefined,
       sort_method: context.sortMethod,
       limit: context.resultsPerPage,
     };

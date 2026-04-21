@@ -10,7 +10,8 @@ interface LazyImageProps {
   placeholder?: string;
   threadId?: string;
   channelId?: string;
-  index?: number;
+  index?: number; // Used for staggered animation delay
+  imageIndex?: number; // Used to identify which picture in the sequence this is
 }
 
 export function LazyImage({
@@ -21,6 +22,7 @@ export function LazyImage({
   threadId,
   channelId,
   index = 0,
+  imageIndex = 0,
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -61,11 +63,12 @@ export function LazyImage({
   useEffect(() => {
     if (!threadId) return;
     return subscribeThreadThumbnailRepair(threadId, (urls) => {
-      if (urls.length > 0) {
-        setCurrentSrc(urls[0]);
+      const targetUrl = urls[imageIndex];
+      if (targetUrl) {
+        setCurrentSrc(targetUrl);
       }
     });
-  }, [threadId]);
+  }, [threadId, imageIndex]);
 
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>

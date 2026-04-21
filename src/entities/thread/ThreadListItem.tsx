@@ -96,6 +96,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                     className="h-full w-full object-cover"
                     threadId={thread.thread_id}
                     channelId={thread.channel_id}
+                    imageIndex={0}
                   />
                 </div>
               )}
@@ -114,6 +115,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                         threadId={thread.thread_id}
                         channelId={thread.channel_id}
                         index={index}
+                        imageIndex={idx}
                       />
                     </div>
                   ))}
@@ -129,6 +131,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                       className="h-full w-full object-cover"
                       threadId={thread.thread_id}
                       channelId={thread.channel_id}
+                      imageIndex={0}
                     />
                   </div>
                   <div className="relative overflow-hidden rounded-2xl bg-(--od-surface-shell)">
@@ -139,6 +142,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                       threadId={thread.thread_id}
                       channelId={thread.channel_id}
                       index={index}
+                      imageIndex={1}
                     />
                   </div>
                   <div className="relative overflow-hidden rounded-2xl bg-(--od-surface-shell)">
@@ -148,6 +152,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                       className="h-full w-full object-cover"
                       threadId={thread.thread_id}
                       channelId={thread.channel_id}
+                      imageIndex={2}
                     />
                   </div>
                 </>
@@ -167,6 +172,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                         threadId={thread.thread_id}
                         channelId={thread.channel_id}
                         index={index}
+                        imageIndex={idx}
                       />
                       {idx === 3 && (thread.thumbnail_urls?.length || 0) > thumbnails.length && (
                         <div className="absolute inset-0 flex items-end justify-end bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.42))] p-2 text-white">

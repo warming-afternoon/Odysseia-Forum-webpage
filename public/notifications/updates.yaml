@@ -9,7 +9,7 @@ updates:
     created_at: '2026-04-21T10:00:00.000Z'
     source: webpage
     version: 2.3.0
-    url: https://github.com/starowo/Odysseia-Forum/releases
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.3.0
     preview_thread:
       title: Odysseia Index 2.3.0 更新公告
@@ -52,7 +52,7 @@ updates:
     created_at: '2026-04-03T06:11:00.000Z'
     source: webpage
     version: 2.2.0
-    url: https://github.com/starowo/Odysseia-Forum/releases
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.2.0
     preview_thread:
       title: Odysseia Index 2.2.0 更新公告
@@ -84,7 +84,7 @@ updates:
         name: Odysseia
         display_name: Odysseia Web Team
       thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/starowo/Odysseia-Forum@main/webpage/src/assets/images/background/winter.png
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
 
   - id: webpage-2.1.0-plaza-booklist
     title: 索引页 2.1.0 发布：广场与书单系统升级
@@ -98,7 +98,7 @@ updates:
     created_at: '2026-04-03T04:40:00.000Z'
     source: webpage
     version: 2.1.0
-    url: https://github.com/starowo/Odysseia-Forum/releases
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.1.0
     preview_thread:
       title: Odysseia Index 2.1.0 更新公告
@@ -130,7 +130,7 @@ updates:
         name: Odysseia
         display_name: Odysseia Web Team
       thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/starowo/Odysseia-Forum@main/webpage/src/assets/images/background/winter.png
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
 
   - id: webpage-2.0.0-release
     title: 索引页 2.0.0 发布
@@ -143,7 +143,7 @@ updates:
     created_at: '2026-04-03T00:00:00.000Z'
     source: webpage
     version: 2.0.0
-    url: https://github.com/starowo/Odysseia-Forum/releases
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.0.0
     preview_thread:
       title: 索引页 2.0.0 更新说明
@@ -164,7 +164,7 @@ updates:
         name: Odysseia
         display_name: Odysseia 系统
       thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/starowo/Odysseia-Forum@main/webpage/src/assets/images/background/winter.png
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
 
   - id: system-maintenance-example
     title: 系统维护窗口通知
@@ -172,7 +172,7 @@ updates:
       主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
     created_at: '2026-04-02T12:00:00.000Z'
     source: system
-    url: https://github.com/starowo/Odysseia-Forum
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage
     preview_thread:
       title: 系统维护窗口通知
       first_message_excerpt: |

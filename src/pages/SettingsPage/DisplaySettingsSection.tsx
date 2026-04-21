@@ -15,6 +15,7 @@ import {
 
 import { themes } from '@/shared/styles/themes';
 import type { UserSettings } from '@/shared/lib/settings';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 import { themeOptions } from './config';
 import { SettingsPageSection } from './SettingsPageSection';
@@ -25,6 +26,7 @@ type DisplaySettingsSectionProps = {
 };
 
 export function DisplaySettingsSection({ settings, updateSettings }: DisplaySettingsSectionProps) {
+  const { setThemeWithTransition } = useTheme();
   const inlineChoiceClass = 'od-option-inline';
   const rowChoiceClass = 'od-setting-choice flex items-center gap-3 p-4 text-left';
 
@@ -260,7 +262,9 @@ export function DisplaySettingsSection({ settings, updateSettings }: DisplaySett
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() => updateSettings({ theme: option.id })}
+                  onClick={(e) => {
+                    setThemeWithTransition(option.id, 'circle', e);
+                  }}
                   data-active={isSelected}
                   className={`${rowChoiceClass} w-full justify-between`}
                 >
