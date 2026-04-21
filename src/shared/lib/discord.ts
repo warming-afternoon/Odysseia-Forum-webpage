@@ -21,7 +21,7 @@ export function getAvatarUrl(user: DiscordUser, size: number = 128): string {
 
     // 默认头像逻辑
     // Discord 默认头像计算方式: (user_id >> 22) % 6
-    let index = 0;
+    let index: number;
     try {
         index = Number((BigInt(user.id) >> 22n) % 6n);
     } catch {
