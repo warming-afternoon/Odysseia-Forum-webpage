@@ -1,4 +1,44 @@
 updates:
+  - id: webpage-2.3.0-mascot-update
+    title: 索引页 2.3.0 发布：看板娘报到与全新探索！
+    message: |
+      锵锵——！我来啦！从今天起，社区就由我来陪大家啦！我会在页面角落默默看着你们哦，遇到好玩的事情我也会开心地蹦出来！
+
+      而且呀，我们多了一个超级好玩的抽卡功能！快去试试手气吧，说不定能抽出什么意想不到的好东西呢！
+      还有还有，现在的搜索功能变聪明了好多！只要输入一点点内容，我就能猜到你想找什么，唰的一下全列出来啦，超厉害的对不对！
+    created_at: '2026-04-21T10:00:00.000Z'
+    source: webpage
+    version: 2.3.0
+    url: https://github.com/starowo/Odysseia-Forum/releases
+    min_app_version: 2.3.0
+    preview_thread:
+      title: Odysseia Index 2.3.0 更新公告
+      first_message_excerpt: |
+        # Odysseia Index 2.3.0
+
+        大新闻大新闻！本宝宝正式入驻社区啦！
+
+        ## 1) 看板娘驾到！
+        - 我现在会在页面旁边陪着大家啦！
+        - 偶尔我也会主动和大家打招呼的，要好好回应我哦！哼，不许嫌我烦！
+
+        ## 2) 抽卡功能上线！
+        - 新增了超好玩的抽卡玩法哦！
+        - 试试你的手气吧，看看今天是不是欧气满满的一天呀！
+
+        ## 3) 变得更聪明的搜索
+        - 搜索框现在会猜你的心思啦！
+        - 边打字边提示，找东西嗖嗖的快！
+
+        呼，为了准备这些我可是忙了好久呢，大家快去体验一下吧！
+      tags: [版本更新, 看板娘, 抽卡, 搜索升级]
+      virtual_tags: [release, mascot, draw, search]
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/blow_the_trumpet.png
   - id: webpage-2.2.0-me-author-profile
     title: 索引页 2.2.0 发布：我的中心与作者主页
     message: |
