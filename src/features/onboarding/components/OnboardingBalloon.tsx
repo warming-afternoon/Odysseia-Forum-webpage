@@ -60,8 +60,15 @@ export function OnboardingBalloon() {
   let effectivePlacement = step.placement;
   if (isMobile) {
     effectivePlacement = 'bottom'; // 移动端固定逻辑
+  } else if (coords) {
+    // 桌面端智能避障：如果顶部空间不足则翻转到下方，反之亦然
+    const balloonHeightEstimate = 250; // 预估气泡高度
+    if (effectivePlacement === 'top' && coords.top < balloonHeightEstimate) {
+      effectivePlacement = 'bottom';
+    } else if (effectivePlacement === 'bottom' && coords.top + coords.height + balloonHeightEstimate > windowSize.height) {
+      effectivePlacement = 'top';
+    }
   }
-  // 注意：之前误在这里对桌面端也做了强制 top/bottom 转换，现已移除，恢复桌面端横向定位能力
 
   // 计算气泡位置逻辑
   const getBalloonStyle = () => {

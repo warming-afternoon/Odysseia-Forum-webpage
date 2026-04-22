@@ -48,9 +48,9 @@ export function AtmosphereSettingsSection({
   return (
     <SettingsPageSection dividerLabel="Atmosphere" kicker="Backdrop Mood" title="背景与毛玻璃" icon={Sparkles}>
       <div className="space-y-6">
-        <div data-tour="atmosphere-settings" className="od-setting-subsection space-y-4">
+        <div className="od-setting-subsection space-y-4">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div data-tour="atmosphere-settings">
               <p className="text-[1.1rem] font-semibold tracking-[-0.02em] text-(--od-text-primary)">背景图</p>
               <p className="mt-2 text-[0.82rem] leading-[1.55] text-(--od-text-secondary)">
                 图片资源和启用状态分开处理。你可以先存一张图，再决定要不要现在打开。
@@ -128,7 +128,7 @@ export function AtmosphereSettingsSection({
             </div>
 
             <div className="space-y-4">
-              <div className="overflow-hidden rounded-[1.3rem] border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]">
+              <div data-tour="atmosphere-preview" className="overflow-hidden rounded-[1.3rem] border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)]">
                 <div className="relative h-52 w-full overflow-hidden">
                   {currentWallpaper ? (
                     <>
