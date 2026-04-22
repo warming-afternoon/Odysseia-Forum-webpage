@@ -61,7 +61,16 @@ return (
 
 ---
 
-## 5. 组件自检清单
+## 5. 跨层交互与 URL 状态控制
+
+涉及重度交互的过滤器面板（例如 `src/features/search/components/SearchFilterPanel.tsx`）不应在内部缓存提交状态，而必须使用受控的 Props，将变更交由 URL Controller 处理：
+
+- 接收并展示解析后的组合状态（如 `includeAuthorTokens`、`timeFrom`、`tagLogic`）。
+- 操作时触发暴露给外部的受控方法（例如 `onToggleTagToken`、`onSubmitAuthorDraft`）。
+
+---
+
+## 6. 组件自检清单
 
 1. 是否使用了 React 19 的普通 `ref` 传参？
 2. 是否通过 `interface/type` 完整定义了 Props？
