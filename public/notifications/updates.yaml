@@ -1,4 +1,37 @@
 updates:
+  - id: webpage-2.3.1-booklist-bugfix
+    title: 索引页 2.3.1 发布：捉虫大成功！
+    message: |
+      今天是 4月22日 世界地球日哦！大家有没有好好爱护我们的地球妈妈呀？我今天可是有好好地给社区里的小绿植浇水呢！
+
+      说正事啦，那个... 真的很对不起呜呜，书单页面之前不小心跑进去了一只小虫子（开发哥哥居然还打字打成了“小big”），导致大家用起来有些怪怪的... 不过现在已经被我狠狠地捉住扔掉啦！大家快去看看现在的书单有没有变乖呀~
+    created_at: '2026-04-22T00:00:00.000Z'
+    source: webpage
+    version: 2.3.1
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.1
+    preview_thread:
+      title: Odysseia Index 2.3.1 捉虫日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.1
+
+        大家地球日快乐呀！今天天气真好，出门也要记得拥抱大自然哦！
+
+        ## 🐛 书单小修补
+        - 笨蛋开发者把书单页的 bug 打成了 big，真的是太让人头疼啦！
+        - 不过没关系，我已经帮大家把这个讨厌的小问题解决掉咯！
+        - ~~才不会说其实是我自己不小心弄坏的呢~~ ||其实就是他弄坏的！哼！||
+
+        如果还有哪里不舒服，记得马上召唤我哦！今天也要开开心心的呀！
+      tags: [版本更新, Bug修复]
+      virtual_tags: [release, bugfix]
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/sad_apology.png
+
   - id: webpage-2.3.0-mascot-update
     title: 索引页 2.3.0 发布：看板娘报到与全新探索！
     message: |
@@ -39,6 +72,7 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/blow_the_trumpet.png
+
   - id: webpage-2.2.0-me-author-profile
     title: 索引页 2.2.0 发布：我的中心与作者主页
     message: |
@@ -83,86 +117,6 @@ updates:
         id: odysseia-web
         name: Odysseia
         display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
-
-  - id: webpage-2.1.0-plaza-booklist
-    title: 索引页 2.1.0 发布：广场与书单系统升级
-    message: |
-      这次更新完成了广场页与书单系统的核心建设：
-
-      - 首页切换为「内容广场」：聚合 Banner、推荐卡流、书单精选
-      - 新增独立搜索路由 `/search`，保留完整筛选与联想能力
-      - 书单系统上线：列表、详情、创建、编辑、删除、条目维护
-      - 通知系统继续由 YAML 驱动，并可复用详情预览样式展示更新说明
-    created_at: '2026-04-03T04:40:00.000Z'
-    source: webpage
-    version: 2.1.0
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.1.0
-    preview_thread:
-      title: Odysseia Index 2.1.0 更新公告
-      first_message_excerpt: |
-        # Odysseia Index 2.1.0
-
-        本次版本重点在“内容发现”和“沉淀管理”两条线：
-
-        ## 1) 内容广场上线
-        - 首页切换为广场
-        - 聚合 Banner 推荐位
-        - 推荐卡流支持最近上新/点赞飙升/讨论升温/今日精选
-
-        ## 2) 书单系统上线
-        - 新增书单列表与详情页面
-        - 支持创建、编辑、删除、收藏
-        - 支持书单项备注与排序维护
-
-        ## 3) 路由与交互一致性
-        - 搜索页迁移到 `/search`
-        - Sidebar 与移动端导航已同步
-        - 主题保持统一 `--od-*` 视觉体系
-
-        欢迎继续反馈广场轨道策略与书单体验问题，我们会快速迭代。
-      tags: [版本更新, 广场, 书单系统]
-      virtual_tags: [release, plaza, booklist]
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
-
-  - id: webpage-2.0.0-release
-    title: 索引页 2.0.0 发布
-    message: |
-      索引页引入新版通知中心，支持关注帖子更新与版本/系统更新公告双轨通知。
-      
-      - 通知支持统一预览浮层
-      - 支持远端 YAML 更新源
-      - 设置页/关于页版本号读取 package.json
-    created_at: '2026-04-03T00:00:00.000Z'
-    source: webpage
-    version: 2.0.0
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.0.0
-    preview_thread:
-      title: 索引页 2.0.0 更新说明
-      first_message_excerpt: |
-        # Odysseia Index 2.0.0
-
-        这一版主要完成通知中心升级：
-
-        1. 关注帖子更新继续保留
-        2. 新增索引页/系统更新公告
-        3. 更新公告改为 YAML Feed 驱动
-
-        你可以继续在这个 Feed 文件里维护后续更新日志。
-      tags: [版本更新, 通知中心]
-      virtual_tags: [release, changelog]
-      author:
-        id: odysseia-system
-        name: Odysseia
-        display_name: Odysseia 系统
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/background/winter.png
 
