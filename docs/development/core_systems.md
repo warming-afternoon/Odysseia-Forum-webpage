@@ -51,7 +51,8 @@ const ProfilePage = lazy(() => import('@/pages/UserProfilePage'));
 ### 5.1 分词器驱动 (searchTokenizer)
 搜索词输入支持高级语法的精确匹配与条件剥离，前端使用 `src/shared/lib/searchTokenizer.ts` 作为统一解释器：
 - **可用语法**: `$tag:xxx$`, `-$tag:xxx$`, `$author:xxx$`, `-$author:xxx$`, `$channel:xxx$`。
-- **协议转换**: 当用户在 `TopBar` 键入字符或点击特定面板（如 `SearchFilterPanel`）按钮时，工具函数（如 `addToken`, `removeToken`）会改变全局查询字符串，随后 `tokenizeSearchPayload` 会将长字符串打散为内部数据结构（`includeTags`, `excludeTags`, `includeAuthors`, `excludeAuthors`, `channels` 等）。最终发往后端时，像 `$author:xxx$` 的 token 将会被转换为 `author:"xxx"` 字符串格式追加进 API 的 `keywords` 字段内。
+- **协议转换**: 当用户在 `TopBar` 键入字符或在 `SearchFilterPanel` 操作标签、作者（如 `onToggleTagToken`、`onSubmitAuthorDraft`）时，工具函数（如 `addToken`, `removeToken`）会操作字符串以维持唯一的 Source of Truth。随后 `tokenizeSearchPayload` 会将长字符串打散为内部的 `TokenizedSearchPayload` 数据结构（包含 `includeTags`, `excludeTags`, `includeAuthors`, `excludeAuthors`, `channels` 等）。
+- **向后端序列化**: 当发往后端时，如 `$author:xxx$` 这样的 Token 除了被映射至数组结构（如果支持），也会由 `searchApi.ts` 中的 `buildKeywordString` 封装成原生的 `author:"xxx"` 字符串格式并追加进 API 的 `keywords` 字段内。
 - **向后兼容**: 为了兼容旧版未带 `$` 符号的语法，分词器中引入了 `migrateLegacySyntax` 函数，在处理 URL 查询参数时，它会自动把类似 `author:xxx` 的格式标准化为 `$author:xxx$`。
 
 ### 5.2 参数层 (`useSearchURLParams`)

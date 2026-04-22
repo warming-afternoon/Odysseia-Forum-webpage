@@ -71,9 +71,9 @@
     "tag_logic": "and (可选, 默认'and', 或 'or')",
     "keywords": "string (可选, 支持高级语法)",
     "exclude_keywords": "string (可选)",
-    "author_name": "string (可选)",
-    "include_authors": ["int (可选)"],
-    "exclude_authors": ["int (可选)"],
+    "author_name": "string (可选, 前端实际将作者查询封装在 keywords 内部)",
+    "include_authors": ["string/int (可选)"],
+    "exclude_authors": ["string/int (可选)"],
     "created_after": "YYYY-MM-DD (可选)",
     "created_before": "YYYY-MM-DD (可选)",
     "sort_method": "comprehensive (可选)",
@@ -87,6 +87,7 @@
 **参数说明**:
 - `tag_logic`: 决定标签的匹配逻辑，支持 `'and'` 和 `'or'`。
 - `search_by_collection`: 如果为 `true`，则说明当前正在针对收藏列表/书单内容执行检索。此功能对应 Discord Bot 端的 `/查看收藏` 指令。
+- `include_authors` / `exclude_authors`: 数组，接收作者 ID。注：当前前端依然会通过在 `keywords` 中追加 `author:"xxx"` 语法支持基于作者名的联合查询。
 
 **核心逻辑变动**:
 1.  **多服务器支持 (`guild_id`)**: 若不传则搜索所有已索引服务器；若传则锁定特定服务器。
