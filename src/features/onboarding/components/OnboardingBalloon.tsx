@@ -56,13 +56,12 @@ export function OnboardingBalloon() {
 
   const isMobile = windowSize.width < 640;
   
-  // 计算实际方位（处理移动端自动调整）
+  // 计算实际方位
   let effectivePlacement = step.placement;
   if (isMobile) {
-    effectivePlacement = 'bottom'; // 移动端统一使用中上固定布局逻辑
-  } else if (coords && (effectivePlacement === 'left' || effectivePlacement === 'right')) {
-    effectivePlacement = coords.top > windowSize.height / 2 ? 'top' : 'bottom';
+    effectivePlacement = 'bottom'; // 移动端固定逻辑
   }
+  // 注意：之前误在这里对桌面端也做了强制 top/bottom 转换，现已移除，恢复桌面端横向定位能力
 
   // 计算气泡位置逻辑
   const getBalloonStyle = () => {
@@ -153,15 +152,15 @@ export function OnboardingBalloon() {
       {/* 引导内容容器 */}
       <motion.div
         key={step.id}
-        initial={{ opacity: 0, scale: 0.95, y: 15, x: '-50%' }}
+        initial={{ opacity: 0, scale: 0.95, y: 15, x: (isMobile || isCenter) ? '-50%' : '0%' }}
         animate={{ 
           opacity: 1, 
           scale: 1, 
-          y: 0, 
+          y: isMobile ? 0 : (effectivePlacement === 'top' ? '-100%' : (effectivePlacement === 'left' || effectivePlacement === 'right' ? '-50%' : 0)), 
           x: (isMobile || isCenter) ? '-50%' : '0%',
-          transformOrigin: (isMobile || isCenter) ? 'center top' : 'left top'
+          transformOrigin: isMobile ? 'center top' : (effectivePlacement === 'top' ? 'center bottom' : (effectivePlacement === 'bottom' ? 'center top' : 'center center'))
         }}
-        exit={{ opacity: 0, scale: 0.95, y: 15, x: '-50%' }}
+        exit={{ opacity: 0, scale: 0.95, y: 15, x: (isMobile || isCenter) ? '-50%' : '0%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 450, mass: 0.8 }}
         className={`absolute pointer-events-auto flex ${isMobile ? 'flex-col' : 'flex-col-reverse'} items-center w-[calc(100vw-2rem)] max-w-[340px] sm:max-w-[340px] ${isMobile ? 'max-w-[300px]' : ''}`}
         style={{
