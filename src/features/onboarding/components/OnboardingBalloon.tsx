@@ -151,8 +151,8 @@ export function OnboardingBalloon() {
               : 'none'
           }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className={`absolute inset-0 bg-black/65 transition-opacity duration-300 ${coords ? 'pointer-events-auto' : 'pointer-events-none opacity-0'} backdrop-blur-[2px]`}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          className={`absolute inset-0 bg-black/65 ${coords ? 'pointer-events-auto' : 'pointer-events-none opacity-0'} backdrop-blur-[2px]`}
           onClick={() => !coords && skipTutorial()}
         />
       </AnimatePresence>
@@ -169,7 +169,7 @@ export function OnboardingBalloon() {
           transformOrigin: isMobile ? 'center top' : (effectivePlacement === 'top' ? 'center bottom' : (effectivePlacement === 'bottom' ? 'center top' : 'center center'))
         }}
         exit={{ opacity: 0, scale: 0.95, y: 15, x: (isMobile || isCenter) ? '-50%' : '0%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 450, mass: 0.8 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 500, mass: 0.8 }}
         className={`absolute pointer-events-auto flex ${isMobile ? 'flex-col' : 'flex-col-reverse'} items-center w-[calc(100vw-2rem)] max-w-[340px] sm:max-w-[340px] ${isMobile ? 'max-w-[300px]' : ''}`}
         style={{
           ...balloonStyle,
@@ -186,7 +186,7 @@ export function OnboardingBalloon() {
               rotate: isMobile ? 0 : (mascotOnLeft ? -8 : 8) 
             }}
             animate={{ x: 0, y: 0, opacity: 1, rotate: 0 }}
-            transition={{ duration: 0.2, delay: 0.1 }}
+            transition={{ duration: 0.15, delay: 0.05 }}
             className={`absolute ${
               isMobile 
                 ? 'left-1/2 -translate-x-1/2 -bottom-16 w-20 h-20' 

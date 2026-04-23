@@ -7,6 +7,7 @@ import { TopBar } from '@/widgets/layout/TopBar';
 import { ResizableSidebar } from '@/widgets/sidebar/ResizableSidebar';
 import { GlobalThreadPreview } from '@/widgets/thread-preview/GlobalThreadPreview';
 import { OnboardingManager } from '@/features/onboarding/components/OnboardingManager';
+import { ImageViewer } from '@/shared/ui/ImageViewer';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
@@ -142,6 +143,7 @@ export function RootLayout() {
       <MascotBar />
       <ScrollToTop />
       <OnboardingManager />
+      <ImageViewer />
     </div>
   );
 }

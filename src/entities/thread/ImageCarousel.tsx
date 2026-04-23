@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { LazyImage } from '@/shared/ui/LazyImage';
 
+import { useImageViewerStore } from '@/shared/store/useImageViewerStore';
+
 interface ImageCarouselProps {
   images: string[];
   alt?: string;
@@ -19,6 +21,7 @@ export function ImageCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const openViewer = useImageViewerStore((state) => state.open);
 
   const goToNext = useCallback(() => {
     setDirection(1);
@@ -49,7 +52,10 @@ export function ImageCarousel({
   // 单图模式，直接显示，不需要多余的按键和轮播
   if (images.length === 1) {
     return (
-      <div className={`relative w-full overflow-hidden ${className}`}>
+      <div 
+        className={`relative w-full overflow-hidden cursor-zoom-in ${className}`}
+        onClick={() => openViewer(images[0], alt)}
+      >
         <LazyImage
           src={images[0]}
           alt={alt}
@@ -106,14 +112,21 @@ export function ImageCarousel({
         </motion.div>
       </AnimatePresence>
 
-      {/* 左侧点击区（隐藏的导航按钮） */}
+      {/* 左侧点击区（隐藏的导航按钮）- 占 1/4 */}
       <div
-        className="absolute bottom-0 left-0 top-0 z-10 w-1/3 cursor-pointer"
+        className="absolute bottom-0 left-0 top-0 z-10 w-1/4 cursor-pointer"
         onClick={goToPrev}
       />
-      {/* 右侧点击区 */}
+      
+      {/* 中间查看大图区 - 占 1/2 */}
       <div
-        className="absolute bottom-0 right-0 top-0 z-10 w-1/3 cursor-pointer"
+        className="absolute bottom-0 left-1/4 z-10 h-full w-1/2 cursor-zoom-in"
+        onClick={() => openViewer(images[currentIndex], alt)}
+      />
+
+      {/* 右侧点击区 - 占 1/4 */}
+      <div
+        className="absolute bottom-0 right-0 top-0 z-10 w-1/4 cursor-pointer"
         onClick={goToNext}
       />
 
