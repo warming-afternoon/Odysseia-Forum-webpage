@@ -70,7 +70,27 @@ return (
 
 ---
 
-## 6. 组件自检清单
+## 6. 交互引导与漫游指南 (Onboarding & Tour)
+
+为了配合全局的 `OnboardingManager` (新手引导系统)，任何可能成为引导步骤锚点的基础组件或业务区块，都应当预留或直接赋予 `data-tour` 属性。
+
+- **属性定义**: 通过 `data-tour="xxx"` 的格式将组件暴露给全局漫游向导查找（底层通过 `document.querySelector` 捕获位置）。
+- **组件透传**: 对于高度封装的业务组件（如 `SearchFilterPanel`）或底层基础组件（如 `Button`），如果有需要，可以通过 Props 透传 `data-tour` 属性，以确保引导气泡能够准确定位。
+
+示例：
+```tsx
+export function SearchFilterPanel({ 'data-tour': dataTour, ...props }: Props) {
+  return (
+    <div data-tour={dataTour || "filter-panel"} className="p-4">
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+---
+
+## 7. 组件自检清单
 
 1. 是否使用了 React 19 的普通 `ref` 传参？
 2. 是否通过 `interface/type` 完整定义了 Props？

@@ -63,3 +63,16 @@ const ProfilePage = lazy(() => import('@/pages/UserProfilePage'));
 - **偏好补丁 (`discoveryPreferencePatch`)**: 当用户未明确指定特定条件（如标签、频道、排序）时，系统会自动注入由偏好生成的查询补丁。
 - **生效参数**: 最终用于向后端请求的数据包含合并后的 `effectiveSortMethod`、`effectiveChannelIds`、`effectiveIncludeTags` 等，实现了全局配置与临时 URL 过滤条件的优雅降级。
 - **无缝滚动分页拉黑**: 在加载下一页数据时，前端强制收集当前已获取的 `exclude_thread_ids` 列表发送给后端（因 ID 过大，已由前端主动转换为 String 数组），并保持 `offset=0` 以适配后端游标逻辑，从而防止排序跳页。
+
+## 6. 交互式引导系统 (Onboarding Tour)
+
+由于系统功能日益复杂，为了降低新用户门槛，前端引入了全局式的交互引导系统（`src/features/onboarding/`），取代了以往通过个别页面（如 `SearchPage` 的独立弹窗）来实现的局域提示逻辑。
+
+### 6.1 OnboardingManager 与状态控制
+整个向导系统由 `OnboardingManager` 充当驱动中心，挂载于 `RootLayout`。
+它监听路由变动与 DOM 树的可用情况。当用户达到特定场景并且之前尚未完成对应教程时，通过 Zustand Store (`useOnboardingStore`) 自动分发 `activeTutorial` 并弹出气泡提示。
+状态控制将自动把已完成的 `completedTutorialIds` 持久化记录至 `localStorage`。
+
+### 6.2 基于 DOM 锚点的定向
+引导气泡采用了高弹性的 CSS Selector 选择机制。
+通过在 UI 节点绑定专用的 `data-tour="xxx"`（如 `data-tour="filter-panel"` 或 `data-tour="user-header"`），并在 `tutorials.ts` 中设定目标的 `target` 属性，气泡引擎会自动使用 `getBoundingClientRect` 追踪并计算绝对定位的动画平移，实现无需硬编码页面结构的“即插即用”式挂载。

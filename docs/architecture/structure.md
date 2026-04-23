@@ -31,6 +31,7 @@ Odysseia-Forum-Main/
 │   │   │   ├── follows/            # 关注系统 (未读状态拉取、更新中心)
 │   │   │   ├── mascot/             # 吉祥物面板 (全局提示、互动气泡)
 │   │   │   ├── notifications/      # 通知中心 (整合提醒、未读汇总)
+│   │   │   ├── onboarding/         # 新手引导系统 (气泡弹窗与全局教程步骤管理)
 │   │   │   ├── plaza/              # 广场大盘
 │   │   │   ├── preferences/        # 用户偏好设置 (搜索习惯、标签过滤黑白名单)
 │   │   │   ├── search/             # 搜索中枢 (分词器、URL状态同步、API桥接)
