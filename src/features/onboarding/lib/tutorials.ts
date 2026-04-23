@@ -6,7 +6,7 @@ export const INITIAL_SETUP_TUTORIAL: OnboardingTutorial = {
     {
       id: 'welcome',
       title: '你好呀！欢迎加入！',
-      content: '欢迎来到 Odysseia Forum！我是这里的看板娘类脑娘。接下来由我带你熟悉一下我们的社区吧！',
+      content: '欢迎来到 Odysseia Forum！我是这里的看板娘类脑娘。看起来你是第一次来呢，需要我带你快速熟悉一下社区的功能吗？',
       emotion: 'hi',
       placement: 'center',
     },

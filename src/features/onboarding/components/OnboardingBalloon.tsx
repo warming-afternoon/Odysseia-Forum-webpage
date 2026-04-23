@@ -4,7 +4,7 @@ import { MASCOT_IMAGES } from '@/features/mascot/assets';
 import { useOnboardingStore } from '../store/useOnboardingStore';
 
 export function OnboardingBalloon() {
-  const { activeTutorial, stepIndex, nextStep, skipTutorial } = useOnboardingStore();
+  const { activeTutorial, stepIndex, nextStep, skipTutorial, skipAllTutorials } = useOnboardingStore();
   const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const step = activeTutorial?.steps[stepIndex];
@@ -136,6 +136,7 @@ export function OnboardingBalloon() {
   };
 
   const mascotOnLeft = step.id.includes('filter');
+  const isFirstStepOfFirstTutorial = activeTutorial.id === 'initial_setup' && stepIndex === 0;
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none">
@@ -203,7 +204,7 @@ export function OnboardingBalloon() {
           <div className={`od-floating-panel-solid relative w-full rounded-3xl ${isMobile ? 'p-4' : 'p-5 sm:p-6'} border border-white/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] z-10 bg-(--od-bg-secondary)`}>
             <div className="flex items-center gap-2 mb-3">
                <span className="px-2 py-0.5 rounded-full bg-(--od-accent)/20 text-(--od-accent) text-[10px] font-bold uppercase tracking-wider">
-                 Step {stepIndex + 1}/{activeTutorial.steps.length}
+                 {isFirstStepOfFirstTutorial ? '欢迎' : `Step ${stepIndex + 1}/${activeTutorial.steps.length}`}
                </span>
                <h3 className={`text-(--od-text-primary) font-bold ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>{step.title}</h3>
             </div>
@@ -213,17 +214,26 @@ export function OnboardingBalloon() {
             </p>
 
             <div className="flex items-center justify-between gap-4 sm:gap-6">
-              <button
-                onClick={skipTutorial}
-                className="text-[10px] sm:text-xs text-(--od-text-tertiary) hover:text-(--od-text-primary) transition-colors px-2 py-1"
-              >
-                结束引导
-              </button>
+              {isFirstStepOfFirstTutorial ? (
+                <button
+                  onClick={skipAllTutorials}
+                  className="text-[10px] sm:text-xs text-(--od-text-tertiary) hover:text-(--od-text-primary) transition-colors px-2 py-1"
+                >
+                  不需要教程
+                </button>
+              ) : (
+                <button
+                  onClick={skipTutorial}
+                  className="text-[10px] sm:text-xs text-(--od-text-tertiary) hover:text-(--od-text-primary) transition-colors px-2 py-1"
+                >
+                  结束引导
+                </button>
+              )}
               <button
                 onClick={nextStep}
                 className={`od-button-primary flex-1 sm:flex-none ${isMobile ? 'min-w-[70px] px-3 py-1.5 text-[11px]' : 'min-w-[80px] sm:min-w-[100px] px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm'} rounded-xl sm:rounded-2xl font-bold shadow-xl shadow-(--od-accent)/25 active:scale-95 transition-transform`}
               >
-                {stepIndex === activeTutorial.steps.length - 1 ? '我知道啦！' : '下一步'}
+                {isFirstStepOfFirstTutorial ? '带我看看' : (stepIndex === activeTutorial.steps.length - 1 ? '我知道啦！' : '下一步')}
               </button>
             </div>
           </div>

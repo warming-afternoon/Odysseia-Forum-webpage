@@ -26,8 +26,17 @@ interface OnboardingState {
   prevStep: () => void;
   completeTutorial: () => void;
   skipTutorial: () => void;
+  skipAllTutorials: () => void;
   isTutorialCompleted: (id: string) => boolean;
 }
+
+export const ALL_TUTORIAL_IDS = [
+  'initial_setup',
+  'settings_guide',
+  'me_guide',
+  'search_guide',
+  'advanced_search_guide'
+];
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
@@ -84,7 +93,24 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       skipTutorial: () => {
-        set({ activeTutorial: null, stepIndex: 0 });
+        const { activeTutorial, completedTutorialIds } = get();
+        if (activeTutorial) {
+          set({
+            completedTutorialIds: [...new Set([...completedTutorialIds, activeTutorial.id])],
+            activeTutorial: null,
+            stepIndex: 0,
+          });
+        } else {
+          set({ activeTutorial: null, stepIndex: 0 });
+        }
+      },
+
+      skipAllTutorials: () => {
+        set({
+          completedTutorialIds: ALL_TUTORIAL_IDS,
+          activeTutorial: null,
+          stepIndex: 0
+        });
       },
 
       isTutorialCompleted: (id) => {
