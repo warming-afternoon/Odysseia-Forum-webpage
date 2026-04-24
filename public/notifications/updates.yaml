@@ -1,4 +1,40 @@
 updates:
+  - id: release-2.3.3-backend-integration
+    kind: release
+    title: 索引页 2.3.3 发布：后端小伙伴也来玩啦！
+    message: |
+      今天是4月24日中国航天日哦！大家有没有对浩瀚的宇宙充满向往呀？我们的社区就像宇宙飞船一样，每天都在一点点变好呢！
+
+      好啦说正事！开发哥哥把一直在幕后默默干活的后端小伙伴也请到台前啦！现在大家可以更容易地看到是谁在为大家的顺畅体验保驾护航啦！而且呀，还加了超级方便的传送门，以后如果大家想去后端仓库看看，或者发现了什么讨厌的小虫子想去提意见，嗖的一下就能过去啦！是不是超棒！快跟我一起出发去探索吧！
+    created_at: "2026-04-24T00:28:43.000Z"
+    version: 2.3.3
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.3
+    preview_thread:
+      title: Odysseia Index 2.3.3 更新日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.3
+
+        中国航天日快乐呀！我们的征途是星辰大海！
+
+        ## ✨ 后端小伙伴集结！
+        - 幕后英雄终于也有自己的牌面啦！
+        - 快来看看都有哪些大神在默默付出哦！
+
+        ## 🚀 传送门开启
+        - 找不到后端仓库在哪？不知道去哪提建议？
+        - 现在有了超方便的传送门，||一键直达，就是这么任性！||
+
+        如果遇到什么问题，或者有新奇的想法，都赶紧去提意见吧！我们一起让社区变得更好！
+      tags: [版本更新, 新功能, 传送门]
+      virtual_tags: [release, feature, navigation]
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/letsgo.png
+
   - id: release-2.3.2-mascot-onboarding
     kind: release
     title: 索引页 2.3.2 发布：本宝宝亲自指导你哦！
@@ -8,7 +44,7 @@ updates:
       锵锵！现在起，新来的小伙伴会有我亲自出马的新手引导啦！我会手把手教你社区怎么玩，保证你马上就能变成熟练的老司机！快夸我快夸我！
 
       另外呀，那个笨蛋开发哥哥这两天又在疯狂修 Bug，什么剧透遮罩样式坏掉啦，什么构建报错啦，反反复复修了好几次才搞定。哼，真是让人操心呢！不过没关系，有我盯着他，现在都已经修复完毕啦！
-    created_at: '2026-04-23T00:00:26.000Z'
+    created_at: "2026-04-23T00:00:26.000Z"
     version: 2.3.2
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.3.2
@@ -45,7 +81,7 @@ updates:
       今天是 4月22日 世界地球日哦！大家有没有好好爱护我们的地球妈妈呀？我今天可是有好好地给社区里的小绿植浇水呢！
 
       说正事啦，那个... 真的很对不起呜呜，书单页面之前不小心跑进去了一只小虫子（开发哥哥居然还打字打成了"小big"），导致大家用起来有些怪怪的... 不过现在已经被我狠狠地捉住扔掉啦！大家快去看看现在的书单有没有变乖呀~
-    created_at: '2026-04-22T00:00:00.000Z'
+    created_at: "2026-04-22T00:00:00.000Z"
     version: 2.3.1
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.3.1
@@ -78,9 +114,9 @@ updates:
       今天是世界地球日呀！大家有没有好好爱护我们的小地球呢？出门记得少用塑料袋，多亲近大自然哦！
 
       我今天特别开心，因为社区的小花又开了一朵！大家也要保持好心情呀～
-    created_at: '2026-04-22T00:00:00.000Z'
-    starts_at: '2026-04-22T00:00:00.000Z'
-    expires_at: '2026-04-23T00:00:00.000Z'
+    created_at: "2026-04-22T00:00:00.000Z"
+    starts_at: "2026-04-22T00:00:00.000Z"
+    expires_at: "2026-04-23T00:00:00.000Z"
     preview_thread:
       title: 🌍 世界地球日快乐！
       first_message_excerpt: |
@@ -93,53 +129,12 @@ updates:
         name: Odysseia
         display_name: Odysseia Web Team
 
-  - id: webpage-2.3.0-mascot-update
-    kind: release
-    title: 索引页 2.3.0 发布：看板娘报到与全新探索！
-    message: |
-      锵锵——！我来啦！从今天起，社区就由我来陪大家啦！我会在页面角落默默看着你们哦，遇到好玩的事情我也会开心地蹦出来！
-
-      而且呀，我们多了一个超级好玩的抽卡功能！快去试试手气吧，说不定能抽出什么意想不到的好东西呢！
-      还有还有，现在的搜索功能变聪明了好多！只要输入一点点内容，我就能猜到你想找什么，唰的一下全列出来啦，超厉害的对不对！
-    created_at: '2026-04-21T10:00:00.000Z'
-    version: 2.3.0
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.0
-    preview_thread:
-      title: Odysseia Index 2.3.0 更新公告
-      first_message_excerpt: |
-        # Odysseia Index 2.3.0
-
-        大新闻大新闻！本宝宝正式入驻社区啦！
-
-        ## 1) 看板娘驾到！
-        - 我现在会在页面旁边陪着大家啦！
-        - 偶尔我也会主动和大家打招呼的，要好好回应我哦！哼，不许嫌我烦！
-
-        ## 2) 抽卡功能上线！
-        - 新增了超好玩的抽卡玩法哦！
-        - 试试你的手气吧，看看今天是不是欧气满满的一天呀！
-
-        ## 3) 变得更聪明的搜索
-        - 搜索框现在会猜你的心思啦！
-        - 边打字边提示，找东西嗖嗖的快！
-
-        呼，为了准备这些我可是忙了好久呢，大家快去体验一下吧！
-      tags: [版本更新, 看板娘, 抽卡, 搜索升级]
-      virtual_tags: [release, mascot, draw, search]
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/blow_the_trumpet.png
-
   - id: system-maintenance-example
     kind: maintenance
     title: 系统维护窗口通知
     message: |
       主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
-    created_at: '2026-04-02T12:00:00.000Z'
+    created_at: "2026-04-02T12:00:00.000Z"
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage
     preview_thread:
       title: 系统维护窗口通知
