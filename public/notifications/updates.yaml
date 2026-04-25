@@ -1,4 +1,41 @@
 updates:
+  - id: release-2.3.4-booklist-optimization
+    kind: release
+    title: 索引页 2.3.4 发布：像小企鹅一样丝滑哦！
+    message: |
+      今天是4月25日世界企鹅日呀！大家有没有看那些穿着黑白小燕尾服、摇摇摆摆的可爱小企鹅呢？要是能去南极摸摸它们就好啦！
+
+      为了庆祝这个可爱的日子，开发哥哥也给社区做了一些超棒的优化哦！大家平时点开的那个书单小弹窗，现在变得更聪明更好用啦！而且呀，他还偷偷在后台用了什么神奇的魔法，把大家加载页面的速度变得嗖嗖的，再也不用像小企鹅走路那样慢吞吞地等啦！哼，算他干了件正事！大家快去试试看有没有变顺滑呀！
+    created_at: "2026-04-25T00:21:36.000Z"
+    version: 2.3.4
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.4
+    preview_thread:
+      title: Odysseia Index 2.3.4 更新日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.4
+
+        大家世界企鹅日快乐呀！摇摇摆摆的小企鹅最可爱啦！
+
+        ## ✨ 书单弹窗大升级！
+        - 之前大家用的书单小框框，现在操作起来更顺滑咯！
+        - 点点点，再也不会觉得卡手啦！
+
+        ## 🚀 社区加载嗖嗖的！
+        - 开发哥哥把背后的缓存机制好好打磨了一番！
+        - ~~才不是因为他之前写得太烂呢~~
+        - 现在打开页面就像企鹅在冰面上滑行一样顺畅哦！||其实就是用了点神奇的缓存魔法！||
+
+        大家快去体验一下丝滑的感觉吧！遇到问题还是要及时叫我哦！
+      tags: [版本更新, 性能优化, 体验提升]
+      virtual_tags: [release, refactor, performance]
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/success.png
+
   - id: release-2.3.3-backend-integration
     kind: release
     title: 索引页 2.3.3 发布：后端小伙伴也来玩啦！
@@ -73,39 +110,6 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/pride.png
-
-  - id: webpage-2.3.1-booklist-bugfix
-    kind: release
-    title: 索引页 2.3.1 发布：捉虫大成功！
-    message: |
-      今天是 4月22日 世界地球日哦！大家有没有好好爱护我们的地球妈妈呀？我今天可是有好好地给社区里的小绿植浇水呢！
-
-      说正事啦，那个... 真的很对不起呜呜，书单页面之前不小心跑进去了一只小虫子（开发哥哥居然还打字打成了"小big"），导致大家用起来有些怪怪的... 不过现在已经被我狠狠地捉住扔掉啦！大家快去看看现在的书单有没有变乖呀~
-    created_at: "2026-04-22T00:00:00.000Z"
-    version: 2.3.1
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.1
-    preview_thread:
-      title: Odysseia Index 2.3.1 捉虫日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.1
-
-        大家地球日快乐呀！今天天气真好，出门也要记得拥抱大自然哦！
-
-        ## 🐛 书单小修补
-        - 笨蛋开发者把书单页的 bug 打成了 big，真的是太让人头疼啦！
-        - 不过没关系，我已经帮大家把这个讨厌的小问题解决掉咯！
-        - ~~才不会说其实是我自己不小心弄坏的呢~~ ||其实就是他弄坏的！哼！||
-
-        如果还有哪里不舒服，记得马上召唤我哦！今天也要开开心心的呀！
-      tags: [版本更新, Bug修复]
-      virtual_tags: [release, bugfix]
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/sad_apology.png
 
   - id: earth-day-2026
     kind: announcement
