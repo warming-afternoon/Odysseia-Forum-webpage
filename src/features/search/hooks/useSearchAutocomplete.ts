@@ -7,18 +7,11 @@ import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import type { UserPreferencesResponse } from "@/features/preferences/api/preferencesApi";
 import {
   getDiscoveryPreferenceContext,
-  mergePreferenceTagsWithManual,
-  resolveDiscoveryPreferencePatch,
 } from "@/features/preferences/lib/discoveryPreferences";
 import { ALL_VIRTUAL_TAGS } from "@/shared/config/navigation";
 import { parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import type { SearchParams } from "@/features/search/hooks/useSearchParams";
 import { searchKeys } from "@/features/search/lib/queryKeys";
-
-interface PreferenceTagState {
-  includeTags: string[];
-  excludeTags: string[];
-}
 
 function mergeUnique(values: string[]) {
   return Array.from(
@@ -29,7 +22,6 @@ function mergeUnique(values: string[]) {
 interface UseSearchAutocompleteOptions {
   params: SearchParams;
   preferences: UserPreferencesResponse | null | undefined;
-  preferenceTagState: PreferenceTagState;
   searchInput: string;
   debouncedQuery: string;
   showSuggestions: boolean;
@@ -38,7 +30,6 @@ interface UseSearchAutocompleteOptions {
 export function useSearchAutocomplete({
   params,
   preferences,
-  preferenceTagState,
   searchInput,
   debouncedQuery,
   showSuggestions,
@@ -124,92 +115,19 @@ export function useSearchAutocomplete({
     [preferences],
   );
 
-  const mergedTagState = useMemo(
-    () =>
-      mergePreferenceTagsWithManual({
-        manualIncludeTags: params.includeTags,
-        manualExcludeTags: params.excludeTags,
-        preferenceIncludeTags: preferenceTagState.includeTags,
-        preferenceExcludeTags: preferenceTagState.excludeTags,
-        syncPreferenceTags: true,
-      }),
-    [
-      params.includeTags,
-      params.excludeTags,
-      preferenceTagState.excludeTags,
-      preferenceTagState.includeTags,
-    ],
-  );
-
-  const preferenceSuggestedTags = useMemo(() => {
-    const preferredChannels = new Set(
-      discoveryPreferenceContext?.preferredChannelIds || [],
-    );
-    const includeTags = preferenceTagState.includeTags;
-    const excludeTags = new Set(preferenceTagState.excludeTags);
-
-    const scopedCatalog =
-      preferredChannels.size > 0
-        ? channelTagCatalog.filter((channel) =>
-            preferredChannels.has(channel.channel_id),
-          )
-        : channelTagCatalog;
-
-    const collected = new Set<string>();
-
-    for (const tag of includeTags) {
-      if (!excludeTags.has(tag)) collected.add(tag);
-    }
-
-    for (const channel of scopedCatalog) {
-      for (const tag of [
-        ...(channel.virtual_tags || []),
-        ...(channel.available_tags || []),
-      ]) {
-        const normalized = tag.trim();
-        if (!normalized || excludeTags.has(normalized)) continue;
-        collected.add(normalized);
-      }
-    }
-
-    return Array.from(collected).slice(0, 8);
-  }, [
-    channelTagCatalog,
-    discoveryPreferenceContext?.preferredChannelIds,
-    preferenceTagState.excludeTags,
-    preferenceTagState.includeTags,
-  ]);
-
-  const suggestionPreferencePatch = useMemo(
-    () =>
-      resolveDiscoveryPreferencePatch({
-        preferences,
-        mode: "suggestion",
-        query: searchInput,
-        selectedChannel: params.channel,
-      }),
-    [preferences, searchInput, params.channel],
-  );
-
   const { data: suggestionSearchData } = useQuery({
     queryKey: searchKeys.suggestions({
       query: debouncedQuery,
       channel: params.channel,
       preferenceSignature: discoveryPreferenceContext?.signature,
-      channelIds: suggestionPreferencePatch?.channel_ids,
-      includeTags: suggestionPreferencePatch?.include_tags,
-      excludeTags: suggestionPreferencePatch?.exclude_tags,
     }),
     queryFn: () =>
       searchApi.search({
         query: debouncedQuery,
-        channel_ids: params.channel
-          ? [params.channel]
-          : suggestionPreferencePatch?.channel_ids,
-        include_tags: suggestionPreferencePatch?.include_tags,
-        exclude_tags: suggestionPreferencePatch?.exclude_tags,
+        channel_ids: params.channel ? [params.channel] : undefined,
         limit: 5,
         sort_method: "relevance",
+        apply_preferences: true,
       }),
     enabled: showSuggestions && debouncedQuery.length > 0,
     staleTime: 30 * 1000,
@@ -299,10 +217,7 @@ export function useSearchAutocomplete({
     activeVirtualTag,
     availableTags,
     discoveryPreferenceContext,
-    mergedTagState,
-    preferenceSuggestedTags,
     suggestionAuthors,
-    suggestionPreferencePatch,
     suggestionTags,
     suggestionThreads,
     suggestionBooklists,

@@ -6,7 +6,6 @@ import type { Thread } from '@/entities/thread/types';
 import { searchApi } from '@/features/search/api/searchApi';
 import {
   getDiscoveryPreferenceContext,
-  resolveDiscoveryPreferencePatch,
 } from '@/features/preferences/lib/discoveryPreferences';
 import type { UserPreferencesResponse } from '@/features/preferences/api/preferencesApi';
 import type { SearchParams } from '@/features/search/hooks/useSearchParams';
@@ -31,7 +30,6 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     timeTo,
   } = params;
 
-  const perPage = 24;
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [ignoreDiscoveryPreferences, setIgnoreDiscoveryPreferences] = useState(false);
 
@@ -50,53 +48,25 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     [preferences],
   );
 
-  const discoveryPreferencePatch = useMemo(
-    () =>
-      ignoreDiscoveryPreferences
-        ? null
-        : resolveDiscoveryPreferencePatch({
-            preferences,
-            mode: 'search-active',
-            query,
-            selectedChannel,
-            hasExplicitFilters,
-          }),
-    [preferences, query, selectedChannel, hasExplicitFilters, ignoreDiscoveryPreferences],
-  );
+  const applyPreferences = !ignoreDiscoveryPreferences;
 
-  const effectiveSortMethod = discoveryPreferencePatch?.sort_method || sortMethod;
-  
-  const effectivePerPage = discoveryPreferencePatch?.limit || perPage;
-  const effectiveChannelIds = selectedChannel ? [selectedChannel] : discoveryPreferencePatch?.channel_ids;
-  const effectiveIncludeTags = Array.from(new Set([...includeTags, ...(discoveryPreferencePatch?.include_tags || [])]));
-  const effectiveExcludeTags = Array.from(new Set([...excludeTags, ...(discoveryPreferencePatch?.exclude_tags || [])]));
-
-  useEffect(() => {
-    if (query.trim() || selectedChannel || hasExplicitFilters) {
-      setIgnoreDiscoveryPreferences(false);
-    }
-  }, [query, selectedChannel, hasExplicitFilters]);
 
   const queryState = useInfiniteQuery<any, Error, any, any, any>({
     queryKey: searchKeys.results({
       ...params,
-      effectiveChannelIds,
-      effectiveIncludeTags,
-      effectiveExcludeTags,
-      effectiveSortMethod,
-      effectivePerPage,
+      applyPreferences,
       preferenceSignature: discoveryPreferenceContext?.signature,
     }),
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       searchApi.search({
         query: query || undefined,
-        channel_ids: effectiveChannelIds,
-        include_tags: effectiveIncludeTags,
-        exclude_tags: effectiveExcludeTags,
+        channel_ids: selectedChannel ? [selectedChannel] : undefined,
+        include_tags: includeTags.length > 0 ? includeTags : undefined,
+        exclude_tags: excludeTags.length > 0 ? excludeTags : undefined,
         tag_logic: tagLogic,
-        sort_method: effectiveSortMethod,
-        limit: effectivePerPage,
+        sort_method: sortMethod,
+        apply_preferences: applyPreferences,
         // 当使用 exclude_thread_ids 时，必须将 offset 设为 0，
         // 否则会导致后端在排除后的集合基础上再次进行偏移，产生跳页 Bug。
         offset: 0,
@@ -118,6 +88,11 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     },
     staleTime: 30 * 1000,
   });
+
+  useEffect(() => {
+    // 显式触发重搜，确保在手动切开关时逻辑闭环
+    queryState.refetch();
+  }, [applyPreferences, queryState.refetch]);
 
   const results = useMemo<Thread[]>(() => {
     const pages = queryState.data?.pages || [];
@@ -171,7 +146,7 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   }, [queryState.fetchNextPage, queryState.hasNextPage, queryState.isFetchingNextPage]);
 
   const hasSearchFilters = !!query || hasExplicitFilters;
-  const isPreferenceActive = Boolean(discoveryPreferencePatch);
+  const isPreferenceActive = !!discoveryPreferenceContext && applyPreferences;
   const showPreferenceBanner =
     !query.trim() && !selectedChannel && !hasExplicitFilters && isPreferenceActive;
 

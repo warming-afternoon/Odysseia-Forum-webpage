@@ -114,11 +114,7 @@ export function PlazaPage() {
 
       const nextThreads = await plazaApi.getRail(
         key,
-        !ignorePreferenceFilter ? {
-          channel_ids: preferences?.preferred_channels,
-          include_tags: preferences?.include_tags,
-          exclude_tags: preferences?.exclude_tags,
-        } : undefined,
+        !ignorePreferenceFilter,
         currentIds
       );
 

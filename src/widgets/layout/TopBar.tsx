@@ -1,6 +1,6 @@
 import { NotificationCenter } from "@/features/notifications/components/NotificationCenter";
 import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
-import { getPreferenceTagState } from "@/features/preferences/lib/discoveryPreferences";
+import { getDiscoveryPreferenceContext } from "@/features/preferences/lib/discoveryPreferences";
 import { SearchFilterPanel } from "@/features/search/components/SearchFilterPanel";
 import {
   SearchSuggestions,
@@ -74,8 +74,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   }, []);
 
   const needsFilter = isSearchPage;
-  const preferenceTagState = useMemo(
-    () => getPreferenceTagState(preferences),
+  const discoveryPreferenceContext = useMemo(
+    () => getDiscoveryPreferenceContext(preferences),
     [preferences],
   );
 
@@ -108,7 +108,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
     showSuggestions,
     submitAuthorDraft,
     toggleFilters,
-    updateQuery,
     updateQueryFromTokenMutation,
   } = useTopBarSearchController({
     isSearchPage,
@@ -120,9 +119,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   const {
     activeVirtualTag,
     availableTags,
-    preferenceSuggestedTags,
     suggestionAuthors,
-    suggestionPreferencePatch,
     suggestionTags,
     suggestionThreads,
     suggestionBooklists,
@@ -130,7 +127,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   } = useSearchAutocomplete({
     params,
     preferences,
-    preferenceTagState,
     searchInput,
     debouncedQuery,
     showSuggestions,
@@ -139,7 +135,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   const { toggleTagToken } =
     useTopBarFilterState({
       params,
-      updateQuery,
       updateQueryFromTokenMutation,
       virtualTagOriginChannelMap,
     });
@@ -377,8 +372,8 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                       setParams({ timeTo: value })
                     }
                     onToggleTagToken={toggleTagToken}
-                    preferenceExcludeTags={preferenceTagState.excludeTags}
-                    preferenceIncludeTags={preferenceTagState.includeTags}
+                    preferenceExcludeTags={discoveryPreferenceContext?.excludeTags || []}
+                    preferenceIncludeTags={discoveryPreferenceContext?.includeTags || []}
                     tagLogic={params.tagLogic}
                     timeFrom={params.timeFrom}
                     timeTo={params.timeTo}
@@ -394,7 +389,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                     suggestedTags={
                       searchInput.trim()
                         ? suggestionTags
-                        : preferenceSuggestedTags
+                        : []
                     }
                     history={historyItems}
                     onSelect={handleSuggestionSelect}
@@ -407,7 +402,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
                     onClose={closePanels}
                     inputRef={searchInputRef}
                     embedded
-                    preferenceAware={Boolean(suggestionPreferencePatch)}
+                    preferenceAware={!!preferences}
                   />
                 )}
               </motion.div>

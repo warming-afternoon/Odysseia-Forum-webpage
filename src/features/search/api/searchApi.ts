@@ -31,6 +31,7 @@ export interface SearchUIRequest {
   // 【权宜之计】排除已展示的帖子 ID 列表。
   // 由于 Discord ID 存在 64 位整数溢出问题，前端统一使用字符串存储和传递。
   exclude_thread_ids?: string[];
+  apply_preferences?: boolean;
 }
 
 export interface SearchSuggestionAuthor {
@@ -158,7 +159,7 @@ function buildSearchRequest(params: SearchUIRequest): ApiSearchParams {
     // 否则会变成“排除正文包含作者名的帖子”，语义和性能都不对。
     exclude_keywords: null,
     search_by_collection: params.search_by_collection || false,
-    apply_preferences: false,
+    apply_preferences: params.apply_preferences ?? false,
     created_after: params.created_after || null,
     created_before: params.created_before || null,
     active_after: params.active_after || null,

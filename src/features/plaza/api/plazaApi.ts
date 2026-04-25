@@ -28,11 +28,6 @@ export interface PlazaRailConfig {
   subtitle: string;
 }
 
-export interface PlazaPreferenceFilter {
-  channel_ids?: string[];
-  include_tags?: string[];
-  exclude_tags?: string[];
-}
 
 export interface DiscoveryRailsResponse {
   latest: Thread[];
@@ -98,14 +93,12 @@ export const plazaApi = {
 
   getRail: async (
     key: PlazaRailKey,
-    preferenceFilter?: PlazaPreferenceFilter,
+    apply_preferences: boolean = true,
     exclude_thread_ids?: string[],
   ): Promise<Thread[]> => {
     let response: SearchResponse;
     const baseFilter = {
-      channel_ids: preferenceFilter?.channel_ids,
-      include_tags: preferenceFilter?.include_tags,
-      exclude_tags: preferenceFilter?.exclude_tags,
+      apply_preferences,
       exclude_thread_ids,
     };
 

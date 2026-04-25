@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
-import { mergePreferenceTagsWithManual } from '@/features/preferences/lib/discoveryPreferences';
 import { addToken, parseSearchQuery, removeToken } from '@/shared/lib/searchTokenizer';
 import type { SearchParams } from '@/features/search/hooks/useSearchParams';
 

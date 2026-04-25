@@ -2,7 +2,6 @@ import { ThreadCardSkeleton } from "@/entities/thread/ThreadCardSkeleton";
 import { ThreadListItemSkeleton } from "@/entities/thread/ThreadListItemSkeleton";
 import { ThreadResultsCollection } from "@/entities/thread/ThreadResultsCollection";
 import { BooklistCard } from "@/entities/booklist/BooklistCard";
-import { MascotDialog } from "@/features/mascot/components/MascotDialog";
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
 import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
 import { useSearchResults } from "@/features/search/hooks/useSearchResults";
@@ -27,9 +26,8 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -49,7 +47,6 @@ export function SearchPage() {
 
   const {
     discoveryPreferenceContext,
-    hasExplicitFilters,
     hasSearchFilters,
     ignoreDiscoveryPreferences,
     isPreferenceActive,

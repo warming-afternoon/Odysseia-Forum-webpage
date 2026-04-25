@@ -4,11 +4,7 @@ export const searchKeys = {
   all: ["search"] as const,
   results: (
     params: SearchParams & {
-      effectiveChannelIds?: string[];
-      effectiveIncludeTags: string[];
-      effectiveExcludeTags: string[];
-      effectiveSortMethod?: string;
-      effectivePerPage: number;
+      applyPreferences?: boolean;
       preferenceSignature?: string;
     },
   ) =>
@@ -18,16 +14,13 @@ export const searchKeys = {
       {
         query: params.query,
         channel: params.channel,
-        effectiveChannelIds: params.effectiveChannelIds ?? [],
-        effectiveIncludeTags: params.effectiveIncludeTags,
-        effectiveExcludeTags: params.effectiveExcludeTags,
         includeAuthors: params.includeAuthors,
         excludeAuthors: params.excludeAuthors,
         tagLogic: params.tagLogic,
-        effectiveSortMethod: params.effectiveSortMethod,
-        effectivePerPage: params.effectivePerPage,
+        sortMethod: params.sortMethod,
         timeFrom: params.timeFrom,
         timeTo: params.timeTo,
+        applyPreferences: params.applyPreferences ?? false,
         preferenceSignature: params.preferenceSignature ?? "no-preferences",
       },
     ] as const,
@@ -38,9 +31,6 @@ export const searchKeys = {
     query: string;
     channel: string | null;
     preferenceSignature?: string;
-    channelIds?: string[];
-    includeTags?: string[];
-    excludeTags?: string[];
   }) =>
     [
       ...searchKeys.all,
@@ -49,9 +39,6 @@ export const searchKeys = {
         query: params.query,
         channel: params.channel,
         preferenceSignature: params.preferenceSignature ?? "no-preferences",
-        channelIds: params.channelIds ?? [],
-        includeTags: params.includeTags ?? [],
-        excludeTags: params.excludeTags ?? [],
       },
     ] as const,
   booklistSuggestions: (query: string) =>

@@ -13,86 +13,8 @@ export interface DiscoveryPreferenceContext {
   signature: string;
 }
 
-export interface DiscoveryPreferenceRequestPatch {
-  channel_ids?: string[];
-  include_tags?: string[];
-  exclude_tags?: string[];
-  sort_method?: UISortMethod;
-  limit?: number;
-}
-
-interface ResolveDiscoveryPreferenceOptions {
-  preferences?: UserPreferencesResponse | null;
-  mode: DiscoveryPreferenceMode;
-  query?: string;
-  selectedChannel?: string | null;
-  hasExplicitFilters?: boolean;
-}
-
 function normalizeStringList(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-}
-
-export interface PreferenceTagState {
-  includeTags: string[];
-  excludeTags: string[];
-}
-
-export function getPreferenceTagState(
-  preferences?: UserPreferencesResponse | null,
-): PreferenceTagState {
-  const context = getDiscoveryPreferenceContext(preferences);
-
-  return {
-    includeTags: context?.includeTags || [],
-    excludeTags: context?.excludeTags || [],
-  };
-}
-
-export function mergePreferenceTagsWithManual({
-  manualIncludeTags,
-  manualExcludeTags,
-  preferenceIncludeTags,
-  preferenceExcludeTags,
-  syncPreferenceTags,
-}: {
-  manualIncludeTags: string[];
-  manualExcludeTags: string[];
-  preferenceIncludeTags: string[];
-  preferenceExcludeTags: string[];
-  syncPreferenceTags: boolean;
-}): PreferenceTagState {
-  const manualInclude = new Set(normalizeStringList(manualIncludeTags));
-  const manualExclude = new Set(normalizeStringList(manualExcludeTags));
-
-  if (!syncPreferenceTags) {
-    return {
-      includeTags: Array.from(manualInclude),
-      excludeTags: Array.from(manualExclude),
-    };
-  }
-
-  const effectiveInclude = new Set(
-    normalizeStringList(preferenceIncludeTags).filter((tag) => !manualExclude.has(tag)),
-  );
-  const effectiveExclude = new Set(
-    normalizeStringList(preferenceExcludeTags).filter((tag) => !manualInclude.has(tag)),
-  );
-
-  for (const tag of manualInclude) {
-    effectiveInclude.add(tag);
-    effectiveExclude.delete(tag);
-  }
-
-  for (const tag of manualExclude) {
-    effectiveExclude.add(tag);
-    effectiveInclude.delete(tag);
-  }
-
-  return {
-    includeTags: Array.from(effectiveInclude),
-    excludeTags: Array.from(effectiveExclude),
-  };
 }
 
 export function getDiscoveryPreferenceContext(
@@ -114,8 +36,7 @@ export function getDiscoveryPreferenceContext(
   const hasUsefulContent =
     preferredChannelIds.length > 0 ||
     includeTags.length > 0 ||
-    excludeTags.length > 0 ||
-    false;
+    excludeTags.length > 0;
 
   if (!hasUsefulContent) return null;
 
@@ -132,42 +53,5 @@ export function getDiscoveryPreferenceContext(
       sortMethod,
       resultsPerPage,
     }),
-  };
-}
-
-export function resolveDiscoveryPreferencePatch({
-  preferences,
-  mode,
-  query,
-  selectedChannel,
-  hasExplicitFilters = false,
-}: ResolveDiscoveryPreferenceOptions): DiscoveryPreferenceRequestPatch | null {
-  const context = getDiscoveryPreferenceContext(preferences);
-  if (!context) return null;
-
-  const normalizedQuery = (query || '').trim();
-
-  if (mode === 'search-active') {
-    return {
-      channel_ids: selectedChannel ? undefined : (context.preferredChannelIds.length > 0 ? context.preferredChannelIds : undefined),
-      include_tags: context.includeTags.length > 0 ? context.includeTags : undefined,
-      exclude_tags: context.excludeTags.length > 0 ? context.excludeTags : undefined,
-      sort_method: context.sortMethod,
-      limit: context.resultsPerPage,
-    };
-  }
-
-  if (mode === 'plaza') {
-    return {
-      channel_ids: context.preferredChannelIds.length > 0 ? context.preferredChannelIds : undefined,
-      include_tags: context.includeTags.length > 0 ? context.includeTags : undefined,
-      exclude_tags: context.excludeTags.length > 0 ? context.excludeTags : undefined,
-    };
-  }
-
-  return {
-    channel_ids: !selectedChannel && context.preferredChannelIds.length > 0
-      ? context.preferredChannelIds
-      : undefined,
   };
 }
