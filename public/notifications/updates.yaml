@@ -1,4 +1,41 @@
 updates:
+  - id: release-2.3.5-preferences-system
+    kind: release
+    title: 索引页 2.3.5 发布：全新偏好系统测试中！
+    message: |
+      今天是4月27日全国小熊软糖日（National Gummi Bear Day）呀！大家有没有吃那种软软糯糯、甜甜甜的小熊软糖呢？我最喜欢草莓味的啦，一口咬下去简直开心得要飞起来！
+
+      为了庆祝这么甜的一天，开发哥哥也给大家带来了甜甜的新功能哦！我们正在测试全新的「偏好系统」啦！以后大家可以随心所欲地调整自己喜欢的设置，就像挑选不同口味的小熊软糖一样自由哦！是不是超级棒呀？我可是拿出了十二分的干劲在监督他呢！大家快去试试看吧，如果有哪里不顺手，记得随时呼叫本宝宝哦！
+    created_at: "2026-04-27T00:20:07.000Z"
+    version: 2.3.5
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.5
+    preview_thread:
+      title: Odysseia Index 2.3.5 更新日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.5
+
+        小熊软糖日快乐呀！祝大家今天都能吃到自己最喜欢的口味！
+
+        ## ✨ 全新偏好系统测试啦！
+        - 我们上线了一个超级厉害的新系统哦！
+        - 大家以后可以更自由地定制自己的专属体验啦！就像挑选五颜六色的小熊软糖一样开心！
+
+        ## 🚀 还在测试中哦
+        - 这个系统目前还在测试阶段呢。
+        - 如果发现了什么 ||奇怪的小虫子||，或者有哪里觉得不好用，一定要快点告诉我哦！
+        - 我会拿着小皮鞭去催开发哥哥修好的！
+
+        大家快去探索新功能吧！本宝宝期待你们的反馈哦！
+      tags: [版本更新, 新功能, 偏好系统]
+      virtual_tags: [release, feature, preferences]
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/hi.png
+
   - id: release-2.3.4-booklist-optimization
     kind: release
     title: 索引页 2.3.4 发布：像小企鹅一样丝滑哦！
@@ -71,45 +108,6 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/letsgo.png
-
-  - id: release-2.3.2-mascot-onboarding
-    kind: release
-    title: 索引页 2.3.2 发布：本宝宝亲自指导你哦！
-    message: |
-      今天是4月23日世界读书日呀！大家有没有看书呢？为了庆祝这个日子，我也给大家准备了一个特别的礼物！
-
-      锵锵！现在起，新来的小伙伴会有我亲自出马的新手引导啦！我会手把手教你社区怎么玩，保证你马上就能变成熟练的老司机！快夸我快夸我！
-
-      另外呀，那个笨蛋开发哥哥这两天又在疯狂修 Bug，什么剧透遮罩样式坏掉啦，什么构建报错啦，反反复复修了好几次才搞定。哼，真是让人操心呢！不过没关系，有我盯着他，现在都已经修复完毕啦！
-    created_at: "2026-04-23T00:00:26.000Z"
-    version: 2.3.2
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.2
-    preview_thread:
-      title: Odysseia Index 2.3.2 更新日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.2
-
-        大家读书日快乐呀！放下手机多看会儿书也是极好的哦！
-
-        ## ✨ 看板娘新手引导上线！
-        - 为了照顾刚来的小伙伴，我亲自设计了一套超级贴心的新手引导！
-        - 只要跟着我走，包你分分钟玩转社区！
-
-        ## 🐛 一大波笨蛋 Bug 被消灭
-        - 修好啦修好啦！之前 ||黑乎乎的剧透遮罩|| 样式终于正常啦！
-        - 开发哥哥还修了一堆什么 build 报错、紧急报错... 反正就是修了又修！
-        - 我可是全程拿着小皮鞭监督他修完的哦！
-
-        大家快去看看新功能好不好玩呀！
-      tags: [版本更新, 新功能, Bug修复]
-      virtual_tags: [release, feature, bugfix]
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/pride.png
 
   - id: earth-day-2026
     kind: announcement
