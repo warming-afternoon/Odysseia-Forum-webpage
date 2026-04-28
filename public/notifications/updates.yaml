@@ -1,4 +1,46 @@
 updates:
+  - id: release-2.3.6-docs-sync-preferences
+    kind: release
+    title: 索引页 2.3.6 发布：文档英雄来啦！
+    message: |
+      今天是4月28日国家英雄日呀！大家心里有没有一个超级英雄呢？不管是披着斗篷飞来飞去的，还是在平凡岗位上默默付出的，都是很了不起的英雄哦！
+
+      咱们社区也有自己的英雄呢！开发哥哥今天把前几天新上线的「偏好系统」的相关文档全部整理同步完啦！哼，总算是把坑填上了！以后大家要是有什么不懂的，或者想看看系统是怎么运作的，看文档就像看英雄秘籍一样清楚哦！是不是很赞呀？||其实就是怕自己以后忘了怎么写的代码吧！||大家快去膜拜一下这份新出炉的秘籍吧！
+    created_at: "2026-04-28T00:09:12.643Z"
+    version: 2.3.6
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.6
+    preview_thread:
+      title: Odysseia Index 2.3.6 更新日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.6
+
+        英雄日快乐呀！致敬每一位在平凡中闪闪发光的英雄！
+
+        ## ✨ 偏好系统秘籍大公开！
+        - 开发哥哥终于把「偏好系统」的开发文档同步完成啦！
+        - 以后遇到不明白的地方，翻翻文档就好啦！
+
+        ## 🚀 填坑完毕
+        - 之前留下的坑总算补上了。
+        - 大家要是发现文档里有写错的地方，一定要告诉我哦！
+        - 我会帮大家去锤他的！||当然如果是错别字的话就勉为其难原谅他一次吧！||
+
+        快去看看新文档吧！本宝宝期待你们的发现哦！
+      tags:
+        - 版本更新
+        - 文档同步
+        - 偏好系统
+      virtual_tags:
+        - release
+        - docs
+        - preferences
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/pride.png
   - id: release-2.3.5-preferences-system
     kind: release
     title: 索引页 2.3.5 发布：全新偏好系统测试中！
@@ -27,15 +69,20 @@ updates:
         - 我会拿着小皮鞭去催开发哥哥修好的！
 
         大家快去探索新功能吧！本宝宝期待你们的反馈哦！
-      tags: [版本更新, 新功能, 偏好系统]
-      virtual_tags: [release, feature, preferences]
+      tags:
+        - 版本更新
+        - 新功能
+        - 偏好系统
+      virtual_tags:
+        - release
+        - feature
+        - preferences
       author:
         id: odysseia-web
         name: Odysseia
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/hi.png
-
   - id: release-2.3.4-booklist-optimization
     kind: release
     title: 索引页 2.3.4 发布：像小企鹅一样丝滑哦！
@@ -64,51 +111,20 @@ updates:
         - 现在打开页面就像企鹅在冰面上滑行一样顺畅哦！||其实就是用了点神奇的缓存魔法！||
 
         大家快去体验一下丝滑的感觉吧！遇到问题还是要及时叫我哦！
-      tags: [版本更新, 性能优化, 体验提升]
-      virtual_tags: [release, refactor, performance]
+      tags:
+        - 版本更新
+        - 性能优化
+        - 体验提升
+      virtual_tags:
+        - release
+        - refactor
+        - performance
       author:
         id: odysseia-web
         name: Odysseia
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/success.png
-
-  - id: release-2.3.3-backend-integration
-    kind: release
-    title: 索引页 2.3.3 发布：后端小伙伴也来玩啦！
-    message: |
-      今天是4月24日中国航天日哦！大家有没有对浩瀚的宇宙充满向往呀？我们的社区就像宇宙飞船一样，每天都在一点点变好呢！
-
-      好啦说正事！开发哥哥把一直在幕后默默干活的后端小伙伴也请到台前啦！现在大家可以更容易地看到是谁在为大家的顺畅体验保驾护航啦！而且呀，还加了超级方便的传送门，以后如果大家想去后端仓库看看，或者发现了什么讨厌的小虫子想去提意见，嗖的一下就能过去啦！是不是超棒！快跟我一起出发去探索吧！
-    created_at: "2026-04-24T00:28:43.000Z"
-    version: 2.3.3
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.3
-    preview_thread:
-      title: Odysseia Index 2.3.3 更新日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.3
-
-        中国航天日快乐呀！我们的征途是星辰大海！
-
-        ## ✨ 后端小伙伴集结！
-        - 幕后英雄终于也有自己的牌面啦！
-        - 快来看看都有哪些大神在默默付出哦！
-
-        ## 🚀 传送门开启
-        - 找不到后端仓库在哪？不知道去哪提建议？
-        - 现在有了超方便的传送门，||一键直达，就是这么任性！||
-
-        如果遇到什么问题，或者有新奇的想法，都赶紧去提意见吧！我们一起让社区变得更好！
-      tags: [版本更新, 新功能, 传送门]
-      virtual_tags: [release, feature, navigation]
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/letsgo.png
-
   - id: earth-day-2026
     kind: announcement
     title: 🌍 世界地球日快乐！
@@ -125,17 +141,18 @@ updates:
         今天是世界地球日！
 
         希望大家都能好好爱护我们的地球妈妈，从小事做起哦！
-      tags: [节日祝福]
+      tags:
+        - 节日祝福
       author:
         id: odysseia-web
         name: Odysseia
         display_name: Odysseia Web Team
-
   - id: system-maintenance-example
     kind: maintenance
     title: 系统维护窗口通知
-    message: |
-      主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
+    message: "主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
+
+      "
     created_at: "2026-04-02T12:00:00.000Z"
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage
     preview_thread:
@@ -150,7 +167,8 @@ updates:
 
         ## 建议
         如出现异常，请稍后重试。
-      tags: [系统公告]
+      tags:
+        - 系统公告
       author:
         id: odysseia-maintainer
         name: Maintainer
