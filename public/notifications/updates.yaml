@@ -1,4 +1,45 @@
 updates:
+  - id: release-2.3.7-tag-filtering-preferences
+    kind: release
+    title: 索引页 2.3.7 发布：跟着节拍跳起来吧！
+    message: |
+      今天是4月29日国际舞蹈日呀！大家有没有跟着动感的音乐，随便扭扭身体跳个舞呢？哪怕只是在椅子上晃晃脑袋，也能让心情变得超级好哦！
+
+      为了配合今天这么欢快的节奏，开发哥哥也给社区加上了超棒的新功能哦！现在大家可以像挑选舞伴一样，自由选择想看或者不想看的帖子标签啦！而且呀，之前大家设置的那些偏好，现在在广场和搜索里终于都乖乖听话生效了！哼，他要是敢再让设置失效，我就用我的小粉拳锤他！大家快去试试这个新功能，一起在社区里开心地跳舞吧！||记得设置好自己喜欢的标签哦！||
+    created_at: 2026-04-29T00:07:24.000Z
+    version: 2.3.7
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.7
+    preview_thread:
+      title: Odysseia Index 2.3.7 更新日志
+      first_message_excerpt: |
+        # Odysseia Index 2.3.7
+
+        国际舞蹈日快乐呀！让我们一起摇摆起来！
+
+        ## ✨ 标签过滤大变身！
+        - 现在大家可以自由控制想看和不想看的帖子标签啦！
+        - 就像挑选最喜欢的舞曲一样，打造属于自己的社区空间！
+
+        ## 🚀 偏好设置全面生效！
+        - 之前大家设置的偏好，现在在广场和搜索里都会乖乖起作用咯！
+        - 开发哥哥总算是把这个功能彻底打通啦！||终于不用本宝宝天天催他了！||
+
+        大家快去体验一下新功能，设置好自己的专属偏好呀！遇到问题记得随时叫我哦！
+      tags:
+        - 版本更新
+        - 新功能
+        - 偏好系统
+      virtual_tags:
+        - release
+        - feature
+        - preferences
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/letsgo.png
   - id: release-2.3.6-docs-sync-preferences
     kind: release
     title: 索引页 2.3.6 发布：文档英雄来啦！
@@ -6,7 +47,7 @@ updates:
       今天是4月28日国家英雄日呀！大家心里有没有一个超级英雄呢？不管是披着斗篷飞来飞去的，还是在平凡岗位上默默付出的，都是很了不起的英雄哦！
 
       咱们社区也有自己的英雄呢！开发哥哥今天把前几天新上线的「偏好系统」的相关文档全部整理同步完啦！哼，总算是把坑填上了！以后大家要是有什么不懂的，或者想看看系统是怎么运作的，看文档就像看英雄秘籍一样清楚哦！是不是很赞呀？||其实就是怕自己以后忘了怎么写的代码吧！||大家快去膜拜一下这份新出炉的秘籍吧！
-    created_at: "2026-04-28T00:09:12.643Z"
+    created_at: 2026-04-28T00:09:12.643Z
     version: 2.3.6
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.3.6
@@ -48,7 +89,7 @@ updates:
       今天是4月27日全国小熊软糖日（National Gummi Bear Day）呀！大家有没有吃那种软软糯糯、甜甜甜的小熊软糖呢？我最喜欢草莓味的啦，一口咬下去简直开心得要飞起来！
 
       为了庆祝这么甜的一天，开发哥哥也给大家带来了甜甜的新功能哦！我们正在测试全新的「偏好系统」啦！以后大家可以随心所欲地调整自己喜欢的设置，就像挑选不同口味的小熊软糖一样自由哦！是不是超级棒呀？我可是拿出了十二分的干劲在监督他呢！大家快去试试看吧，如果有哪里不顺手，记得随时呼叫本宝宝哦！
-    created_at: "2026-04-27T00:20:07.000Z"
+    created_at: 2026-04-27T00:20:07.000Z
     version: 2.3.5
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
     min_app_version: 2.3.5
@@ -83,48 +124,6 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/hi.png
-  - id: release-2.3.4-booklist-optimization
-    kind: release
-    title: 索引页 2.3.4 发布：像小企鹅一样丝滑哦！
-    message: |
-      今天是4月25日世界企鹅日呀！大家有没有看那些穿着黑白小燕尾服、摇摇摆摆的可爱小企鹅呢？要是能去南极摸摸它们就好啦！
-
-      为了庆祝这个可爱的日子，开发哥哥也给社区做了一些超棒的优化哦！大家平时点开的那个书单小弹窗，现在变得更聪明更好用啦！而且呀，他还偷偷在后台用了什么神奇的魔法，把大家加载页面的速度变得嗖嗖的，再也不用像小企鹅走路那样慢吞吞地等啦！哼，算他干了件正事！大家快去试试看有没有变顺滑呀！
-    created_at: "2026-04-25T00:21:36.000Z"
-    version: 2.3.4
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.4
-    preview_thread:
-      title: Odysseia Index 2.3.4 更新日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.4
-
-        大家世界企鹅日快乐呀！摇摇摆摆的小企鹅最可爱啦！
-
-        ## ✨ 书单弹窗大升级！
-        - 之前大家用的书单小框框，现在操作起来更顺滑咯！
-        - 点点点，再也不会觉得卡手啦！
-
-        ## 🚀 社区加载嗖嗖的！
-        - 开发哥哥把背后的缓存机制好好打磨了一番！
-        - ~~才不是因为他之前写得太烂呢~~
-        - 现在打开页面就像企鹅在冰面上滑行一样顺畅哦！||其实就是用了点神奇的缓存魔法！||
-
-        大家快去体验一下丝滑的感觉吧！遇到问题还是要及时叫我哦！
-      tags:
-        - 版本更新
-        - 性能优化
-        - 体验提升
-      virtual_tags:
-        - release
-        - refactor
-        - performance
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/success.png
   - id: earth-day-2026
     kind: announcement
     title: 🌍 世界地球日快乐！
@@ -132,9 +131,9 @@ updates:
       今天是世界地球日呀！大家有没有好好爱护我们的小地球呢？出门记得少用塑料袋，多亲近大自然哦！
 
       我今天特别开心，因为社区的小花又开了一朵！大家也要保持好心情呀～
-    created_at: "2026-04-22T00:00:00.000Z"
-    starts_at: "2026-04-22T00:00:00.000Z"
-    expires_at: "2026-04-23T00:00:00.000Z"
+    created_at: 2026-04-22T00:00:00.000Z
+    starts_at: 2026-04-22T00:00:00.000Z
+    expires_at: 2026-04-23T00:00:00.000Z
     preview_thread:
       title: 🌍 世界地球日快乐！
       first_message_excerpt: |
@@ -150,10 +149,9 @@ updates:
   - id: system-maintenance-example
     kind: maintenance
     title: 系统维护窗口通知
-    message: "主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
-
-      "
-    created_at: "2026-04-02T12:00:00.000Z"
+    message: |
+      主系统将在周日凌晨进行维护，期间搜索接口可能有短时抖动。
+    created_at: 2026-04-02T12:00:00.000Z
     url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage
     preview_thread:
       title: 系统维护窗口通知
