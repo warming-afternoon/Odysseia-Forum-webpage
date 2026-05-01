@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkPlus, Loader2, X } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useMyBooklistsList } from "@/features/booklists/hooks/useBooklistsData";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
@@ -30,16 +31,24 @@ export function QuickAddToBooklistModal({
     null,
   );
   const [comment, setComment] = useState("");
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const myBooklists = myBooklistsQuery.data?.results || [];
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      dialogRef.current?.close();
+      return;
+    }
     setComment(""); // Reset on open
     if (myBooklists.length > 0) {
       setSelectedBooklistId(myBooklists[0].id);
     } else {
       setSelectedBooklistId(null);
+    }
+
+    if (dialogRef.current && !dialogRef.current.open) {
+      dialogRef.current.showModal();
     }
   }, [isOpen, myBooklists]);
 
@@ -67,16 +76,25 @@ export function QuickAddToBooklistModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
-      onClick={onClose}
+  return createPortal(
+    <dialog
+      ref={dialogRef}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) {
+          onClose();
+        }
+      }}
+      className="od-floating-panel-solid fixed inset-0 z-[3000] m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl border border-(--od-border) p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-xs outline-hidden open:flex open:flex-col"
     >
       <div
-        className="od-floating-panel-solid w-full max-w-lg rounded-xl border border-(--od-border) shadow-2xl"
+        className="flex w-full flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-(--od-border) px-5 py-4">
           <div className="min-w-0">
             <h2 className="text-base font-bold text-(--od-text-primary)">
               快捷收藏到书单
@@ -183,6 +201,7 @@ export function QuickAddToBooklistModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>,
+    document.body
   );
 }
