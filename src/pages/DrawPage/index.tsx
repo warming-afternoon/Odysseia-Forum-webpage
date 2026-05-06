@@ -1,15 +1,14 @@
 import {
     BadgeCheck,
-    Compass,
+    ChevronDown,
     Dices,
     Eye,
     Layers3,
-    RefreshCw,
     Sparkles,
     Wand2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
 import { ThreadCard } from "@/entities/thread/ThreadCard";
 import type { Thread } from "@/entities/thread/types";
@@ -20,17 +19,47 @@ import { getDiscoveryPreferenceContext } from "@/features/preferences/lib/discov
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { useChannels } from "@/shared/hooks/useChannels";
-import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { OmicronIcon } from "@/shared/ui/icons/OmicronIcon";
+import { OmicronLoader } from "@/shared/ui/loaders/OmicronLoader";
 
 type DrawScopeMode = "preferences" | "channel";
 type DrawOverlayPhase = "charging" | "revealing" | "result" | "error";
 
-// 抽卡辅助函数已移除，改为由后端随机返回结果
+const DRAW_HISTORY_KEY = "odysseia_draw_history";
+const DRAW_REVEAL_ENABLED_KEY = "odysseia_draw_reveal_enabled";
 
-// allChannels moved to component context
+/** 从 localStorage 恢复上次的抽卡结果 */
+function loadDrawHistory(): Thread[] {
+  try {
+    const raw = localStorage.getItem(DRAW_HISTORY_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as Thread[];
+  } catch {
+    return [];
+  }
+}
+
+/** 将抽卡结果持久化到 localStorage */
+function saveDrawHistory(results: Thread[]): void {
+  try {
+    localStorage.setItem(DRAW_HISTORY_KEY, JSON.stringify(results));
+  } catch {
+    // 忽略写入失败
+  }
+}
+
+/** 读取揭晓动画开关 */
+function loadRevealEnabled(): boolean {
+  try {
+    const raw = localStorage.getItem(DRAW_REVEAL_ENABLED_KEY);
+    if (raw === null) return true; // 默认开启
+    return raw === "true";
+  } catch {
+    return true;
+  }
+}
 
 export function DrawPage() {
-  const navigate = useNavigate();
   const { openPreview } = usePreviewThread();
   const { preferences } = useUserPreferences({ guildId: GUILD_ID });
   const preferenceContext = useMemo(
@@ -45,18 +74,32 @@ export function DrawPage() {
 
   const [scopeMode, setScopeMode] = useState<DrawScopeMode>("preferences");
   const [selectedChannelId, setSelectedChannelId] = useState<string>("");
-  const [drawResults, setDrawResults] = useState<Thread[]>([]);
+  const [_drawResults, setDrawResults] = useState<Thread[]>([]);
   const [overlayResults, setOverlayResults] = useState<Thread[]>([]);
   const [lastDrawCount, setLastDrawCount] = useState<number>(1);
-  const [revealedCount, setRevealedCount] = useState<number>(0);
+  const [_revealedCount, setRevealedCount] = useState<number>(0);
   const [overlayRevealedCount, setOverlayRevealedCount] = useState<number>(0);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayPhase, setOverlayPhase] =
     useState<DrawOverlayPhase>("charging");
   const [isDrawing, setIsDrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [revealEnabled, setRevealEnabled] = useState(() => loadRevealEnabled());
   const drawSequenceRef = useRef(0);
   const skipRevealRef = useRef(false);
+
+  // 历史记录：从 localStorage 恢复
+  const [historyResults, setHistoryResults] = useState<Thread[]>(() => loadDrawHistory());
+
+  // 持久化揭晓开关
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAW_REVEAL_ENABLED_KEY, String(revealEnabled));
+    } catch {
+      // ignore
+    }
+  }, [revealEnabled]);
 
   const preferredChannelIds = preferenceContext?.preferredChannelIds || [];
   const availableScopeChannels = useMemo(() => {
@@ -102,7 +145,7 @@ export function DrawPage() {
   const includeTags = preferenceContext?.includeTags || null;
   const excludeTags = preferenceContext?.excludeTags || null;
 
-  const handleDraw = async (count: number) => {
+  const handleDraw = useCallback(async (count: number) => {
     const sequenceId = drawSequenceRef.current + 1;
     drawSequenceRef.current = sequenceId;
     skipRevealRef.current = false;
@@ -110,12 +153,16 @@ export function DrawPage() {
     try {
       setIsDrawing(true);
       setError(null);
-      setOverlayOpen(true);
-      setOverlayPhase("charging");
       setDrawResults([]);
       setRevealedCount(0);
       setOverlayResults([]);
       setOverlayRevealedCount(0);
+
+      // 仅在开启揭晓动画时显示 overlay
+      if (revealEnabled) {
+        setOverlayOpen(true);
+        setOverlayPhase("charging");
+      }
 
       const results = await plazaApi.getRandomThreads({
         limit: count,
@@ -127,6 +174,20 @@ export function DrawPage() {
       if (drawSequenceRef.current !== sequenceId) return;
 
       setLastDrawCount(count);
+
+      // 持久化到历史
+      if (results.length > 0) {
+        setHistoryResults(results);
+        saveDrawHistory(results);
+      }
+
+      if (!revealEnabled) {
+        // 跳过揭晓动画，直接展示到底部
+        setDrawResults(results);
+        setRevealedCount(results.length);
+        return;
+      }
+
       setOverlayResults(results);
 
       await new Promise((resolve) => window.setTimeout(resolve, 760));
@@ -151,12 +212,14 @@ export function DrawPage() {
     } catch (err) {
       console.error("Failed to draw randomly", err);
       setError("抽卡失败了，可能是由于网络波动或当前范围内内容不足。");
-      setOverlayPhase("error");
-      setOverlayOpen(true);
+      if (revealEnabled) {
+        setOverlayPhase("error");
+        setOverlayOpen(true);
+      }
     } finally {
       setIsDrawing(false);
     }
-  };
+  }, [effectiveChannelIds, includeTags, excludeTags, revealEnabled]);
 
   const handleSkipOverlay = () => {
     skipRevealRef.current = true;
@@ -168,209 +231,224 @@ export function DrawPage() {
     setRevealedCount(overlayResults.length);
   };
 
-  const featuredResult = drawResults[0] || null;
-  const trailingResults = drawResults.slice(1, revealedCount);
   const activeScopeLabel =
     scopeMode === "channel" && selectedChannelId
       ? availableScopeChannels.find((c) => c.id === selectedChannelId)?.name ||
         "未找到频道"
-      : "我的偏好池范围";
+      : "我的偏好池";
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8 p-4 sm:p-6 lg:p-8">
-      <section className="relative p-2 sm:p-6 lg:p-8">
-        <div className="relative z-10 flex flex-col gap-10 max-w-4xl">
-          <div>
-            <div className="od-editorial-kicker mb-4 text-(--od-text-tertiary)">
-              <Sparkles className="h-3.5 w-3.5" />
-              Surprise Discovery Ritual
-            </div>
-            <h1 className="od-hero-title max-w-3xl text-(--od-text-primary)">
-              随机抽卡
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-(--od-text-secondary) sm:text-base sm:leading-7">
-              你要是懒得自己翻，我就帮你抽呀。抽出来的内容像拆小盲盒一样，一张张看会很有意思呢。
-            </p>
-
-            <div className="mt-7 flex flex-wrap items-center gap-2 text-xs text-(--od-text-secondary)">
-              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
-                <BadgeCheck className="h-3.5 w-3.5 text-(--od-accent)" />
-                {preferenceContext
-                  ? "偏好过滤已生效"
-                  : "尚未设置偏好，当前使用全社区池"}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
-                <Layers3 className="h-3.5 w-3.5 text-(--od-accent)" />
-                当前范围：{activeScopeLabel}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
-                <Dices className="h-3.5 w-3.5 text-(--od-accent)" />
-                后台全库真随机已就绪
-              </span>
-            </div>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-0 p-4 sm:p-6 lg:p-8">
+      {/* ─── 仪式中心区域 ─── */}
+      <section className="relative flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20">
+        {/* 标题 */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center"
+        >
+          <div className="od-editorial-kicker mb-4 justify-center text-(--od-text-tertiary)">
+            <Sparkles className="h-3.5 w-3.5" />
+            Surprise Discovery
           </div>
+          <h1 className="od-hero-title text-(--od-text-primary)">
+            随机抽卡
+          </h1>
+          <p className="mt-3 max-w-md mx-auto text-sm leading-6 text-(--od-text-secondary)">
+            让我从数万张帖子里为你挑几张。抽出来的内容像拆小盲盒一样，一张张看会很有意思呢。
+          </p>
+        </motion.div>
 
-          <div className="space-y-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--od-text-label)">
-                  Draw Flow
-                </p>
-                <p className="mt-2 text-sm font-semibold text-(--od-text-primary)">
-                  先圈个大概范围，再决定抽一张还是抽十张
-                </p>
-                <p className="mt-1 text-xs leading-5 text-(--od-text-secondary)">
-                  我不会故意抽到你偏好外面去的，放心吧。
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="od-inline-action od-inline-action-ghost"
-              >
-                <Compass className="h-4 w-4" />
-                回广场
-              </button>
-            </div>
+        {/* 状态胶囊 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-(--od-text-secondary)"
+        >
+          <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
+            <BadgeCheck className="h-3.5 w-3.5 text-(--od-accent)" />
+            {preferenceContext
+              ? "偏好过滤已生效"
+              : "全社区池"}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-(--od-border) bg-(--od-surface-input) px-3 py-1.5">
+            <Layers3 className="h-3.5 w-3.5 text-(--od-accent)" />
+            {activeScopeLabel}
+          </span>
+        </motion.div>
 
-            <div className="space-y-4">
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
-                  抽卡范围
-                </p>
-                <div className="grid grid-cols-2 gap-2">
+        {/* ─── 核心抽卡按钮 ─── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+          className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-3"
+        >
+          <button
+            type="button"
+            disabled={isDrawing}
+            onClick={() => handleDraw(1)}
+            className="group relative flex items-center gap-3 rounded-2xl border border-(--od-accent)/40 bg-linear-to-br from-(--od-accent)/16 to-(--od-accent)/6 px-8 py-4 text-base font-bold text-(--od-accent) shadow-lg transition-all hover:scale-[1.03] hover:shadow-xl hover:border-(--od-accent)/60 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed sm:px-10 sm:py-5 sm:text-lg"
+          >
+            {isDrawing && lastDrawCount === 1 ? (
+              <OmicronLoader className="h-5 w-5 sm:h-6 sm:w-6" />
+            ) : (
+              <Wand2 className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:rotate-12" />
+            )}
+            来一抽
+          </button>
+          <button
+            type="button"
+            disabled={isDrawing}
+            onClick={() => handleDraw(10)}
+            className="group relative flex items-center gap-3 rounded-2xl border border-(--od-border) bg-(--od-surface-input) px-8 py-4 text-base font-semibold text-(--od-text-primary) shadow-md transition-all hover:scale-[1.03] hover:shadow-lg hover:border-(--od-accent)/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed sm:px-10 sm:py-5 sm:text-lg"
+          >
+            {isDrawing && lastDrawCount === 10 ? (
+              <OmicronLoader className="h-5 w-5 sm:h-6 sm:w-6" />
+            ) : (
+              <Dices className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:-rotate-12" />
+            )}
+            十连发现
+          </button>
+        </motion.div>
+
+        {/* 配置展开/收起 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-8"
+        >
+          <button
+            type="button"
+            onClick={() => setShowSettings(!showSettings)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-(--od-text-tertiary) transition-colors hover:text-(--od-text-secondary)"
+          >
+            调整范围
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${showSettings ? 'rotate-180' : ''}`} />
+          </button>
+        </motion.div>
+
+        {/* 配置面板 (折叠) */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: "easeInOut" }}
+              className="w-full max-w-lg mt-4 overflow-hidden"
+            >
+              <div className="space-y-4 py-4">
+                {/* 抽卡范围 */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
+                    抽卡范围
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setScopeMode("preferences")}
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
+                        scopeMode === "preferences"
+                          ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
+                          : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
+                      }`}
+                    >
+                      按我的偏好抽
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScopeMode("channel")}
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
+                        scopeMode === "channel"
+                          ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
+                          : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
+                      }`}
+                    >
+                      指定频道抽
+                    </button>
+                  </div>
+                </div>
+
+                {/* 频道选择 */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
+                    频道选择
+                  </p>
+                  <select
+                    value={scopeMode === "channel" ? selectedChannelId : ""}
+                    onChange={(event) => setSelectedChannelId(event.target.value)}
+                    disabled={
+                      scopeMode !== "channel" ||
+                      availableScopeChannels.length === 0
+                    }
+                    className="w-full rounded-2xl border border-(--od-border) bg-(--od-surface-input) px-4 py-3 text-sm text-(--od-text-primary) outline-hidden transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-(--od-accent)"
+                  >
+                    {availableScopeChannels.length === 0 ? (
+                      <option value="">当前没有可抽取频道</option>
+                    ) : (
+                      availableScopeChannels.map((channel) => (
+                        <option
+                          key={channel.id}
+                          value={channel.id}
+                          className="text-(--od-text-primary)"
+                        >
+                          {channel.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                {/* 揭晓动画开关 */}
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <div>
+                    <p className="text-sm font-medium text-(--od-text-primary)">
+                      揭晓动画
+                    </p>
+                    <p className="text-xs text-(--od-text-tertiary) mt-0.5">
+                      关闭后抽卡结果将直接展示在页面底部
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setScopeMode("preferences")}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
-                      scopeMode === "preferences"
-                        ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
-                        : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
+                    role="switch"
+                    aria-checked={revealEnabled}
+                    onClick={() => setRevealEnabled(!revealEnabled)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                      revealEnabled ? "bg-(--od-accent)" : "bg-(--od-border)"
                     }`}
                   >
-                    按我的偏好抽
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScopeMode("channel")}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition-colors ${
-                      scopeMode === "channel"
-                        ? "border-(--od-accent) bg-(--od-surface-input) text-(--od-accent) shadow-xs"
-                        : "border-(--od-border) bg-(--od-surface-input) text-(--od-text-secondary) hover:border-(--od-accent)/50"
-                    }`}
-                  >
-                    指定频道抽
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ${
+                        revealEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
                   </button>
                 </div>
               </div>
-
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
-                  频道选择
-                </p>
-                <select
-                  value={scopeMode === "channel" ? selectedChannelId : ""}
-                  onChange={(event) => setSelectedChannelId(event.target.value)}
-                  disabled={
-                    scopeMode !== "channel" ||
-                    availableScopeChannels.length === 0
-                  }
-                  className="w-full rounded-2xl border border-(--od-border) bg-(--od-surface-input) px-4 py-3 text-sm text-(--od-text-primary) outline-hidden transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-(--od-accent)"
-                >
-                  {availableScopeChannels.length === 0 ? (
-                    <option value="">当前没有可抽取频道</option>
-                  ) : (
-                    availableScopeChannels.map((channel) => (
-                      <option
-                        key={channel.id}
-                        value={channel.id}
-                        className="text-(--od-text-primary)"
-                      >
-                        {channel.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              <div className="pt-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
-                  揭晓方式
-                </p>
-                <p className="mt-2 text-xs leading-5 text-(--od-text-secondary)">
-                  想随手碰碰运气就单抽，想一次看热闹一点就十连呀。
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={isDrawing}
-                  onClick={() => handleDraw(1)}
-                  className="od-inline-action od-inline-action-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isDrawing && lastDrawCount === 1 ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="h-4 w-4" />
-                  )}
-                  来一抽
-                </button>
-                <button
-                  type="button"
-                  disabled={isDrawing}
-                  onClick={() => handleDraw(10)}
-                  className="od-inline-action od-inline-action-soft w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isDrawing && lastDrawCount === 10 ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Dices className="h-4 w-4" />
-                  )}
-                  十连发现
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
-      <section className="px-1">
-        <FluidDivider label="Pool Summary" tone="strong" className="mb-6" />
-        <div className="od-metric-strip">
-          <div className="od-metric-line">
-            <p className="od-metric-line-label">频道池</p>
-            <p className="od-metric-line-value">
-              {effectiveChannelIds?.length ?? allChannels.length}
-            </p>
-            <p className="od-metric-line-note">
-              {preferenceContext?.preferredChannelIds.length
-                ? "我会优先从你平时更常看的频道里翻，指定频道以后范围还会再收一点。"
-                : "你还没给我偏好范围呢，所以我现在是从公开频道里一起翻。"}
-            </p>
-          </div>
-          <div className="od-metric-line">
-            <p className="od-metric-line-label">标签约束</p>
-            <p className="od-metric-line-value">
-              {(includeTags?.length || 0) + (excludeTags?.length || 0)}
-            </p>
-            <p className="od-metric-line-note">
-              现在记着包含标签 {includeTags?.length || 0} 个、排除标签{" "}
-              {excludeTags?.length || 0} 个，我会乖乖照着这个边界来抽的。
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* ─── 页面级加载 (揭晓关闭时) ─── */}
+      {isDrawing && !revealEnabled && (
+        <section className="flex flex-col items-center justify-center py-12">
+          <OmicronLoader className="h-8 w-8 mb-3" />
+          <p className="text-sm text-(--od-text-secondary)">
+            正在为你从几万张帖子里挑…
+          </p>
+        </section>
+      )}
 
-      <section>
-        <FluidDivider label="Pool Status" tone="strong" className="mb-6" />
-        {isDrawing ? (
-          <div className="od-draw-slot text-sm text-(--od-text-secondary)">
-            <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-3" />
-            正在为你从几万张帖子里挑这一张…
-          </div>
-        ) : error ? (
-          <div className="od-draw-slot">
+      {/* ─── 错误提示 (页面级) ─── */}
+      {error && !overlayOpen && (
+        <section className="px-1 mb-6">
+          <div className="od-draw-slot text-center">
             <p className="text-base font-semibold text-(--od-text-primary)">
               哎呀，抽卡失败了
             </p>
@@ -382,116 +460,94 @@ export function DrawPage() {
               onClick={() => handleDraw(lastDrawCount)}
               className="od-inline-action od-inline-action-primary mt-4"
             >
-              <RefreshCw className="h-4 w-4" />
+              <Wand2 className="h-4 w-4" />
               重试一下
             </button>
           </div>
-        ) : drawResults.length === 0 ? (
-          <div className="od-draw-slot text-sm text-(--od-text-secondary)">
-            准备好啦。你想先轻轻试一张也行，想热闹一点直接十连也行，我都陪你。
-          </div>
-        ) : null}
-      </section>
+        </section>
+      )}
 
-      <section>
-        <FluidDivider label="Reveal" tone="strong" className="mb-6" />
-        {featuredResult ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-12">
-              <div className="space-y-4">
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--od-accent)_18%,transparent)] bg-[color-mix(in_srgb,var(--od-accent)_10%,transparent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-(--od-accent)">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {lastDrawCount > 1 ? "十连主卡" : "本次命中"}
-                </div>
-
-                <div className="w-full lg:max-w-4xl">
-                  <ThreadCard thread={featuredResult} onPreview={openPreview} />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openPreview(featuredResult)}
-                    className="od-inline-action od-inline-action-primary"
-                  >
-                    <Eye className="h-4 w-4" />
-                    打开预览
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDraw(lastDrawCount)}
-                    className="od-inline-action od-inline-action-soft"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    再抽一次
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(`/search?channel=${featuredResult.channel_id}`)
-                    }
-                    className="od-inline-action od-inline-action-ghost"
-                  >
-                    <Compass className="h-4 w-4" />
-                    去该频道继续逛
-                  </button>
-                </div>
+      {/* ─── 上次发现 (底部历史记录 · 统一横向滚动) ─── */}
+      <AnimatePresence>
+        {historyResults.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mt-4 px-1"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--od-text-label)">
+                  上次发现
+                </p>
+                <p className="mt-1 text-xs text-(--od-text-tertiary)">
+                  共 {historyResults.length} 张 · 点击可预览
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setHistoryResults([]);
+                  saveDrawHistory([]);
+                }}
+                className="text-xs text-(--od-text-tertiary) transition-colors hover:text-(--od-text-secondary)"
+              >
+                清除记录
+              </button>
+            </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-(--od-text-primary)">
-                      其余结果
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-(--od-text-secondary)">
-                      {drawResults.length > 1
-                        ? "剩下那些我也整整齐齐摆在旁边啦，你可以一起对着看。"
-                        : "现在是单抽，所以这里只会在多抽的时候热闹起来。"}
-                    </p>
-                  </div>
-                  {drawResults.length > 1 && (
-                    <span className="rounded-full border border-(--od-shell-line) bg-(--od-surface-soft) px-3 py-1 text-[11px] font-semibold text-(--od-text-secondary)">
-                      已揭晓 {Math.max(0, revealedCount - 1)} /{" "}
-                      {Math.max(0, drawResults.length - 1)}
-                    </span>
-                  )}
+            {/* 统一横向滚动展示 */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+              {historyResults.map((thread, index) => (
+                <div
+                  key={thread.thread_id}
+                  className="w-[18rem] shrink-0 snap-start animate-in fade-in zoom-in-95 duration-300"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <ThreadCard thread={thread} onPreview={openPreview} />
                 </div>
+              ))}
+            </div>
 
-                {drawResults.length > 1 ? (
-                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-                    {trailingResults.map((thread: Thread, index: number) => (
-                      <div
-                        key={thread.thread_id}
-                        className="w-[18rem] shrink-0 snap-start animate-in fade-in zoom-in-95 duration-300"
-                        style={{ animationDelay: `${index * 90}ms` }}
-                      >
-                        <ThreadCard thread={thread} onPreview={openPreview} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="od-draw-slot od-draw-slot-muted text-center text-sm text-(--od-text-secondary)">
-                    等你十连的时候，这里就会一下子铺开很多张，看起来会更有抽卡的感觉哦。
-                  </div>
-                )}
-              </div>
+            {/* 快速操作（居中） */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => openPreview(historyResults[0])}
+                className="od-inline-action od-inline-action-primary"
+              >
+                <Eye className="h-4 w-4" />
+                查看详情
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDraw(lastDrawCount)}
+                className="od-inline-action od-inline-action-soft"
+              >
+                <Wand2 className="h-4 w-4" />
+                再来一次
+              </button>
             </div>
-          </div>
-        ) : (
-          <div className="od-draw-slot od-draw-slot-muted p-10 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-(--od-surface-soft) text-(--od-accent)">
-              <Sparkles className="h-7 w-7" />
-            </div>
-            <h3 className="mt-5 text-xl font-bold tracking-tight text-(--od-text-primary)">
-              第一张卡还在等你揭晓哦～
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-(--od-text-secondary)">
-              先挑一下这轮想在哪片地方碰运气，再决定抽一张还是十张。我会把结果乖乖送到你面前的。
-            </p>
-          </div>
+          </motion.section>
         )}
-      </section>
+      </AnimatePresence>
+
+      {/* ─── 空状态 (从未抽过卡) ─── */}
+      {historyResults.length === 0 && !isDrawing && !error && (
+        <section className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-(--od-surface-soft) text-(--od-accent)">
+            <OmicronIcon className="h-8 w-8" />
+          </div>
+          <h3 className="mt-5 text-lg font-bold tracking-tight text-(--od-text-primary)">
+            第一张卡还在等你揭晓哦～
+          </h3>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-(--od-text-secondary)">
+            点上面的按钮开始抽卡，我会把结果乖乖送到你面前的。
+          </p>
+        </section>
+      )}
 
       <DrawRevealOverlay
         isOpen={overlayOpen}

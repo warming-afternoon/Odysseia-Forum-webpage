@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { RefreshCw, X, ChevronRight, ChevronLeft, Calendar } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Calendar, Wand2, Dices } from "lucide-react";
+import { OmicronIcon } from "@/shared/ui/icons/OmicronIcon";
+import { OmicronLoader } from "@/shared/ui/loaders/OmicronLoader";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 
 import type { Thread } from "@/entities/thread/types";
@@ -61,10 +63,7 @@ function CardImage({ src, layoutId, isActive }: { src: string; layoutId: string;
       {/* Fallback for no image */}
       {!hasImage && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-linear-to-br from-[#1a1a1a] to-[#0a0a0a]">
-          <div className="h-20 w-20 opacity-10 filter grayscale">
-            {/* Minimalist fallback icon/logo could go here */}
-            <RefreshCw className="h-full w-full animate-pulse" />
-          </div>
+          <OmicronIcon className="h-16 w-16 opacity-20" />
         </div>
       )}
 
@@ -107,7 +106,7 @@ export function DrawRevealOverlay({
   isOpen,
   phase,
   results,
-  drawCount,
+  drawCount: _drawCount,
   onClose,
   onPreview,
   onDrawAgain,
@@ -164,8 +163,8 @@ export function DrawRevealOverlay({
           style={{ zIndex: 1500 }}
         >
           <div className="od-draw-overlay-panel">
-            {/* Top Close Button */}
-            <div className="absolute top-8 left-8 z-100">
+            {/* Top Bar: Close + Draw Again */}
+            <div className="absolute top-8 left-8 z-100 flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
@@ -174,6 +173,26 @@ export function DrawRevealOverlay({
                 <X className="h-4 w-4" />
                 关闭
               </button>
+              {(phase === "revealing" || phase === "result") && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onDrawAgain(1)}
+                    className="flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    再来单抽
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDrawAgain(10)}
+                    className="flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
+                  >
+                    <Dices className="h-3.5 w-3.5" />
+                    十连发现
+                  </button>
+                </>
+              )}
             </div>
 
             {phase === "charging" && (
@@ -181,9 +200,9 @@ export function DrawRevealOverlay({
                 <motion.div
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
-                  className="text-center"
+                  className="flex flex-col items-center gap-5 text-center"
                 >
-                  <RefreshCw className="mx-auto mb-4 h-8 w-8 animate-spin text-white opacity-40" />
+                  <OmicronLoader className="h-12 w-12 text-white/50" />
                   <p className="text-sm font-bold tracking-[0.4em] text-white uppercase">Loading Ritual...</p>
                 </motion.div>
               </div>
@@ -332,16 +351,30 @@ export function DrawRevealOverlay({
                           查看详情
                         </motion.button>
                         {phase === "result" && (
-                          <motion.button
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ delay: 0.95, duration: 0.6 }}
-                            onClick={() => onDrawAgain(drawCount)}
-                            className="rounded-full border border-white/20 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10"
-                          >
-                            再抽一次
-                          </motion.button>
+                          <>
+                            <motion.button
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ delay: 0.95, duration: 0.6 }}
+                              onClick={() => onDrawAgain(1)}
+                              className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10"
+                            >
+                              <Wand2 className="h-3.5 w-3.5" />
+                              再来单抽
+                            </motion.button>
+                            <motion.button
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ delay: 1.05, duration: 0.6 }}
+                              onClick={() => onDrawAgain(10)}
+                              className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10"
+                            >
+                              <Dices className="h-3.5 w-3.5" />
+                              十连发现
+                            </motion.button>
+                          </>
                         )}
                       </div>
                     </div>
