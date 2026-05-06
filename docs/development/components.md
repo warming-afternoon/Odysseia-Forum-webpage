@@ -59,7 +59,8 @@ return (
 ## 4. 动画规范
 
 - **进场动画**：使用 `animate-in` 系列原子类。
-- **核心组件**：使用 `motion` (来自 `motion/react`)。
+- **页面级别与基础主题切换**：强烈推荐使用原生的 View Transition API。通用封装请参见 `src/shared/lib/viewTransition.ts` 中的 `withViewTransition` 方法，从而避免引入过重的 `motion` 依赖。
+- **核心组件**：部分必须细粒度控制的微交互组件仍可使用 `motion` (来自 `motion/react`)。
 - **性能**：避免在循环渲染的大量节点中应用复杂的 `layout` 动画。
 
 ---

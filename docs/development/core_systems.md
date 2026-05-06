@@ -51,7 +51,7 @@ const ProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 
 - 优先读取 `localStorage` 中记录的用户偏好（如 `theme: dark`）。
 - 否则读取浏览器系统的时区或 `prefers-color-scheme`。
-  我们将 class `dark` 动态注入至 `HTML` 根节点上控制整个 Tailwind 变量生效。
+  我们将 class `dark` 动态注入至 `HTML` 根节点上控制整个 Tailwind 变量生效。在切换主题或背景时，推荐使用 `src/shared/lib/viewTransition.ts` 提供的通用方法触发平滑的原生过渡动画。
 
 ## 5. 搜索系统与 URL 状态驱动
 
@@ -74,7 +74,7 @@ const ProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 
 在获取最终数据前，`src/features/search/hooks/useSearchResults.ts` 会结合当前查询参数状态向后端发起带有偏好标记的搜索请求：
 
-- **偏好标志 (`apply_preferences`) 与前端兜底**: 抛弃了以往在前端繁杂的 `discoveryPreferencePatch` 参数合成计算逻辑，现在前端向后端发起搜索时带上 `apply_preferences: true` 标记（由后端处理初步降级过滤）。更重要的是，由于部分旧版后端接口逻辑不够完善或缓存策略导致未能彻底过滤掉不喜欢的内容，前端在此 Hooks 内部新增了强制的二次清洗逻辑（`filterThreadsByPreferences`），在最终暴露出 `results` 前，对合并后的请求结果实施兜底拦截，彻底剔除含有用户拉黑标签或虚拟标签的帖子。
+- **偏好标志 (`apply_preferences`)**: 前端向后端发起搜索时默认带上 `apply_preferences: true` 标记，此时后端会自动合并当前用户的黑名单标签、白名单标签等偏好设置进行过滤。前端已移除原有的繁杂的本地 tag 合并与 `filterThreadsByPreferences` 兜底过滤逻辑，完全将数据控制权交由 API 返回，确保请求高度一致性。
 - **展示与忽略控制 (`ignoreDiscoveryPreferences`)**: 提供状态变量供 UI（如横幅提示）触发暂时忽略偏好的动作，以使用纯净参数重查数据。
 - **无缝滚动分页拉黑**: 在加载下一页数据时，前端强制收集当前已获取的 `exclude_thread_ids` 列表发送给后端（因 ID 过大，已由前端主动转换为 String 数组），并保持 `offset=0` 以适配后端游标逻辑，从而防止排序跳页。
 

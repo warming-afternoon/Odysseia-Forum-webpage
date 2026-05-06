@@ -22,6 +22,7 @@
 - 方法：`POST /v1/search/`
 - 依赖：`require_auth`（需要登录态）
 - 请求体：`SearchRequest`
+- **无限滚动分页规范**: 为了防止数据更新或排序导致的跳页现象，前端无限滚动加载时，需收集当前所有已加载帖子的 ID 作为 `exclude_thread_ids` 传递，同时强制将 `offset` 设为 `0`。
 - 响应体：`SearchResponse`（包含 `ThreadDetail` 列表、标签、Banner、未读数等）
 
 ### 2.1 SearchRequest 请求字段
