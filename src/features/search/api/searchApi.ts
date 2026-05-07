@@ -188,7 +188,7 @@ export const searchApi = {
   },
 
   getThread: async (threadId: string): Promise<Thread> => {
-    const response = await apiClient.get<Thread>(`/threads/${threadId}`);
+    const response = await apiClient.get<Thread>(`/search/thread/${threadId}`);
     return response.data;
   },
 

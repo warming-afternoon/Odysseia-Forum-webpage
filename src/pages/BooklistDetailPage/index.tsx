@@ -36,6 +36,7 @@ import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
 function toThread(item: BooklistItem): Thread {
   return {
     thread_id: item.thread_id,
+    guild_id: item.guild_id,
     channel_id: item.channel_id,
     title: item.title,
     author: item.author,
