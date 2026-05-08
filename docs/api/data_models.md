@@ -542,7 +542,7 @@
 - `title: str`: 标题
 - `description: Optional[str]`: 简介
 - `cover_image_url: Optional[str]`: 封面
-- `owner_id: str`: 创建者用户 ID (字符串)
+- `owner_id: string`: 创建者用户 ID (字符串)
 - `is_public: bool`: 是否公开
 - `display_type: int`: 排序方式 (1=加入时间倒序, 2=自定义排序)
 - `item_count: int`: 包含帖子数

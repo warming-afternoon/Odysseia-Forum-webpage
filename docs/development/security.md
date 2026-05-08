@@ -7,13 +7,17 @@
 我们允许并大量呈现富文本内容及 Markdown 文本，这通常是高频导致 DOM 型或存储型 XSS 的载体。
 
 ### 1.1 React 内置保护
+
 任何由大括号构成的正常变量渲染，都会被 React 进行原生 `htmlspecialchars` 转义。
+
 > `<div>{user_input_content}</div>` 是绝对安全的。
 
 ### 1.2 dangerouslySetInnerHTML 使用红线
+
 **绝对禁止**直接将后端文本传入 `dangerouslySetInnerHTML`（除非经过可靠的后端 DOMpurify 过滤且由非常确定的内部管理模块提供）。业务端原则上禁止使用此属性。
 
 ### 1.3 Markdown 安全渲染
+
 我们的 `MarkdownText` 组件集成的是生态成熟的 `react-markdown` 库，它通过解析出 AST 而不是直接注入 HTML 字符串来预防脚本执行。
 如果是外部图片链接嵌入，注意防范 `src=javascript:alert(1)` 的极端情况检测，或限定前缀为合法的 `http://` / `https://`。
 

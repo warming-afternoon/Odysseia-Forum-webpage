@@ -74,11 +74,11 @@ Odysseia-Forum-Main/
 
 ```typescript
 // ❌ 严禁出现此类跨域穿透写法
-import { Button } from '../../../../shared/ui/Button';
+import { Button } from "../../../../shared/ui/Button";
 
 // ✅ 正确规范写法
-import { Button } from '@/shared/ui/Button';
-import { Thread } from '@/entities/thread/types';
+import { Button } from "@/shared/ui/Button";
+import { Thread } from "@/entities/thread/types";
 // ✅ 对于由 npm run gen:api 产生的类型文件，专用了强关联短标识
-import { paths } from '@shared-types/openapi'; 
+import { paths } from "@shared-types/openapi";
 ```

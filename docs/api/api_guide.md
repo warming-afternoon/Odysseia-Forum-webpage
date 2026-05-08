@@ -84,7 +84,7 @@
     "sort_method": "comprehensive (可选)",
     "sort_order": "desc (可选)",
     "limit": 24,
-    "exclude_thread_ids": ["string (可选)"],
+    "exclude_thread_ids": ["string/int (可选)"],
     "search_by_collection": false,
     "apply_preferences": false
   }
@@ -195,6 +195,7 @@
 - **端点**: `POST /tags/stats`
 - **描述**: 一次性聚合获取指定范围内的所有标签使用统计情况
 - **请求体 (`TagStatsRequest`)**:
+
   ```json
   {
     "guild_id": "int | null (可选, 服务器 ID)",
@@ -204,7 +205,9 @@
   ```
 
   - `include_virtual`: 是否包含虚拟映射标签的统计，默认 `true`
+
 - **响应 (`TagStatsResponse`)**:
+
   ```json
   {
     "total_threads": 1234,
@@ -244,6 +247,7 @@
   - `days`: 统计时间跨度天数（1–90，默认 30）
   - `apply_preferences`: 是否应用当前用户的过滤偏好（默认 `true`）
 - **响应 (`DiscoveryRailsResponse`)**:
+
   ```json
   {
     "latest": [ThreadDetail, ...],
@@ -353,6 +357,7 @@
 
 - **端点**: `POST /collection/batch/add`
 - **请求体**:
+
   ```json
   {
     "target_ids": [123, 456],
@@ -373,6 +378,7 @@
 
 - **端点**: `POST /booklist/save`
 - **请求体**:
+
   ```json
   {
     "title": "我的推荐",

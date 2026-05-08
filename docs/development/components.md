@@ -70,7 +70,7 @@ return (
 涉及重度交互的过滤器面板（例如 `src/features/search/components/SearchFilterPanel.tsx`）不应在内部缓存提交状态，而必须使用受控的 Props，将变更交由 URL Controller 处理：
 
 - **完备的状态注入**: 接收并展示精确解析后的组合状态（包含 `mergedIncludeTags`、`mergedExcludeTags` 用于高亮标签面板，`includeAuthorTokens` 与 `excludeAuthorTokens` 用于展示选中的作者胶囊，以及 `includeAuthorDraft`、`excludeAuthorDraft` 文本框草稿输入状态，同时包含 `tagLogic`、`timeFrom`、`timeTo`、`preferenceIncludeTags`、`preferenceExcludeTags` 等附加偏好）。
-- **受控事件冒泡**: 内部操作不持有副本，完全触发外部回调（例如 `onToggleTagToken`、`onSubmitAuthorDraft`、`onRemoveAuthorToken`、`onIncludeAuthorDraftChange`、`onExcludeAuthorDraftChange` 等），让 TopBar Controller 统一接管路由的 `SearchSearchParams` 变更。
+- **受控事件冒泡**: 内部操作不持有副本，完全触发外部回调（例如 `onToggleTagToken`、`onSubmitAuthorDraft`、`onRemoveAuthorToken`、`onIncludeAuthorDraftChange`、`onExcludeAuthorDraftChange`、`onTagLogicChange`、`onTimeFromChange`、`onTimeToChange` 等），让 TopBar Controller 统一接管路由的 `SearchSearchParams` 变更。
 
 ---
 

@@ -76,7 +76,7 @@ const ProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 
 - **偏好标志 (`apply_preferences`)**: 前端向后端发起搜索时默认带上 `apply_preferences: true` 标记，此时后端会自动合并当前用户的黑名单标签、白名单标签等偏好设置进行过滤。前端已移除原有的繁杂的本地 tag 合并与 `filterThreadsByPreferences` 兜底过滤逻辑，完全将数据控制权交由 API 返回，确保请求高度一致性。
 - **展示与忽略控制 (`ignoreDiscoveryPreferences`)**: 提供状态变量供 UI（如横幅提示）触发暂时忽略偏好的动作，以使用纯净参数重查数据。
-- **无缝滚动分页拉黑**: 在加载下一页数据时，前端强制收集当前已获取的 `exclude_thread_ids` 列表发送给后端（因 ID 过大，已由前端主动转换为 String 数组），并保持 `offset=0` 以适配后端游标逻辑，从而防止排序跳页。
+- **无缝滚动分页拉黑**: 在加载下一页数据时，前端的 `getNextPageParam` 会强制收集当前已获取的 `exclude_thread_ids` 列表发送给后端（数组元素可能为 Number 或 String），并且强制覆盖 `offset=0` 以适配后端游标逻辑。这种结合总余量（`total > 0`）判定下一页的实现彻底解决了传统的因为分页期间插入新帖导致的跳页或重复加载 Bug。
 
 ## 6. 交互式引导系统 (Onboarding Tour)
 
