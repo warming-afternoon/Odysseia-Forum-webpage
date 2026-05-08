@@ -80,6 +80,7 @@ export function App() {
                 border: '1px solid var(--od-glass-border)',
                 color: 'var(--od-text-primary)',
                 boxShadow: 'var(--od-shadow-floating)',
+                zIndex: 9999,
               },
             }}
           />

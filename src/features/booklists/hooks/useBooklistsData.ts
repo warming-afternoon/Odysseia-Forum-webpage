@@ -1,6 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { apiClient } from "@/shared/api/client";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import {
   booklistKeys,
@@ -90,11 +89,11 @@ export function useBooklistItems(booklistId: number | string) {
         offset: pageParam as number,
       }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage) => {
       // 书单接口的 total 是总条目数，使用标准 offset 分页
-      const loadedCount = allPages.flatMap((page) => page.results || []).length;
-      const total = lastPage.total || 0;
-      return loadedCount < total ? loadedCount : undefined;
+      if (!lastPage.results || lastPage.results.length === 0) return undefined;
+      const nextOffset = lastPage.offset + lastPage.limit;
+      return nextOffset < (lastPage.total || 0) ? nextOffset : undefined;
     },
     enabled: /^\d+$/.test(String(booklistId)),
     staleTime: 60 * 1000,
@@ -123,7 +122,7 @@ export function useToggleBooklistCollection() {
 
   return useMutation({
     mutationFn: ({ id, collected }: { id: number; collected: boolean }) =>
-      collected ? booklistsApi.uncollect([id]) : booklistsApi.collect([id]),
+      collected ? booklistsApi.uncollect([String(id)]) : booklistsApi.collect([String(id)]),
     onSuccess: (_, variables) => {
       invalidateBooklists(variables.id);
     },
@@ -204,7 +203,7 @@ export function useRemoveBooklistItems(booklistId: number | string) {
 
   return useMutation({
     mutationFn: (threadId: string | number) =>
-      booklistsApi.removeItems(booklistId, [threadId]),
+      booklistsApi.removeItems(booklistId, [String(threadId)]),
     onSuccess: () => {
       notifySuccess("书单条目已移除");
       invalidateBooklists(booklistId);

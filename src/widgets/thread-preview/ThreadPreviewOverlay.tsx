@@ -167,16 +167,14 @@ export function ThreadPreviewOverlay({
                     {authorName}
                   </div>
                 )}
-                <div className="mt-1">
-                  <ThreadStatusBadges
-                    isFollowing={thread.collected_flag}
-                    hasUpdate={thread.has_update}
-                    variant="detail"
-                  />
-                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <ThreadStatusBadges
+                isFollowing={thread.collected_flag}
+                hasUpdate={thread.has_update}
+                variant="detail"
+              />
               <button
                 type="button"
                 onClick={() => setQuickAddOpen(true)}

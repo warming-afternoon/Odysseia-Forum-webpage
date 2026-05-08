@@ -240,12 +240,6 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
             >
               <HighlightText text={clampedTitle} highlight={searchQuery} />
             </h3>
-            <ThreadStatusBadges
-              isFollowing={thread.collected_flag}
-              hasUpdate={thread.has_update}
-              variant="list"
-              className="mt-0.5 shrink-0"
-            />
           </div>
 
           {hasExcerpt && (
@@ -319,8 +313,14 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
         </div>
       </div>
 
-      <div className="absolute right-0 top-3 hidden items-center gap-2 md:flex">
-        <button
+      <div className="absolute right-0 top-3 flex items-center gap-3">
+        <ThreadStatusBadges
+          isFollowing={thread.collected_flag}
+          hasUpdate={thread.has_update}
+          variant="list"
+        />
+        <div className="hidden items-center gap-2 md:flex">
+          <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
@@ -341,6 +341,7 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
           />
         </div>
       </div>
+    </div>
 
       <QuickAddToBooklistModal
         isOpen={quickAddOpen}

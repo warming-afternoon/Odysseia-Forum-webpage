@@ -198,6 +198,13 @@ function ThreadCardImpl({
                   )}
                 </div>
               </div>
+              <div className="shrink-0 flex items-center self-start pt-1">
+                <ThreadStatusBadges
+                  isFollowing={thread.collected_flag}
+                  hasUpdate={thread.has_update}
+                  variant="card"
+                />
+              </div>
             </div>
 
             <div className="overflow-hidden">
@@ -284,11 +291,6 @@ function ThreadCardImpl({
               />
             </div>
 
-            <ThreadStatusBadges
-              isFollowing={thread.collected_flag}
-              hasUpdate={thread.has_update}
-              variant="card"
-            />
           </div>
 
           <div className="flex flex-1 flex-col gap-3 px-1 pt-3 text-(--od-text-primary)">

@@ -171,7 +171,7 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
     [staticNotifications, isUnread],
   );
 
-  const totalUnreadCount = unreadStaticCount + unreadCount;
+  const totalUnreadCount = unreadStaticCount + followNotifications.length;
 
   useEffect(() => {
     onUnreadChange?.(totalUnreadCount);

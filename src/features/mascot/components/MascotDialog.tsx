@@ -59,7 +59,7 @@ export function MascotDialog({
 
     return (
         <div
-            className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-all duration-300 ${visible ? 'bg-black/60 backdrop-blur-xs opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
+            className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-300 ${visible ? 'bg-black/60 backdrop-blur-xs opacity-100' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
                 }`}
             onClick={onClose}
         >

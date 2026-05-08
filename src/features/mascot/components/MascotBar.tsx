@@ -30,7 +30,7 @@ export function MascotBar() {
     return (
         <div
             aria-hidden="true"
-            className={`pointer-events-none fixed bottom-20 left-1/2 z-40 flex -translate-x-1/2 flex-col-reverse items-center gap-4 transition-all duration-500 md:bottom-0 lg:left-46 lg:translate-x-0 lg:flex-row lg:items-center ${
+            className={`pointer-events-none fixed bottom-20 left-1/2 z-[9999] flex -translate-x-1/2 flex-col-reverse items-center gap-4 transition-all duration-500 md:bottom-0 lg:left-46 lg:translate-x-0 lg:flex-row lg:items-center ${
                 isVisible
                     ? 'translate-y-0 opacity-100'
                     : 'pointer-events-none translate-y-6 opacity-0'
