@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 import { MascotEmotion } from '../assets';
+import type { MascotKeywordEffect, MascotKeywordTrigger } from '../config/triggers';
 import {
   resolveErrorMascotMessage,
   resolveIdleMascotMessage,
+  resolveSearchKeywordTrigger,
   resolveSearchMascotMessage,
 } from '../lib/messageResolver';
+
+export interface ActiveMascotEasterEgg {
+    id: string;
+    effects: MascotKeywordEffect[];
+    nonce: number;
+}
 
 interface MascotState {
     emotion: MascotEmotion;
@@ -13,6 +21,8 @@ interface MascotState {
     isAnimating: boolean;
     lastTriggerAt: number;
     hasWelcomed: boolean;
+    activeEasterEgg: ActiveMascotEasterEgg | null;
+    easterEggCooldowns: Record<string, number>;
 
     // Actions
     say: (message: string, emotion?: MascotEmotion, duration?: number) => void;
@@ -20,6 +30,8 @@ interface MascotState {
     setVisible: (visible: boolean) => void;
     markWelcomed: () => void;
     reset: () => void;
+    triggerKeywordEffects: (trigger: MascotKeywordTrigger) => void;
+    clearEasterEgg: (nonce: number) => void;
     reactToSearch: (status: 'start' | 'empty' | 'found', query?: string) => void;
     reactToError: (type?: 'generic' | 'network' | 'notFound') => void;
 }
@@ -31,6 +43,8 @@ const DEFAULT_STATE = {
     isAnimating: false,
     lastTriggerAt: 0,
     hasWelcomed: false,
+    activeEasterEgg: null,
+    easterEggCooldowns: {},
 };
 
 export const useMascotStore = create<MascotState>((set, get) => ({
@@ -64,7 +78,38 @@ export const useMascotStore = create<MascotState>((set, get) => ({
         get().say(resolved.message, resolved.emotion);
     },
 
+    triggerKeywordEffects: (trigger) => {
+        if (!trigger.effects?.length) return;
+
+        const now = Date.now();
+        const effectId = trigger.keywords.join('|');
+        const lastTriggeredAt = get().easterEggCooldowns[effectId] || 0;
+        if (now - lastTriggeredAt < (trigger.cooldownMs ?? 0)) return;
+
+        set((state) => ({
+            activeEasterEgg: {
+                id: effectId,
+                effects: trigger.effects || [],
+                nonce: now,
+            },
+            easterEggCooldowns: {
+                ...state.easterEggCooldowns,
+                [effectId]: now,
+            },
+        }));
+    },
+
+    clearEasterEgg: (nonce) => {
+        if (get().activeEasterEgg?.nonce !== nonce) return;
+        set({ activeEasterEgg: null });
+    },
+
     reactToSearch: (status, query) => {
+        const trigger = resolveSearchKeywordTrigger(query);
+        if (trigger) {
+            get().triggerKeywordEffects(trigger);
+        }
+
         const resolved = resolveSearchMascotMessage(status, query);
         get().say(resolved.message, resolved.emotion);
     },

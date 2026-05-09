@@ -1,5 +1,9 @@
 import type { MascotEmotion } from '@/features/mascot/assets';
-import { MASCOT_MESSAGES, type MascotMessage } from '@/features/mascot/config/triggers';
+import {
+  MASCOT_MESSAGES,
+  type MascotKeywordTrigger,
+  type MascotMessage,
+} from '@/features/mascot/config/triggers';
 
 export type MascotErrorType = 'generic' | 'network' | 'notFound';
 export type MascotSearchStatus = 'start' | 'empty' | 'found';
@@ -7,6 +11,15 @@ export type MascotSearchStatus = 'start' | 'empty' | 'found';
 export interface ResolvedMascotMessage {
   emotion: MascotEmotion;
   message: string;
+}
+
+export function resolveSearchKeywordTrigger(query?: string): MascotKeywordTrigger | null {
+  if (!query) return null;
+
+  const lowerQuery = query.toLowerCase();
+  return MASCOT_MESSAGES.keywords.find((trigger) =>
+    trigger.keywords.some((keyword) => lowerQuery.includes(keyword.toLowerCase())),
+  ) ?? null;
 }
 
 export function resolveIdleMascotMessage(): ResolvedMascotMessage {
@@ -24,15 +37,9 @@ export function resolveSearchMascotMessage(
 ): ResolvedMascotMessage {
   let selected = MASCOT_MESSAGES.search[status];
 
-  if (query) {
-    const lowerQuery = query.toLowerCase();
-
-    for (const trigger of MASCOT_MESSAGES.keywords) {
-      if (trigger.keywords.some((keyword) => lowerQuery.includes(keyword.toLowerCase()))) {
-        selected = trigger.message;
-        break;
-      }
-    }
+  const trigger = resolveSearchKeywordTrigger(query);
+  if (trigger) {
+    selected = trigger.message;
   }
 
   return resolveMascotMessage(selected);

@@ -5,6 +5,20 @@ export interface MascotMessage {
     text: string | string[];
 }
 
+export type MascotKeywordEffect = {
+    kind: 'emoji-rain';
+    emoji: string;
+    count?: number;
+    durationMs?: number;
+};
+
+export interface MascotKeywordTrigger {
+    keywords: string[];
+    message: MascotMessage;
+    effects?: MascotKeywordEffect[];
+    cooldownMs?: number;
+}
+
 export const MASCOT_MESSAGES = {
     idle: [
         { emotion: ['hi', 'greeting_window', 'invite'], text: ['有什么我可以帮你的吗？', '随时待命哦！', '今天想找点什么呢？'] },
@@ -56,7 +70,7 @@ export const MASCOT_MESSAGES = {
         },
         {
             keywords: ['samb', '类脑rbq'],
-            message: { emotion: 'samb', text: ['真淫乱!', '噢噢噢...哦哦哦齁❤️~'] }
+            message: { emotion: 'samb', text: ['真淫乱!'] }
         },
         {
             keywords: ['durvis', 'd喵'],
@@ -86,5 +100,11 @@ export const MASCOT_MESSAGES = {
             keywords: ['棍母'],
             message: { emotion: 'confused', text: '这里什么都没有...' }
         },
-    ] as { keywords: string[]; message: MascotMessage }[],
+        {
+            keywords: ['欧金金'],
+            message: { emotion: 'confused', text: '哇啊，天上掉下来了奇怪的东西！' },
+            effects: [{ kind: 'emoji-rain', emoji: '💩', count: 48, durationMs: 3600 }],
+            cooldownMs: 5000,
+        },
+    ] as MascotKeywordTrigger[],
 };
