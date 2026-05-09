@@ -18,7 +18,15 @@ export function resolveSearchKeywordTrigger(query?: string): MascotKeywordTrigge
 
   const lowerQuery = query.toLowerCase();
   return MASCOT_MESSAGES.keywords.find((trigger) =>
-    trigger.keywords.some((keyword) => lowerQuery.includes(keyword.toLowerCase())),
+    trigger.keywords?.some((keyword) => lowerQuery.includes(keyword.toLowerCase())),
+  ) ?? null;
+}
+
+export function resolveAuthorKeywordTrigger(authorId?: string): MascotKeywordTrigger | null {
+  if (!authorId) return null;
+
+  return MASCOT_MESSAGES.keywords.find((trigger) =>
+    trigger.authorIds?.some((id) => id === authorId),
   ) ?? null;
 }
 

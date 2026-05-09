@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowUpDown, FileText, Filter, Heart, MessageCircle, RefreshCw, X } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { ArrowUpDown, FileText, Filter, Heart, MessageCircle, RefreshCw, Share2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { ThreadResultsCollection } from '@/entities/thread/ThreadResultsCollection';
@@ -8,10 +9,14 @@ import type { Thread } from '@/entities/thread/types';
 import { UserHeaderCard } from '@/entities/user/UserHeaderCard';
 import { UserStatsGrid } from '@/entities/user/UserStatsGrid';
 import { authorsApi } from '@/features/authors/api/authorsApi';
+import { resolveAuthorKeywordTrigger } from '@/features/mascot/lib/messageResolver';
+import { useMascotStore } from '@/features/mascot/store/mascotStore';
 import { searchApi, type UISortMethod } from '@/features/search/api/searchApi';
 import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
 import { useChannels } from '@/shared/hooks/useChannels';
+import { buildAuthorShareText, copyTextToClipboard } from '@/shared/lib/shareText';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
+import { ShareTextDialog } from '@/shared/ui/ShareTextDialog';
 
 // ─── 排序选项 ───────────────────────────────────────────────
 const SORT_OPTIONS: { value: UISortMethod; label: string }[] = [
@@ -43,6 +48,19 @@ export function UserProfilePage() {
   const { userId } = useParams();
   const { openPreview } = usePreviewThread();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [shareText, setShareText] = useState<string | null>(null);
+
+  useEffect(() => {
+    const trigger = resolveAuthorKeywordTrigger(userId);
+    if (!trigger) return;
+
+    const mascotStore = useMascotStore.getState();
+    mascotStore.triggerKeywordEffects(trigger);
+    mascotStore.say(
+      Array.isArray(trigger.message.text) ? trigger.message.text[0] : trigger.message.text,
+      Array.isArray(trigger.message.emotion) ? trigger.message.emotion[0] : trigger.message.emotion,
+    );
+  }, [userId]);
 
   // ─── 从 URL 读取排序 & 频道筛选状态 ──────────────────────
   const sortMethod = parseSortParam(searchParams.get('sort'));
@@ -145,6 +163,30 @@ export function UserProfilePage() {
     },
   ];
 
+  const handleShare = () => {
+    if (!userId) return;
+
+    setShareText(buildAuthorShareText({
+      userId,
+      authorName,
+      stats: {
+        thread_count: profile?.stats.thread_count ?? threadsQuery.data?.total ?? 0,
+        reaction_count: profile?.stats.reaction_count ?? 0,
+        reply_count: profile?.stats.reply_count ?? 0,
+      },
+    }));
+  };
+
+  const handleCopyShareText = async () => {
+    if (!shareText) return;
+    const copied = await copyTextToClipboard(shareText);
+    if (copied) {
+      toast.success('分享文案已复制');
+      return;
+    }
+    toast.warning('自动复制失败，可以手动选中文案复制');
+  };
+
   // ─── 频道列表（用于多选 chips） ───────────────────────────
   const channelOptions = useMemo(() => {
     if (!channelsData?.channels) return [];
@@ -179,17 +221,27 @@ export function UserProfilePage() {
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  void threadsQuery.refetch();
-                  void profileQuery.refetch();
-                }}
-                className="od-inline-action od-inline-action-ghost w-full justify-center sm:w-auto"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                刷新
-              </button>
+              <div className="flex w-full flex-col justify-center gap-2 sm:w-auto sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void threadsQuery.refetch();
+                    void profileQuery.refetch();
+                  }}
+                  className="od-inline-action od-inline-action-ghost w-full justify-center sm:w-auto"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  刷新
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="od-inline-action od-inline-action-ghost w-full justify-center sm:w-auto"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  分享
+                </button>
+              </div>
             </div>
 
             <div className="mx-auto h-px w-16 bg-[color-mix(in_srgb,var(--od-text-secondary)_12%,transparent)]" />
@@ -312,6 +364,14 @@ export function UserProfilePage() {
           )}
         </section>
       </div>
+      {shareText && (
+        <ShareTextDialog
+          title="分享这位作者"
+          text={shareText}
+          onClose={() => setShareText(null)}
+          onCopy={handleCopyShareText}
+        />
+      )}
     </>
   );
 }

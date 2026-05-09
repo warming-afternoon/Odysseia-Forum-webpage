@@ -8,6 +8,7 @@ import {
   Plus,
   RefreshCw,
   Rows3,
+  Share2,
   Star,
   Trash2,
 } from "lucide-react";
@@ -32,6 +33,8 @@ import { BooklistFormModal } from "@/features/booklists/components/BooklistFormM
 import { AddThreadsToBooklistModal } from "@/features/booklists/components/AddThreadsToBooklistModal";
 import { BooklistItemEditorModal } from "@/features/booklists/components/BooklistItemEditorModal";
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
+import { buildBooklistShareText, copyTextToClipboard } from "@/shared/lib/shareText";
+import { ShareTextDialog } from "@/shared/ui/ShareTextDialog";
 
 function toThread(item: BooklistItem): Thread {
   return {
@@ -64,6 +67,7 @@ export function BooklistDetailPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);
   const [itemViewMode, setItemViewMode] = useState<"list" | "grid">("list");
+  const [shareText, setShareText] = useState<string | null>(null);
 
   const detailQuery = useBooklistDetail(booklistId);
   const itemsQuery = useBooklistItems(booklistId);
@@ -133,6 +137,16 @@ export function BooklistDetailPage() {
   }
 
   const booklist = detailQuery.data;
+
+  const handleCopyShareText = async () => {
+    if (!shareText) return;
+    const copied = await copyTextToClipboard(shareText);
+    if (copied) {
+      toast.success("分享文案已复制");
+      return;
+    }
+    toast.warning("自动复制失败，可以手动选中文案复制");
+  };
 
   return (
     <>
@@ -205,6 +219,15 @@ export function BooklistDetailPage() {
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   刷新
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShareText(buildBooklistShareText(booklist))}
+                  className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  分享
                 </button>
 
                 <button
@@ -370,6 +393,15 @@ export function BooklistDetailPage() {
           });
         }}
       />
+
+      {shareText && (
+        <ShareTextDialog
+          title="分享这个书单"
+          text={shareText}
+          onClose={() => setShareText(null)}
+          onCopy={handleCopyShareText}
+        />
+      )}
     </>
   );
 }

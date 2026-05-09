@@ -82,7 +82,7 @@ export const useMascotStore = create<MascotState>((set, get) => ({
         if (!trigger.effects?.length) return;
 
         const now = Date.now();
-        const effectId = trigger.keywords.join('|');
+        const effectId = [...(trigger.keywords || []), ...(trigger.authorIds || [])].join('|');
         const lastTriggeredAt = get().easterEggCooldowns[effectId] || 0;
         if (now - lastTriggeredAt < (trigger.cooldownMs ?? 0)) return;
 

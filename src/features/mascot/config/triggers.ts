@@ -13,7 +13,8 @@ export type MascotKeywordEffect = {
 };
 
 export interface MascotKeywordTrigger {
-    keywords: string[];
+    keywords?: string[];
+    authorIds?: string[];
     message: MascotMessage;
     effects?: MascotKeywordEffect[];
     cooldownMs?: number;
@@ -104,6 +105,12 @@ export const MASCOT_MESSAGES = {
             keywords: ['欧金金'],
             message: { emotion: 'confused', text: '哇啊，天上掉下来了奇怪的东西！' },
             effects: [{ kind: 'emoji-rain', emoji: '💩', count: 48, durationMs: 3600 }],
+            cooldownMs: 5000,
+        },
+        {
+            authorIds: ['1340691892039585896'],
+            message: { emotion: 'success', text: '花开啦。' },
+            effects: [{ kind: 'emoji-rain', emoji: '🌸', count: 56, durationMs: 3800 }],
             cooldownMs: 5000,
         },
     ] as MascotKeywordTrigger[],
