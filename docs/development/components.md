@@ -102,3 +102,72 @@ export function SearchFilterPanel({ "data-tour": dataTour, ...props }: Props) {
 3. `cn()` 是否正确接收了外部传入的 `className`？
 4. 是否在小屏幕下进行了响应式适配？
 5. 是否可以通过键盘操作（Tab 导航等）？
+
+---
+
+## 8. 对话框与浮层规范 (Dialogs & Overlays)
+
+对于全局遮罩、对话框或弹出类浮层（如 `src/widgets/thread-preview/ThreadPreviewOverlay.tsx`），我们推崇使用现代化、轻量级的原生浏览器 API 结合 Tailwind 动效，而非引入臃肿的第三方 Modal 库。
+
+### 8.1 原生 `<dialog>` 标签
+
+优先使用原生的 HTML `<dialog>` 标签来构建弹窗。它天生自带顶级层叠上下文 (Top Layer) 以及 `::backdrop` 伪元素支持。
+
+- **唤起方式**: 在 `useEffect` 中调用 `dialogRef.current.showModal()` 进行模态展示。
+- **关闭处理**: 可以通过绑定 `onCancel` 事件拦截原生的 `Esc` 关闭动作，以进行自定义动画退场或状态清理。
+
+### 8.2 createPortal 挂载
+
+为了避免深层嵌套组件中的 `z-index` 或 `overflow: hidden` 干扰，大型浮层必须使用 React 提供的 `createPortal` 将其挂载至 `document.body` 下。
+
+### 8.3 动效控制
+
+摒弃针对简单浮层引入复杂的 `motion` 动画实例。建议利用内部局部状态结合 Tailwind 的 `transition-all` 类名实现进入/离开的缓动。
+
+示例（基于最新重构的 ThreadPreviewOverlay 模式）：
+
+```tsx
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+
+export function ModernDialog({ onClose }: { onClose: () => void }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    setIsVisible(true);
+    if (dialogRef.current && !dialogRef.current.open) {
+      dialogRef.current.showModal();
+    }
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    // 延迟卸载以播放退场动画
+    setTimeout(() => {
+      dialogRef.current?.close();
+      onClose();
+    }, 300);
+  };
+
+  return createPortal(
+    <dialog
+      ref={dialogRef}
+      onCancel={(e) => {
+        e.preventDefault();
+        handleClose();
+      }}
+      className={`
+        fixed inset-x-4 inset-y-4 m-auto rounded-2xl p-6
+        backdrop:bg-black/60 backdrop:backdrop-blur-xs
+        transition-all duration-300
+        ${isVisible ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0 backdrop:bg-black/0 backdrop:backdrop-blur-none"}
+      `}
+    >
+      <h2>原生弹窗</h2>
+      <button onClick={handleClose}>关闭</button>
+    </dialog>,
+    document.body,
+  );
+}
+```
