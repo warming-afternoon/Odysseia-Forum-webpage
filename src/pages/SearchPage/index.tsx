@@ -17,6 +17,7 @@ import { useLayoutMode } from "@/shared/hooks/useSettings";
 import { useChannels } from "@/shared/hooks/useChannels";
 import { addToken, parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { Select } from "@/shared/ui/Select";
 import {
   ArrowUpDown,
   Compass,
@@ -28,6 +29,14 @@ import {
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
+const searchSortOptions = [
+  { value: 'last_active_desc', label: '最近活跃' },
+  { value: 'created_desc', label: '最新发布' },
+  { value: 'reply_desc', label: '回复数' },
+  { value: 'reaction_desc', label: '反应数' },
+  { value: 'relevance', label: '相关度' },
+];
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -226,25 +235,20 @@ export function SearchPage() {
             </div>
 
             {isThreadTab && (
-              <label className="inline-flex items-center gap-2 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] px-3 py-2 text-xs font-medium text-(--od-text-secondary)">
+              <div className="inline-flex items-center gap-2 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] px-3 py-2 text-xs font-medium text-(--od-text-secondary)">
                 <ArrowUpDown className="h-3.5 w-3.5" />
-                <select
+                <Select
                   aria-label="选择排序方式"
                   value={params.sortMethod}
-                  onChange={(e) =>
+                  options={searchSortOptions}
+                  onChange={(v) =>
                     setParams({
-                      sortMethod: e.target.value as typeof params.sortMethod,
+                      sortMethod: v as typeof params.sortMethod,
                     })
                   }
-                  className="min-w-25 bg-transparent text-(--od-text-primary) outline-hidden"
-                >
-                  <option value="last_active_desc">最近活跃</option>
-                  <option value="created_desc">最新发布</option>
-                  <option value="reply_desc">回复数</option>
-                  <option value="reaction_desc">反应数</option>
-                  <option value="relevance">相关度</option>
-                </select>
-              </label>
+                  variant="inline"
+                />
+              </div>
             )}
 
             <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">

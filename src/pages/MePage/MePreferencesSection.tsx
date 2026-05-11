@@ -3,6 +3,7 @@ import { Save, Search } from "lucide-react";
 import { PreferenceTagSelector } from "@/features/preferences/components/PreferenceTagSelector";
 import type { PreferencesFormValue } from "@/features/preferences/lib/preferencesMapper";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { Select } from "@/shared/ui/Select";
 
 interface ChannelOption {
   id: string;
@@ -92,23 +93,23 @@ export function MePreferencesSection({
               <span className="block text-sm font-medium text-(--od-text-secondary)">
                 默认排序
               </span>
-              <select
+              <Select
                 value={form.sortMethod}
-                onChange={(e) => {
+                options={[
+                  { value: 'last_active_desc', label: '最后活跃' },
+                  { value: 'created_desc', label: '最新发布' },
+                  { value: 'reaction_desc', label: '点赞热度' },
+                  { value: 'reply_desc', label: '讨论热度' },
+                  { value: 'relevance', label: '综合推荐' },
+                ]}
+                onChange={(v) => {
                   onUpdateForm((prev) => ({
                     ...prev,
-                    sortMethod: e.target
-                      .value as PreferencesFormValue["sortMethod"],
+                    sortMethod: v as PreferencesFormValue["sortMethod"],
                   }));
                 }}
-                className="w-full rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4 py-3 text-sm text-(--od-text-primary)"
-              >
-                <option value="last_active_desc">最后活跃</option>
-                <option value="created_desc">最新发布</option>
-                <option value="reaction_desc">点赞热度</option>
-                <option value="reply_desc">讨论热度</option>
-                <option value="relevance">综合推荐</option>
-              </select>
+                className="w-full"
+              />
             </label>
 
             <label className="block space-y-2">

@@ -1,5 +1,6 @@
 import type { SearchToken } from '@/shared/lib/searchTokenizer';
 import { User, X } from 'lucide-react';
+import { Select } from '@/shared/ui/Select';
 
 import type { TagLogic } from '@/features/search/hooks/useSearchParams';
 
@@ -73,16 +74,16 @@ export function SearchFilterPanel({
           <label htmlFor="topbar-tagLogic" className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-(--od-text-tertiary)">
             标签逻辑
           </label>
-          <select
+          <Select
             id="topbar-tagLogic"
-            data-tour="filter-logic"
             value={tagLogic}
-            onChange={(e) => onTagLogicChange(e.target.value as TagLogic)}
-            className="od-chrome-surface w-full rounded-xl border border-white/6 px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
-          >
-            <option value="and">全部包含 (AND)</option>
-            <option value="or">任一即可 (OR)</option>
-          </select>
+            options={[
+              { value: 'and', label: '全部包含 (AND)' },
+              { value: 'or', label: '任一即可 (OR)' },
+            ]}
+            onChange={(v) => onTagLogicChange(v as TagLogic)}
+            className="w-full"
+          />
         </div>
 
         <div>

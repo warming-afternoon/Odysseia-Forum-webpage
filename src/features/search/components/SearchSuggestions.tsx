@@ -1,5 +1,6 @@
 import type {
   SearchSuggestionAuthor,
+  SearchSuggestionBooklist as ApiSearchSuggestionBooklist,
   SearchSuggestionThread,
 } from "@/features/search/api/searchApi";
 import {
@@ -28,18 +29,8 @@ export type SearchSuggestionAction =
   | {
       type: "open_thread";
       threadId: string;
-      thread?: SearchSuggestionThread["source_thread"];
     }
   | { type: "open_booklist"; booklistId: number };
-
-interface SearchSuggestionBooklist {
-  id: number;
-  title: string;
-  description?: string | null;
-  cover_image_url?: string | null;
-  item_count?: number;
-  collection_count?: number;
-}
 
 interface SearchSuggestionsProps {
   currentQuery: string;
@@ -47,7 +38,7 @@ interface SearchSuggestionsProps {
   channels?: Array<{ id: string; name: string }>;
   authors?: SearchSuggestionAuthor[];
   threads?: SearchSuggestionThread[];
-  booklists?: SearchSuggestionBooklist[];
+  booklists?: ApiSearchSuggestionBooklist[];
   history?: SearchHistoryItem[];
   suggestedTags?: string[];
   onSelect: (action: SearchSuggestionAction) => void;
@@ -123,11 +114,6 @@ export function SearchSuggestions({
         display: string;
         threadId: string;
         icon: typeof FileText;
-        snippet?: string | null;
-        thumbnailUrl?: string | null;
-        authorName?: string | null;
-        authorAvatarUrl?: string | null;
-        sourceThread?: SearchSuggestionThread["source_thread"];
       }
     | {
         key: string;
@@ -135,8 +121,7 @@ export function SearchSuggestions({
         display: string;
         booklistId: number;
         icon: typeof BookOpen;
-        snippet?: string | null;
-        thumbnailUrl?: string | null;
+        itemCount?: number;
       };
 
   const isZeroState = !currentQuery.trim();
@@ -197,12 +182,11 @@ export function SearchSuggestions({
       }
     } else {
       const relevantAuthors: SuggestionItem[] = authors
-        .filter((author) => author.name.toLowerCase().includes(queryLower))
         .slice(0, 5)
         .map((author, index) => ({
           key: `author-${author.id}-${index}`,
           type: "author",
-          display: author.name,
+          display: author.display_name || author.name,
           value: ` $author:${author.name}$`,
           avatar: author.avatar_url,
           icon: User,
@@ -223,11 +207,6 @@ export function SearchSuggestions({
           type: "thread",
           display: thread.title,
           threadId: thread.thread_id,
-          snippet: thread.snippet,
-          thumbnailUrl: thread.thumbnail_url,
-          authorName: thread.author_name,
-          authorAvatarUrl: thread.author_avatar_url,
-          sourceThread: thread.source_thread,
           icon: FileText,
         }));
       if (directThreads.length > 0) {
@@ -246,8 +225,7 @@ export function SearchSuggestions({
           type: "booklist",
           display: booklist.title,
           booklistId: booklist.id,
-          snippet: booklist.description,
-          thumbnailUrl: booklist.cover_image_url,
+          itemCount: booklist.item_count,
           icon: BookOpen,
         }));
       if (directBooklists.length > 0) {
@@ -348,7 +326,6 @@ export function SearchSuggestions({
       onSelect({
         type: "open_thread",
         threadId: item.threadId,
-        thread: item.sourceThread,
       });
       return;
     }
@@ -419,39 +396,22 @@ export function SearchSuggestions({
                     }`}
                   >
                     {item.type === "thread" || item.type === "booklist" ? (
-                      <div className="flex min-w-0 items-start gap-2">
-                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-(--od-bg-tertiary)">
-                          {item.thumbnailUrl ? (
-                            <LazyImage
-                              src={item.thumbnailUrl}
-                              alt={item.display}
-                              className="h-full w-full"
-                            />
+                      <div className="flex min-w-0 items-center gap-2 overflow-hidden">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-(--od-bg-tertiary) text-(--od-text-tertiary)">
+                          {item.type === "booklist" ? (
+                            <BookOpen className="h-3.5 w-3.5" />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-(--od-text-tertiary)">
-                              {item.type === "booklist" ? (
-                                <BookOpen className="h-4 w-4" />
-                              ) : (
-                                <FileText className="h-4 w-4" />
-                              )}
-                            </div>
+                            <FileText className="h-3.5 w-3.5" />
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold text-(--od-text-primary)">
-                            {item.display}
-                          </div>
-                          {item.snippet && (
-                            <p className="line-clamp-2 text-xs text-(--od-text-tertiary)">
-                              {item.snippet}
-                            </p>
-                          )}
-                          {item.type === "thread" && item.authorName && (
-                            <p className="mt-0.5 text-[11px] text-(--od-text-tertiary)">
-                              @{item.authorName}
-                            </p>
-                          )}
-                        </div>
+                        <span className="truncate text-sm font-medium text-(--od-text-primary)">
+                          {item.display}
+                        </span>
+                        {item.type === "booklist" && item.itemCount != null && (
+                          <span className="shrink-0 text-[11px] text-(--od-text-tertiary)">
+                            {item.itemCount}篇
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="flex min-w-0 items-center gap-2 overflow-hidden">

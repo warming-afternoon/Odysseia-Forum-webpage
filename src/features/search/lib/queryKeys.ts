@@ -42,8 +42,6 @@ export const searchKeys = {
         preferenceSignature: params.preferenceSignature ?? "no-preferences",
       },
     ] as const,
-  booklistSuggestions: (query: string) =>
-    [...searchKeys.all, "booklist-suggestions", { query }] as const,
   booklistResults: (params: {
     query: string;
     pageIndex: number;

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { addToken } from "@/shared/lib/searchTokenizer";
 import { useSidebarCollapsedSetting } from "@/shared/hooks/useSettings";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { Select } from "@/shared/ui/Select";
 import { tagsApi } from "@/features/tags/api/tagsApi";
 import { tagKeys } from "@/features/tags/lib/queryKeys";
 import { useChannels } from "@/shared/hooks/useChannels";
@@ -304,18 +305,15 @@ export function TagsPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-[240px_minmax(0,1fr)]">
-                <select
+                <Select
                   value={selectedChannelId}
-                  onChange={(e) => setSelectedChannelId(e.target.value)}
-                  className="rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_70%,transparent)] px-4 py-3.5 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
-                >
-                  <option value={ALL_CHANNELS_VALUE}>全部频道</option>
-                  {channelOptions.map((channel) => (
-                    <option key={channel.id} value={channel.id}>
-                      {channel.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: ALL_CHANNELS_VALUE, label: '全部频道' },
+                    ...channelOptions.map((ch) => ({ value: ch.id, label: ch.name })),
+                  ]}
+                  onChange={(v) => setSelectedChannelId(v)}
+                  className="w-full"
+                />
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-(--od-text-tertiary)" />
                   <input

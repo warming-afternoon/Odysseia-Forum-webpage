@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Select } from "@/shared/ui/Select";
 
 import { ThreadCard } from "@/entities/thread/ThreadCard";
 import type { Thread } from "@/entities/thread/types";
@@ -378,29 +379,23 @@ export function DrawPage() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">
                     频道选择
                   </p>
-                  <select
+                  <Select
                     value={scopeMode === "channel" ? selectedChannelId : ""}
-                    onChange={(event) => setSelectedChannelId(event.target.value)}
+                    options={
+                      availableScopeChannels.length === 0
+                        ? [{ value: '', label: '当前没有可抽取频道' }]
+                        : availableScopeChannels.map((channel) => ({
+                            value: channel.id,
+                            label: channel.name,
+                          }))
+                    }
+                    onChange={(v) => setSelectedChannelId(v)}
                     disabled={
                       scopeMode !== "channel" ||
                       availableScopeChannels.length === 0
                     }
-                    className="w-full rounded-2xl border border-(--od-border) bg-(--od-surface-input) px-4 py-3 text-sm text-(--od-text-primary) outline-hidden transition-colors disabled:cursor-not-allowed disabled:opacity-45 focus:border-(--od-accent)"
-                  >
-                    {availableScopeChannels.length === 0 ? (
-                      <option value="">当前没有可抽取频道</option>
-                    ) : (
-                      availableScopeChannels.map((channel) => (
-                        <option
-                          key={channel.id}
-                          value={channel.id}
-                          className="text-(--od-text-primary)"
-                        >
-                          {channel.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                    className="w-full"
+                  />
                 </div>
 
                 {/* 揭晓动画开关 */}

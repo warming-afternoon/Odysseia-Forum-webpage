@@ -211,6 +211,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/search/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取搜索建议 */
+        get: operations["get_search_suggestions_v1_search_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/follows/": {
         parameters: {
             query?: never;
@@ -513,7 +530,7 @@ export interface paths {
          *     - sort_method: 排序方式 (1: 书单内帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)
          *     - sort_order: 排序顺序 ('asc' 或 'desc')
          *     - limit: 返回数量
-         *     - offset: 偏移页
+         *     - offset: 偏移量
          */
         get: operations["list_public_booklists_v1_booklist_list_page_get"];
         put?: never;
@@ -540,7 +557,7 @@ export interface paths {
          *     - sort_method: 排序方式 (1: 帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间, 6-收藏时间 collect_by_current_user=true 时可用,)
          *     - sort_order: 排序顺序 ('asc' 或 'desc')
          *     - limit: 返回数量
-         *     - offset: 偏移页
+         *     - offset: 偏移量
          */
         get: operations["list_my_booklists_v1_booklist_my_list_page_get"];
         put?: never;
@@ -684,7 +701,7 @@ export interface paths {
          *
          *     - booklist_id: 书单ID
          *     - limit: 返回数量
-         *     - offset: 偏移页
+         *     - offset: 偏移量
          */
         get: operations["get_booklist_items_v1_booklist_item_list_page__booklist_id__get"];
         put?: never;
@@ -750,7 +767,7 @@ export interface paths {
         };
         /**
          * 获取广场轨道数据
-         * @description 一次性获取多条轨道数据并处理收藏标记
+         * @description 一次性获取多条轨道数据并处理收藏标记和虚拟标签
          */
         get: operations["get_discovery_rails_v1_discovery_rails_get"];
         put?: never;
@@ -770,7 +787,7 @@ export interface paths {
         };
         /**
          * 获取随机帖子
-         * @description 根据指定范围随机抽取帖子
+         * @description 根据指定范围随机抽取帖子，包含深渊过滤和虚拟标签解析
          */
         get: operations["get_random_threads_v1_discovery_random_get"];
         put?: never;
@@ -945,6 +962,58 @@ export interface components {
             reply_count: number;
         };
         /**
+         * AuthorSuggestion
+         * @description 搜索建议中的作者模型
+         */
+        "AuthorSuggestion-Input": {
+            /**
+             * Id
+             * @description 作者 Discord ID
+             */
+            id: number;
+            /**
+             * Name
+             * @description 用户名
+             */
+            name: string;
+            /**
+             * Display Name
+             * @description 显示名称
+             */
+            display_name: string;
+            /**
+             * Avatar Url
+             * @description 头像 URL
+             */
+            avatar_url?: string | null;
+        };
+        /**
+         * AuthorSuggestion
+         * @description 搜索建议中的作者模型
+         */
+        "AuthorSuggestion-Output": {
+            /**
+             * Id
+             * @description 作者 Discord ID
+             */
+            id: string;
+            /**
+             * Name
+             * @description 用户名
+             */
+            name: string;
+            /**
+             * Display Name
+             * @description 显示名称
+             */
+            display_name: string;
+            /**
+             * Avatar Url
+             * @description 头像 URL
+             */
+            avatar_url?: string | null;
+        };
+        /**
          * BannerApplicationRequest
          * @description Banner申请请求模型
          */
@@ -1074,6 +1143,8 @@ export interface components {
              * @description 书单封面图URL
              */
             cover_image_url?: string | null;
+            /** @description 创建者信息 */
+            author?: components["schemas"]["AuthorDetail-Output"] | null;
             /**
              * Is Public
              * @description 是否公开
@@ -1319,6 +1390,27 @@ export interface components {
         BooklistItemsDeleteRequest: {
             /** Thread Ids */
             thread_ids: (number | string)[];
+        };
+        /**
+         * BooklistSuggestion
+         * @description 搜索建议中的书单模型
+         */
+        BooklistSuggestion: {
+            /**
+             * Id
+             * @description 书单 ID
+             */
+            id: number;
+            /**
+             * Title
+             * @description 书单标题
+             */
+            title: string;
+            /**
+             * Item Count
+             * @description 帖子数量
+             */
+            item_count: number;
         };
         /**
          * BooklistUpdateResponse
@@ -1869,7 +1961,7 @@ export interface components {
             reply_count_range: string;
             /**
              * Sort Method
-             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collected_at'(收藏时间), 'custom'(自定义)
+             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数), 'collected_at'(收藏时间), 'custom'(自定义)
              * @default comprehensive
              */
             sort_method: string;
@@ -1951,6 +2043,27 @@ export interface components {
              * @default 0
              */
             unread_count: number;
+        };
+        /**
+         * SearchSuggestionResponse
+         * @description 全局搜索建议的完整响应体
+         */
+        SearchSuggestionResponse: {
+            /**
+             * Authors
+             * @description 匹配的作者 (最多3个)
+             */
+            authors?: components["schemas"]["AuthorSuggestion-Output"][];
+            /**
+             * Threads
+             * @description 匹配的帖子 (最多3个)
+             */
+            threads?: components["schemas"]["ThreadSuggestion-Output"][];
+            /**
+             * Booklists
+             * @description 匹配的书单 (最多3个)
+             */
+            booklists?: components["schemas"]["BooklistSuggestion"][];
         };
         /**
          * TagDetail
@@ -2090,7 +2203,7 @@ export interface components {
              */
             title: string;
             /** @description 帖子作者的详细信息 */
-            author: components["schemas"]["AuthorDetail-Output"] | null;
+            author?: components["schemas"]["AuthorDetail-Output"] | null;
             /**
              * Created At
              * Format: date-time
@@ -2101,7 +2214,7 @@ export interface components {
              * Last Active At
              * @description 帖子最后活跃时间
              */
-            last_active_at: string | null;
+            last_active_at?: string | null;
             /**
              * Reaction Count
              * @description 帖子点赞数
@@ -2113,25 +2226,32 @@ export interface components {
              */
             reply_count: number;
             /**
+             * Collection Count
+             * @description 帖子被收藏的总次数
+             * @default 0
+             */
+            collection_count: number;
+            /**
              * Display Count
              * @description 在搜索结果中的展示次数
+             * @default 0
              */
             display_count: number;
             /**
              * First Message Excerpt
              * @description 帖子首条消息摘要
              */
-            first_message_excerpt: string | null;
+            first_message_excerpt?: string | null;
             /**
              * Thumbnail Urls
-             * @description 帖子首楼图片 URL 列表（按出现顺序）
+             * @description 帖子首楼图片URL列表
              */
-            thumbnail_urls?: string[];
+            thumbnail_urls: string[];
             /**
              * Tags
              * @description 帖子关联的标签列表
              */
-            tags: string[];
+            tags?: string[];
             /**
              * Virtual Tags
              * @description 帖子匹配的虚拟映射标签名列表
@@ -2139,10 +2259,62 @@ export interface components {
             virtual_tags?: string[];
             /**
              * Collected Flag
-             * @description 当前用户是否收藏了此帖
+             * @description 当前用户是否收藏了该帖子
              * @default false
              */
             collected_flag: boolean;
+        };
+        /**
+         * ThreadSuggestion
+         * @description 搜索建议中的帖子模型
+         */
+        "ThreadSuggestion-Input": {
+            /**
+             * Thread Id
+             * @description 帖子 Discord ID
+             */
+            thread_id: number;
+            /**
+             * Title
+             * @description 帖子标题
+             */
+            title: string;
+            /**
+             * Channel Id
+             * @description 频道 ID
+             */
+            channel_id: number;
+            /**
+             * Guild Id
+             * @description 服务器 ID
+             */
+            guild_id: number;
+        };
+        /**
+         * ThreadSuggestion
+         * @description 搜索建议中的帖子模型
+         */
+        "ThreadSuggestion-Output": {
+            /**
+             * Thread Id
+             * @description 帖子 Discord ID
+             */
+            thread_id: string;
+            /**
+             * Title
+             * @description 帖子标题
+             */
+            title: string;
+            /**
+             * Channel Id
+             * @description 频道 ID
+             */
+            channel_id: string;
+            /**
+             * Guild Id
+             * @description 服务器 ID
+             */
+            guild_id: string;
         };
         /**
          * UserPreferencesResponse
@@ -2222,7 +2394,7 @@ export interface components {
             ui_page_size: number;
             /**
              * Sort Method
-             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数)
+             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数)
              * @default comprehensive
              */
             sort_method: string;
@@ -2315,7 +2487,7 @@ export interface components {
             ui_page_size?: number | null;
             /**
              * Sort Method
-             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数)
+             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数)
              */
             sort_method?: string | null;
             /**
@@ -2684,6 +2856,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_search_suggestions_v1_search_suggestions_get: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词或部分 Discord ID */
+                keyword: string;
+                /** @description 是否应用当前用户的过滤偏好 */
+                apply_preferences?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchSuggestionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3104,7 +3310,7 @@ export interface operations {
                 sort_order?: string;
                 /** @description 每次请求返回的数量 (范围: 1-100) */
                 limit?: number;
-                /** @description 结果的偏移页，从0开始 */
+                /** @description 结果的偏移量，从0开始 */
                 offset?: number;
             };
             header?: never;
@@ -3150,7 +3356,7 @@ export interface operations {
                 sort_order?: string;
                 /** @description 每次请求返回的数量 (范围: 1-100) */
                 limit?: number;
-                /** @description 结果的偏移页，从0开始 */
+                /** @description 结果的偏移量，从0开始 */
                 offset?: number;
             };
             header?: never;
@@ -3353,7 +3559,7 @@ export interface operations {
             query?: {
                 /** @description 每次请求返回的数量 (范围: 1-100) */
                 limit?: number;
-                /** @description 结果的偏移页，从0开始 */
+                /** @description 结果的偏移量，从0开始 */
                 offset?: number;
             };
             header?: never;
@@ -3496,6 +3702,8 @@ export interface operations {
                 limit?: number;
                 /** @description 频道筛选范围 */
                 channel_ids?: number[] | null;
+                /** @description 要排除的频道ID列表 */
+                exclude_channel_ids?: number[] | null;
                 /** @description 包含的标签名 */
                 include_tags?: string[] | null;
                 /** @description 必须排除的标签名 */

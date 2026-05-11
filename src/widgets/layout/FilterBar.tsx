@@ -1,3 +1,5 @@
+import { Select } from '@/shared/ui/Select';
+
 interface FilterBarProps {
   timeFrom: string;
   timeTo: string;
@@ -8,6 +10,19 @@ interface FilterBarProps {
   onSortMethodChange: (value: string) => void;
   onTagLogicChange: (value: 'and' | 'or') => void;
 }
+
+const sortOptions = [
+  { value: 'relevance', label: '相关度' },
+  { value: 'last_active_desc', label: '最近活跃 ↓' },
+  { value: 'created_desc', label: '最新发布 ↓' },
+  { value: 'reply_desc', label: '回复数 ↓' },
+  { value: 'reaction_desc', label: '反应数 ↓' },
+];
+
+const tagLogicOptions = [
+  { value: 'and', label: '全部包含 (AND)' },
+  { value: 'or', label: '任一即可 (OR)' },
+];
 
 export function FilterBar({
   timeFrom,
@@ -65,18 +80,12 @@ export function FilterBar({
           >
             排序方式
           </label>
-          <select
+          <Select
             id="sortMethod"
             value={sortMethod}
-            onChange={(e) => onSortMethodChange(e.target.value)}
-            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
-          >
-            <option value="relevance">相关度</option>
-            <option value="last_active_desc">最近活跃 ↓</option>
-            <option value="created_desc">最新发布 ↓</option>
-            <option value="reply_desc">回复数 ↓</option>
-            <option value="reaction_desc">反应数 ↓</option>
-          </select>
+            options={sortOptions}
+            onChange={onSortMethodChange}
+          />
         </div>
 
         {/* 标签逻辑 */}
@@ -87,15 +96,12 @@ export function FilterBar({
           >
             标签逻辑
           </label>
-          <select
+          <Select
             id="tagLogic"
             value={tagLogic}
-            onChange={(e) => onTagLogicChange(e.target.value as 'and' | 'or')}
-            className="w-full rounded-md border-none bg-(--od-bg-tertiary) px-3 py-2 text-sm text-(--od-text-primary) transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
-          >
-            <option value="and">全部包含 (AND)</option>
-            <option value="or">任一即可 (OR)</option>
-          </select>
+            options={tagLogicOptions}
+            onChange={(v) => onTagLogicChange(v as 'and' | 'or')}
+          />
         </div>
       </div>
     </div>

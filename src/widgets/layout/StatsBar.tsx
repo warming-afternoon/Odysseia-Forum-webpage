@@ -1,5 +1,6 @@
 import { Grid, List } from 'lucide-react';
 import { useSettings } from '@/shared/hooks/useSettings';
+import { Select } from '@/shared/ui/Select';
 
 interface StatsBarProps {
   totalCount: number;
@@ -66,19 +67,19 @@ export function StatsBar({
           <label htmlFor="perPage" className="text-xs text-(--od-text-secondary)">
             每页
           </label>
-          <select
+          <Select
             id="perPage"
-            value={perPage}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              onPerPageChange(Number.isNaN(value) ? 24 : value);
+            value={String(perPage)}
+            options={[
+              { value: '12', label: '12' },
+              { value: '24', label: '24' },
+              { value: '48', label: '48' },
+            ]}
+            onChange={(v) => {
+              const num = Number(v);
+              onPerPageChange(Number.isNaN(num) ? 24 : num);
             }}
-            className="rounded-md bg-(--od-bg-tertiary) px-2 py-1 text-sm text-(--od-text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
-          >
-            <option value={12}>12</option>
-            <option value={24}>24</option>
-            <option value={48}>48</option>
-          </select>
+          />
         </div>
 
         {/* 跳转方式 */}
@@ -86,15 +87,15 @@ export function StatsBar({
           <label htmlFor="openMode" className="text-xs text-(--od-text-secondary)">
             跳转方式
           </label>
-          <select
+          <Select
             id="openMode"
             value={openMode}
-            onChange={(e) => updateSettings({ openMode: e.target.value as 'app' | 'web' })}
-            className="rounded-md bg-(--od-bg-tertiary) px-2 py-1 text-sm text-(--od-text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
-          >
-            <option value="app">App</option>
-            <option value="web">网页</option>
-          </select>
+            options={[
+              { value: 'app', label: 'App' },
+              { value: 'web', label: '网页' },
+            ]}
+            onChange={(v) => updateSettings({ openMode: v as 'app' | 'web' })}
+          />
         </div>
       </div>
     </div>

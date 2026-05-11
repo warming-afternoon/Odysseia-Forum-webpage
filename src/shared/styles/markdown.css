@@ -53,8 +53,19 @@
     padding: 10px;
     border-radius: 6px;
     overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
     margin: 8px 0;
     border: 1px solid var(--od-border);
+  }
+
+  /* pre 内部的 code 不再需要独立的背景和边框 */
+  & pre code {
+    background: none;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    font-size: inherit;
   }
 
   & .discord-h1 {

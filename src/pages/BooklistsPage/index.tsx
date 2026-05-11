@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { Select } from "@/shared/ui/Select";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { BooklistListItem } from "@/entities/booklist/BooklistListItem";
@@ -212,20 +213,15 @@ export function BooklistsPage() {
 
               <div className="flex items-center gap-2 rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4">
                 <SlidersHorizontal className="h-4 w-4 text-(--od-text-tertiary)" />
-                <select
-                  value={sortMethod}
-                  onChange={(e) => {
-                    setSortMethod(Number.parseInt(e.target.value, 10));
+                <Select
+                  value={String(sortMethod)}
+                  options={sortOptions.map((o) => ({ value: String(o.value), label: o.label }))}
+                  onChange={(v) => {
+                    setSortMethod(Number.parseInt(v, 10));
                     setPageIndex(0);
                   }}
-                  className="h-11 w-full bg-transparent text-sm text-(--od-text-primary) outline-hidden"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  variant="inline"
+                />
               </div>
 
               <button

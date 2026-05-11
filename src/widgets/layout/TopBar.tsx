@@ -44,7 +44,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   const location = useLocation();
   const isSearchPage = location.pathname === "/search";
   const { params, setParams } = useSearchURLParams();
-  const setPreviewThread = usePreviewStore((state) => state.setPreviewThread);
   const setPreviewThreadId = usePreviewStore(
     (state) => state.setPreviewThreadId,
   );
@@ -142,11 +141,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
   const handleSuggestionSelect = useCallback(
     (action: SearchSuggestionAction) => {
       if (action.type === "open_thread") {
-        if (action.thread) {
-          setPreviewThread(action.thread);
-        } else {
-          setPreviewThreadId(action.threadId);
-        }
+        setPreviewThreadId(action.threadId);
         closePanels();
         return;
       }
@@ -182,7 +177,6 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
       closePanels,
       executeSearch,
       searchInput,
-      setPreviewThread,
       setPreviewThreadId,
     ],
   );

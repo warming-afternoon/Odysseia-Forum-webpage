@@ -36,23 +36,27 @@ export interface SearchUIRequest {
 export interface SearchSuggestionAuthor {
   id: string;
   name: string;
+  display_name: string;
   avatar_url?: string | null;
 }
 
 export interface SearchSuggestionThread {
   thread_id: string;
   title: string;
-  snippet?: string | null;
-  thumbnail_url?: string | null;
-  author_name?: string | null;
-  author_avatar_url?: string | null;
-  source_thread?: Thread;
+  channel_id: string;
+  guild_id: string;
+}
+
+export interface SearchSuggestionBooklist {
+  id: number;
+  title: string;
+  item_count: number;
 }
 
 export interface SearchSuggestionResponse {
-  top_authors?: SearchSuggestionAuthor[];
-  top_threads?: SearchSuggestionThread[];
-  top_tags?: string[];
+  authors?: SearchSuggestionAuthor[];
+  threads?: SearchSuggestionThread[];
+  booklists?: SearchSuggestionBooklist[];
 }
 
 export interface SearchHistoryItem {
@@ -252,5 +256,18 @@ export const searchApi = {
     }
 
     return Array.from(tagSet);
+  },
+
+  getSuggestions: async (
+    keyword: string,
+    applyPreferences = true,
+  ): Promise<SearchSuggestionResponse> => {
+    const response = await apiClient.get<SearchSuggestionResponse>('/search/suggestions', {
+      params: {
+        keyword,
+        apply_preferences: applyPreferences,
+      },
+    });
+    return response.data;
   },
 };

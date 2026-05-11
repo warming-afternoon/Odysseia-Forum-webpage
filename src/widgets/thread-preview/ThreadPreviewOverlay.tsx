@@ -25,6 +25,7 @@ import { useFontSizeSetting } from "@/shared/hooks/useSettings";
 import { addToken } from "@/shared/lib/searchTokenizer";
 import { fontSizeMap } from "@/shared/lib/settings";
 import { MarkdownText } from "@/shared/ui/MarkdownText";
+import { AuthorRecommendations } from "@/features/threads/components/AuthorRecommendations";
 
 import { createPortal } from "react-dom";
 
@@ -49,6 +50,7 @@ export function ThreadPreviewOverlay({
   const [isVisible, setIsVisible] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useLockBodyScroll(true);
 
@@ -58,6 +60,13 @@ export function ThreadPreviewOverlay({
       dialogRef.current.showModal();
     }
   }, []);
+
+  // 切换帖子时重置滚动位置
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [thread.thread_id]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -234,14 +243,21 @@ export function ThreadPreviewOverlay({
               </span>
             </div>
           </div>
+
+          {/* Title */}
+          <h2
+            id="thread-preview-title"
+            className="mt-4 text-xl font-extrabold leading-snug tracking-[-0.02em] text-(--od-text-primary) break-words"
+          >
+            {thread.title}
+          </h2>
         </div>
 
         {/* Scrollable Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto bg-(--od-surface-floating) p-6 scrollbar-thin">
-          {/* Title */}
-          <h2 id="thread-preview-title" className={`mb-4 font-bold leading-tight text-(--od-text-primary) ${fontSizes.title}`}>
-            {thread.title}
-          </h2>
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 overflow-y-auto bg-(--od-surface-floating) p-6 scrollbar-thin"
+        >
 
           {/* Tags */}
           {thread.tags && thread.tags.length > 0 && (
@@ -295,6 +311,15 @@ export function ThreadPreviewOverlay({
             >
               <MarkdownText text={thread.first_message_excerpt} />
             </div>
+          )}
+
+          {/* Recommendations */}
+          {thread.author?.id && (
+            <AuthorRecommendations
+              authorId={thread.author.id}
+              authorName={authorName}
+              currentThreadId={thread.thread_id}
+            />
           )}
         </div>
       </dialog>
