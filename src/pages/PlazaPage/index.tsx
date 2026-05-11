@@ -100,7 +100,7 @@ export function PlazaPage() {
   // 当基础查询数据到达时，初始化 Map
   useEffect(() => {
     if (railsQuery.data) {
-      const applyFilter = (threads: Thread[]) => 
+      const applyFilter = (threads: Thread[]) =>
         !ignorePreferenceFilter ? filterThreadsByPreferences(threads, discoveryPreferenceContext) : threads;
 
       setRailThreadsMap({
@@ -129,7 +129,7 @@ export function PlazaPage() {
       );
 
       if (nextThreads.length > 0) {
-        const filteredNextThreads = !ignorePreferenceFilter 
+        const filteredNextThreads = !ignorePreferenceFilter
           ? filterThreadsByPreferences(nextThreads, discoveryPreferenceContext)
           : nextThreads;
 
@@ -158,12 +158,6 @@ export function PlazaPage() {
                 Plaza Spotlight
               </div>
               <h1 className="od-hero-title max-w-2xl text-(--od-text-primary)">内容广场</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-(--od-text-secondary) sm:text-base sm:leading-7">
-                我把今天广场里比较热闹、比较值得先看一眼的内容都理到这边啦。你不用急着挑，顺着往下逛就好，说不定一下子就碰到喜欢的。
-              </p>
-              <p className="mt-4 max-w-xl text-xs font-medium uppercase tracking-[0.2em] text-(--od-text-tertiary) sm:text-[0.78rem]">
-                先看看大家现在都在聊什么，再慢慢往下挖呀。
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 self-start lg:max-w-[24rem] lg:justify-end">
@@ -227,9 +221,6 @@ export function PlazaPage() {
                     <p className="text-sm text-gray-200 line-clamp-2">
                       今天的头图位还空着呢，不过没关系，先往下逛逛看吧。
                     </p>
-                    <p className="mt-2 max-w-2xl text-xs leading-5 text-white/80">
-                      想先快速熟悉社区脉络的话，也可以先去类脑智识库 Wiki 看看整理过的知识入口，再回来顺着广场慢慢逛。
-                    </p>
                     <div className="mt-4">
                       <a
                         href={WIKI_URL}
@@ -248,12 +239,12 @@ export function PlazaPage() {
         </div>
       </section>
 
-      <section className="px-1 py-8">
+      <section className="px-1 py-2">
 
 
         <FluidDivider label="Discovery Feed" tone="strong" className="mb-6" />
         {showPreferenceNotice && (
-          <div className="mb-5">
+          <div className="mb-0">
             <div className="od-inline-notice" data-tone="accent">
               <div className="od-inline-notice-head">
                 <div className="min-w-0">
@@ -261,10 +252,7 @@ export function PlazaPage() {
                     <Compass className="h-3.5 w-3.5" />
                     Preference Filter Active
                   </div>
-                  <p className="od-inline-notice-title mt-3">我先按你的口味帮你筛过一遍啦</p>
-                  <p className="od-inline-notice-copy mt-2 max-w-3xl">
-                    那些你大概不会感兴趣的内容，我先帮你挡开了一点点。要是你今天想乱逛，也可以临时放开看看呀。
-                  </p>
+                  <p className="od-inline-notice-title mt-3">我先按你的偏好帮你筛过一遍啦</p>
                 </div>
 
                 <div className="od-inline-notice-actions shrink-0 sm:justify-end">
@@ -298,15 +286,6 @@ export function PlazaPage() {
             </button>
           </div>
         )}
-        <div className="flex items-start gap-3 mt-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-(--od-surface-soft) text-(--od-accent)">
-            <Compass className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="od-section-title">正在发生</h2>
-            <p className="mt-1 text-sm text-(--od-text-secondary)">我把它们分成几条比较好逛的轨道啦，你可以先看新的，也可以挑热闹的那条慢慢翻。</p>
-          </div>
-        </div>
       </section>
 
       <section className="px-1">

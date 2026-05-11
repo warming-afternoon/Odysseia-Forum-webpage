@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+import { CinematicCard } from '@/shared/ui/CinematicCard';
 
 import { withViewTransition } from '@/shared/lib/viewTransition';
 
 import forumIcon from '@/assets/images/icon/A90C044F8DDF1959B2E9078CB629C239.png';
-import backgroundImage from '@/assets/images/background/summer1.png';
+import backgroundImage from '@/assets/images/background/summer4.png';
 import { APP_VERSION } from '@/shared/config/appInfo';
 import { WordLogoStatic } from '@/shared/ui/loaders/WordLogoStatic';
 
@@ -57,6 +59,37 @@ export function AboutPage() {
   const navigate = useNavigate();
   const hasSpawnedRef = useRef(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isUiHidden, setIsUiHidden] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [isSharpening, setIsSharpening] = useState(false);
+
+  // 苏醒序列动画：仅在进入背景模式时触发
+  useEffect(() => {
+    if (!isUiHidden) {
+      setIsWakingUp(false);
+      setIsSharpening(false);
+      return;
+    }
+
+    // 模拟眨眼效果：闭-睁-闭-睁
+    const sequence = async () => {
+      setIsSharpening(true); // 先进入模糊
+      setIsWakingUp(true);   // 闭眼
+
+      await new Promise(r => setTimeout(r, 600));
+      setIsWakingUp(false);  // 第一次睁眼
+      await new Promise(r => setTimeout(r, 300));
+      setIsWakingUp(true);   // 再次闭眼
+      await new Promise(r => setTimeout(r, 500));
+      setIsWakingUp(false);  // 最终睁眼
+
+      // 睁眼后逐渐变清晰
+      await new Promise(r => setTimeout(r, 400));
+      setIsSharpening(false);
+    };
+
+    sequence();
+  }, [isUiHidden]);
   const [contributors, setContributors] = useState<GithubContributor[]>([]);
   const [contributorsError, setContributorsError] = useState(false);
 
@@ -122,7 +155,7 @@ export function AboutPage() {
         });
 
         const sorted = Array.from(merged.values()).sort((a, b) => b.contributions - a.contributions);
-        
+
         if (sorted.length === 0 && (frontendData.length > 0 || backendData.length > 0)) {
            // 如果合并后为空但原始数据有，说明可能是 API 限制或其他问题，但不标记错误
         } else if (sorted.length === 0) {
@@ -146,15 +179,64 @@ export function AboutPage() {
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden"
+      className={`relative overflow-hidden ${isUiHidden ? 'h-screen' : 'min-h-screen'}`}
     >
+      {/* 苏醒遮罩：上眼睑 */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        className={`fixed inset-x-0 top-0 z-[100] h-1/2 bg-[#010103] transition-transform duration-1000 ease-in-out ${
+          isWakingUp ? 'translate-y-0' : '-translate-y-full'
+        }`}
       />
-      <div className="absolute inset-0 bg-black/14" />
+      {/* 苏醒遮罩：下眼睑 */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-[100] h-1/2 bg-[#010103] transition-transform duration-1000 ease-in-out ${
+          isWakingUp ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8 md:px-8">
+      <div
+        className={`absolute inset-0 cursor-crosshair transition-[filter] duration-[3500ms] ease-out ${
+          isSharpening ? 'blur-xl' : 'blur-0'
+        }`}
+        onClick={() => {
+          if (isUiHidden) setIsUiHidden(false);
+        }}
+      >
+        <CinematicCard
+          imageUrl={backgroundImage}
+          showGlow={false}
+          border={false}
+          showSheen={false}
+          useGlobalMouse={true}
+          povMode={true}
+          className="h-full w-full"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-black/14" />
+
+      {/* 隐藏/显示 UI 悬浮按钮 */}
+      <button
+        type="button"
+        onClick={() => setIsUiHidden((prev) => !prev)}
+        className="absolute bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-md transition-all hover:bg-black/60 hover:text-white"
+        title={isUiHidden ? "显示界面" : "隐藏界面看背景"}
+      >
+        {isUiHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+      </button>
+
+      {isUiHidden && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-20 z-40 flex justify-center animate-in fade-in zoom-in duration-500">
+          <span className="rounded-full bg-black/30 px-4 py-1.5 text-sm text-white/70 backdrop-blur-md">
+            点击背景任意处恢复界面
+          </span>
+        </div>
+      )}
+
+      <div
+        className={`relative z-10 flex min-h-screen items-center justify-center px-4 py-8 md:px-8 transition-all duration-700 ${
+          isUiHidden || isSharpening ? 'pointer-events-none translate-y-8 opacity-0 blur-sm' : 'translate-y-0 opacity-100 blur-0'
+        }`}
+      >
         <div className="mx-auto w-full max-w-3xl">
           <div className="w-full">
             <div className="rounded-2xl border border-(--od-border-strong)/60 bg-[color-mix(in_oklab,var(--od-bg-secondary)_58%,transparent)] p-6 shadow-2xl backdrop-blur-lg md:p-7">
