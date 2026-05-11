@@ -167,7 +167,16 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
         return;
       }
 
-      const newValue = `${searchInput}${action.value}`.trim();
+      // 移除最后一段正在输入的关键词，替换为建议的 Token
+      const words = searchInput.trimEnd().split(/\s+/);
+      if (words.length > 0 && words[0] !== "") {
+        words.pop();
+      } else {
+        // 如果输入为空，清空 words 以免 join 时前面多空格
+        words.length = 0;
+      }
+      const newValue = `${words.length > 0 ? words.join(" ") : ""}${action.value}`.trim();
+      
       applyInputChange(newValue);
       closePanels();
     },

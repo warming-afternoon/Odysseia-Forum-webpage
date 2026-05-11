@@ -93,6 +93,7 @@ export function AuthorRecommendations({
         </h3>
         <Link
           to={`/u/${authorId}`}
+          onClick={() => setPreviewThreadId(null)}
           className="flex items-center gap-1 text-sm font-medium text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
         >
           更多作品
