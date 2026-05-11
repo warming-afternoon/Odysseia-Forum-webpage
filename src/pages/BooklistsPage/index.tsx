@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Plus,
@@ -22,8 +22,10 @@ import {
 } from "@/features/booklists/hooks/useBooklistsData";
 import { BooklistFormModal } from "@/features/booklists/components/BooklistFormModal";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import { authorsApi } from "@/features/authors/api/authorsApi";
+import { useBooklistURLParams } from "@/features/booklists/hooks/useBooklistURLParams";
 
 type BooklistScope = "public" | "mine" | "collected";
 
@@ -36,11 +38,17 @@ const scopeOptions: Array<{ key: BooklistScope; label: string }> = [
 export function BooklistsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { params, setParams } = useBooklistURLParams();
 
-  const [scope, setScope] = useState<BooklistScope>("public");
-  const [keywords, setKeywords] = useState("");
-  const [sortMethod, setSortMethod] = useState<number>(4);
-  const [pageIndex, setPageIndex] = useState(0);
+  const { scope, keywords, sort: sortMethod, page } = params;
+  const pageIndex = page - 1;
+
+  const [searchInput, setSearchInput] = useState(keywords);
+
+  // 同步 URL 关键词到本地输入框
+  useEffect(() => {
+    setSearchInput(keywords);
+  }, [keywords]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Booklist | null>(null);
@@ -178,8 +186,7 @@ export function BooklistsPage() {
                     key={option.key}
                     type="button"
                     onClick={() => {
-                      setScope(option.key);
-                      setPageIndex(0);
+                      setParams({ scope: option.key, page: 1 });
                     }}
                     className={`od-pill-chip ${
                       scope === option.key
@@ -201,10 +208,15 @@ export function BooklistsPage() {
               <div className="flex items-center gap-2 rounded-2xl border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_72%,transparent)] px-4">
                 <Search className="h-4 w-4 text-(--od-text-tertiary)" />
                 <input
-                  value={keywords}
-                  onChange={(e) => {
-                    setKeywords(e.target.value);
-                    setPageIndex(0);
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setParams({ keywords: searchInput, page: 1 });
+                    }
+                  }}
+                  onBlur={() => {
+                    setParams({ keywords: searchInput, page: 1 });
                   }}
                   placeholder="搜索书单标题或简介"
                   className="h-11 w-full bg-transparent text-sm text-(--od-text-primary) outline-hidden placeholder:text-(--od-text-tertiary)"
@@ -217,8 +229,7 @@ export function BooklistsPage() {
                   value={String(sortMethod)}
                   options={sortOptions.map((o) => ({ value: String(o.value), label: o.label }))}
                   onChange={(v) => {
-                    setSortMethod(Number.parseInt(v, 10));
-                    setPageIndex(0);
+                    setParams({ sort: Number.parseInt(v, 10), page: 1 });
                   }}
                   variant="inline"
                 />
@@ -238,12 +249,18 @@ export function BooklistsPage() {
       </section>
 
       {listQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-col space-y-od-list-gap">
           {Array.from({ length: 6 }).map((_, idx) => (
             <div
               key={idx}
-              className="h-72 animate-pulse rounded-[1.35rem] bg-[color-mix(in_srgb,var(--od-surface-content)_62%,transparent)]"
-            />
+              className="flex items-center gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--od-border)_60%,transparent)] bg-(--od-surface-card) p-4"
+            >
+              <div className="h-16 w-16 shrink-0 animate-pulse rounded-[1.1rem] bg-(--od-surface-content)" />
+              <div className="flex flex-1 flex-col gap-2">
+                <div className="h-5 w-1/3 animate-pulse rounded bg-(--od-surface-content)" />
+                <div className="h-4 w-1/2 animate-pulse rounded bg-(--od-surface-content)" />
+              </div>
+            </div>
           ))}
         </div>
       ) : listQuery.isError ? (
@@ -300,33 +317,12 @@ export function BooklistsPage() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[color-mix(in_srgb,var(--od-text-secondary)_14%,transparent)] pt-5 text-sm">
-            <span className="text-(--od-text-secondary)">
-              第 {pageIndex + 1} / {totalPages} 页，共 {total} 条
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPageIndex((prev) => Math.max(0, prev - 1))}
-                disabled={pageIndex === 0}
-                className="od-inline-action od-inline-action-ghost disabled:opacity-40"
-              >
-                上一页
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setPageIndex((prev) =>
-                    prev + 1 < totalPages ? prev + 1 : prev,
-                  )
-                }
-                disabled={pageIndex + 1 >= totalPages}
-                className="od-inline-action od-inline-action-ghost disabled:opacity-40"
-              >
-                下一页
-              </button>
-            </div>
-          </div>
+          <AnimatedPagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={total}
+            onChange={(newPage) => setParams({ page: newPage })}
+          />
         </>
       )}
 

@@ -157,7 +157,7 @@ export function BooklistDetailPage() {
               <div className="flex items-start gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate("/booklists")}
+                  onClick={() => navigate(-1)}
                   className="mt-1 rounded-md border border-(--od-border) p-2 text-(--od-text-secondary) transition-colors hover:text-(--od-text-primary)"
                 >
                   <ArrowLeft className="h-4 w-4" />

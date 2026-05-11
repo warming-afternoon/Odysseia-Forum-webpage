@@ -7,7 +7,8 @@ import { ThreadCard } from '@/entities/thread/ThreadCard';
 import { ThreadCardSkeleton } from '@/entities/thread/ThreadCardSkeleton';
 import { usePreviewStore } from '@/features/search/store/previewStore';
 import type { Thread } from '@/entities/thread/types';
-import { BookOpenText } from 'lucide-react';
+import { BookOpenText, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface AuthorRecommendationsProps {
   authorId: string;
@@ -90,9 +91,13 @@ export function AuthorRecommendations({
           <BookOpenText className="h-5 w-5 text-(--od-accent)" />
           {authorName} 的其他作品
         </h3>
-        <span className="text-xs text-(--od-text-tertiary)">
-          共 {data?.total_count ?? threads.length} 篇
-        </span>
+        <Link
+          to={`/u/${authorId}`}
+          className="flex items-center gap-1 text-sm font-medium text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
+        >
+          更多作品
+          <ChevronRight className="h-4 w-4" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
