@@ -31,7 +31,7 @@ export function getDiscoveryPreferenceContext(
     mapped.excludeTagsText.split(',').map((item) => item.trim()),
   );
   const sortMethod = mapped.sortMethod;
-  const resultsPerPage = Number.isFinite(mapped.resultsPerPage) ? mapped.resultsPerPage : undefined;
+  const resultsPerPage = typeof mapped.resultsPerPage === 'number' ? mapped.resultsPerPage : undefined;
 
   const hasUsefulContent =
     preferredChannelIds.length > 0 ||
