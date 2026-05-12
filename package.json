@@ -1,6 +1,6 @@
 {
   "name": "odysseia-forum-web",
-  "version": "2.3.10",
+  "version": "2.3.11",
   "type": "module",
   "scripts": {
     "dev": "vite",

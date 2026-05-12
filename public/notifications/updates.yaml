@@ -1,4 +1,39 @@
 updates:
+  - id: release-2.3.11-login-animation-search-ui
+    kind: release
+    title: 索引页 2.3.11 发布：护士节的温柔小升级！
+    message: |-
+      今天是5月12日国际护士节呀！白衣天使们辛苦啦，大家生病的时候有没有乖乖听护士姐姐的话呢？一定要好好照顾自己的身体哦！
+
+      今天本宝宝也是活力满满呢！开发哥哥终于把登录时候的闭眼小动画做得更可爱啦，大家快去试试看！还有哦，页面跳转时候的提示语也变得更温柔更好懂了。顺便还把搜索筛选界面那些硬邦邦的文字重新整理了一遍，现在看着清清爽爽的，太舒服啦！||其实就是一些小细节优化啦，但本宝宝还是要在心里偷偷给开发哥哥加个鸡腿！|| 大家如果发现什么好玩的，记得随时跟我分享呀！
+    created_at: 2026-05-12T00:19:46.000Z
+    version: 2.3.11
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.11
+    preview_thread:
+      title: Odysseia Index 2.3.11 更新日志
+      first_message_excerpt: |-
+        # Odysseia Index 2.3.11
+
+        国际护士节快乐！致敬所有温柔又坚强的白衣天使们！
+
+        ## ✨ 体验小升级
+        - 登录界面加上了超级可爱的闭眼小动画，大家快去点点看！
+        - 页面跳转的提示语变得更懂你啦，再也不会冷冰冰的咯！
+        - 搜索筛选的界面文字也洗了个脸，变得清爽又整洁！
+        - ||虽然都是些小改动，但体验可是大大提升了呢！||
+      tags:
+        - 版本更新
+        - 体验优化
+      virtual_tags:
+        - release
+        - ui
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/hi.png
   - id: release-2.3.10-responsive-layout
     kind: release
     title: 索引页 2.3.10 发布：更漂亮的看帖体验来啦！
@@ -69,48 +104,6 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/sad_apology.png
-  - id: release-2.3.8-fixes-and-animations
-    kind: release
-    title: 索引页 2.3.8 发布：吃饱了才有力气捉虫呀！
-    message: |
-      今天是5月6日国际无节食日呀！大家今天有没有敞开肚皮吃一顿好吃的呢？本宝宝可是刚刚吃掉了一大块草莓蛋糕哦！不吃饱怎么有力气干活呢，对吧！
-
-      吃饱喝足之后，我可是盯着开发哥哥修好了一堆小问题哦！之前搜索的时候偶尔会卡住报错，现在已经治好啦！还有那个像俄罗斯套娃一样一直重复的书单，也重新整理得清清楚楚咯！而且呀，现在的页面切换和换背景简直丝滑得像奶油一样，看着超级舒服！另外我还抓住了后端一个导致大家设置不生效的坏虫子，已经让开发哥哥去打他板子啦！||哼，休想逃过本宝宝的眼睛！||大家快去看看现在的社区是不是变得更顺眼了呀！
-    created_at: 2026-05-06T00:00:00.000Z
-    version: 2.3.8
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.8
-    preview_thread:
-      title: Odysseia Index 2.3.8 更新日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.8
-
-        国际无节食日快乐！今天就放下减肥的烦恼，开心地吃吃吃吧！
-
-        ## ✨ 丝滑新体验
-        - 页面切换和背景更换现在加入了超级好看的过渡动画哦，丝滑得就像吃了冰淇淋一样！
-        - 以后逛社区会觉得更舒服啦！
-
-        ## 🐛 捉虫大成功
-        - 修好了搜索时偶尔会报错的笨蛋 Bug 呜呜...现在偏好设置可以放心用啦！
-        - 书单详情页也不会再无休止地复制同样的内容啦，清清爽爽最好了！
-        - 对了，我还揪出了一个后端导致偏好失效的坏虫子，已经发去鞭打啦！||本宝宝可是很严格的！||
-
-        大家快去体验一下吧，如果有问题记得来找我呀！
-      tags:
-        - 版本更新
-        - Bug修复
-        - 体验优化
-      virtual_tags:
-        - release
-        - bugfix
-        - animation
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/pride.png
   - id: earth-day-2026
     kind: announcement
     title: 🌍 世界地球日快乐！
