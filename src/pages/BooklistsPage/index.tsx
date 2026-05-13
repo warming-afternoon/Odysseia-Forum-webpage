@@ -97,7 +97,7 @@ export function BooklistsPage() {
         return data.results?.[0]?.thumbnail_urls?.[0] || null;
       },
       staleTime: 5 * 60 * 1000,
-      enabled: !booklist.cover_image_url,
+      enabled: !booklist.cover_image_url && booklist.item_count > 0,
     })),
   });
 
