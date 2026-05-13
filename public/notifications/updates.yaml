@@ -1,4 +1,40 @@
 updates:
+  - id: release-2.3.12-booklist-author-fix
+    kind: release
+    title: 索引页 2.3.12 发布：迷路的小书单，找到回家的路啦！
+    message: |-
+      呜呜，今天要给大家道个歉。开发哥哥在给大家拉取书单创建者信息的时候，走错路（用错了笨蛋接口）啦，导致大家看书单的时候可能遇到了点小卡顿……
+
+      不过别担心，本宝宝已经把开发哥哥说了一顿！现在已经把路标扶正啦，看书单又可以畅通无阻咯！||其实只是一个小小的接口调整啦，但本宝宝也是很严格的呢！||
+
+      大家快去试试看吧，如果还有迷路的书单，一定要及时跟我说哦！
+    created_at: 2026-05-13T00:38:03.344Z
+    version: 2.3.12
+    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
+    min_app_version: 2.3.12
+    preview_thread:
+      title: Odysseia Index 2.3.12 更新日志
+      first_message_excerpt: |-
+        # Odysseia Index 2.3.12
+
+        ## 🐛 捉虫大成功
+        - 修复了书单不再使用 `/author` 获取创建者信息的接口问题。
+        - 现在大家看书单的时候，再也不会因为跑错路而卡顿啦！
+        - 呜呜，之前遇到小卡顿的宝宝们，真的对不起呀！||已经让开发哥哥去面壁思过啦！||
+
+        如果大家再发现什么不对劲的地方，一定要第一时间告诉我哦！
+      tags:
+        - 版本更新
+        - Bug修复
+      virtual_tags:
+        - release
+        - bugfix
+      author:
+        id: odysseia-web
+        name: Odysseia
+        display_name: Odysseia Web Team
+      thumbnail_urls:
+        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/sad_apology.png
   - id: release-2.3.11-login-animation-search-ui
     kind: release
     title: 索引页 2.3.11 发布：护士节的温柔小升级！
@@ -68,42 +104,6 @@ updates:
         display_name: Odysseia Web Team
       thumbnail_urls:
         - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/pride.png
-  - id: release-2.3.9-url-concatenation-fix
-    kind: release
-    title: 索引页 2.3.9 发布：把错位的路标扶正啦！
-    message: |
-      今天是5月8日世界微笑日呀！大家今天有没有记得对身边的人，或者是镜子里的自己，露出一个大大的微笑呢？就算遇到烦心事，也要保持微笑哦！
-
-      呜呜呜，本宝宝今天要跟大家道个歉。之前大家看「浏览历史」或者「书单帖子」的时候，我可能把路标给指错了，导致大家点进去迷路了……都怪我不小心把 URL 给拼错了啦！不过别担心，我已经重新把路标都扶正了，现在大家又可以顺畅地到处闲逛啦！||才、才不是因为我贪玩忘记检查了呢！||大家快去试试看吧，以后我会更小心的！
-    created_at: 2026-05-08T00:30:00.000Z
-    version: 2.3.9
-    url: https://github.com/shiyue137mh-netizen/Odysseia-Forum-webpage/releases
-    min_app_version: 2.3.9
-    preview_thread:
-      title: Odysseia Index 2.3.9 更新日志
-      first_message_excerpt: |
-        # Odysseia Index 2.3.9
-
-        世界微笑日快乐！今天也要用微笑迎接每一天哦！
-
-        ## 🐛 捉虫大成功
-        - 修复了「浏览历史」和「书单帖子跳转」的 URL 拼接错误。
-        - 现在大家点击帖子链接，都能准确无误地到达目的地啦！
-        - 呜呜，之前迷路的宝宝们，真的对不起呀！||已经惩罚开发哥哥不许吃晚饭了！||
-
-        如果大家再发现什么不对劲的地方，一定要第一时间告诉我哦！
-      tags:
-        - 版本更新
-        - Bug修复
-      virtual_tags:
-        - release
-        - bugfix
-      author:
-        id: odysseia-web
-        name: Odysseia
-        display_name: Odysseia Web Team
-      thumbnail_urls:
-        - https://cdn.jsdelivr.net/gh/shiyue137mh-netizen/Odysseia-Forum-webpage@main/src/assets/images/mascot/sad_apology.png
   - id: earth-day-2026
     kind: announcement
     title: 🌍 世界地球日快乐！
