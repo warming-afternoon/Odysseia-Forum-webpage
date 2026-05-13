@@ -1,5 +1,9 @@
 import { apiClient } from '@/shared/api/client';
-import { clearStoredAuthToken } from '@/shared/lib/authSession';
+import {
+  clearStoredAuthToken,
+  getStoredAuthToken,
+  setUseAuthHeader,
+} from '@/shared/lib/authSession';
 
 export interface User {
   id: string;
@@ -18,16 +22,44 @@ export interface AuthResponse {
 export const authApi = {
   checkAuth: async (): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.get<AuthResponse>('/auth/checkauth');
-      return response.data;
+      const response = await apiClient.get<AuthResponse>('/auth/checkauth', {
+        skipAuthHeader: true,
+      });
+
+      if (response.data.loggedIn) {
+        setUseAuthHeader(false);
+        return response.data;
+      }
+
+      return await tryFallbackToAuthHeader();
     } catch {
-      // 如果检查失败，返回未认证状态而不是抛出错误
-      return { loggedIn: false };
+      return await tryFallbackToAuthHeader();
     }
   },
 
   logout: async (): Promise<void> => {
     await apiClient.get('/auth/logout');
     clearStoredAuthToken();
+    setUseAuthHeader(false);
   },
 };
+
+async function tryFallbackToAuthHeader(): Promise<AuthResponse> {
+  const token = getStoredAuthToken();
+  if (!token) return { loggedIn: false };
+
+  try {
+    const response = await apiClient.get<AuthResponse>('/auth/checkauth', {
+      headers: { Authorization: `Bearer ${token}` },
+      skipAuthHeader: true,
+    });
+    if (response.data.loggedIn) {
+      setUseAuthHeader(true);
+      return response.data;
+    }
+  } catch {
+    // 两种方式都失败了
+  }
+
+  return { loggedIn: false };
+}

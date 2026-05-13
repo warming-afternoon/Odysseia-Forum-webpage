@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { clearStoredAuthToken } from '@/shared/lib/authSession';
+import { clearStoredAuthToken, getStoredAuthToken, isUsingAuthHeader } from '@/shared/lib/authSession';
 
 const DEFAULT_API_URL = 'http://localhost:10810/v1';
 const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
@@ -30,6 +30,17 @@ export const apiClient = axios.create({
       }
     },
   ],
+});
+
+// 请求拦截器：当检测到跨域 cookie 被拦截时，回退到 Authorization header
+apiClient.interceptors.request.use((config) => {
+  if (isUsingAuthHeader() && !config.skipAuthHeader) {
+    const token = getStoredAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
 });
 
 // 响应拦截器
