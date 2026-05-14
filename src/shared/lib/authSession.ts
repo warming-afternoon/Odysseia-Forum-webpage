@@ -54,3 +54,27 @@ export function consumeAuthTokenFromHash(): string | null {
 export function hasAuthTokenInHash(hash = getLocationHash()): boolean {
   return extractAuthTokenFromHash(hash) !== null;
 }
+
+const USE_AUTH_HEADER_KEY = 'use_auth_header';
+
+export function isUsingAuthHeader(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(USE_AUTH_HEADER_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setUseAuthHeader(use: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (use) {
+      localStorage.setItem(USE_AUTH_HEADER_KEY, 'true');
+    } else {
+      localStorage.removeItem(USE_AUTH_HEADER_KEY);
+    }
+  } catch {
+    // ignore storage failures
+  }
+}
