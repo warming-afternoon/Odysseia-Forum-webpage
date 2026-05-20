@@ -13,7 +13,7 @@ const DISCORD_MEDIA_DOMAIN = 'media.discordapp.net';
  * 3. 强制请求 WebP 格式以平衡清晰度与体积
  */
 export function optimizeDiscordImageUrl(url: string, width: number = 800): string {
-  if (!url || !url.includes(DISCORD_CDN_DOMAIN)) {
+  if (!url || !url.includes(DISCORD_CDN_DOMAIN) || url.includes('/embed/')) {
     return url;
   }
 

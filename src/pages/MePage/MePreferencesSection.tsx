@@ -114,7 +114,7 @@ export function MePreferencesSection({
 
             <label className="block space-y-2">
               <span className="block text-sm font-medium text-(--od-text-secondary)">
-                每页条数
+                BOT 每页条数
               </span>
               <input
                 type="number"

@@ -7,7 +7,6 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useQueries } from "@tanstack/react-query";
 import { Select } from "@/shared/ui/Select";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -23,7 +22,6 @@ import {
 import { BooklistFormModal } from "@/features/booklists/components/BooklistFormModal";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
-import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import { useBooklistURLParams } from "@/features/booklists/hooks/useBooklistURLParams";
 
 type BooklistScope = "public" | "mine" | "collected";
@@ -88,26 +86,6 @@ export function BooklistsPage() {
     ],
     [scope],
   );
-
-  const latestCoverQueries = useQueries({
-    queries: normalizedResults.map((booklist) => ({
-      queryKey: ["booklists", "latest-cover", booklist.id],
-      queryFn: async () => {
-        const data = await booklistsApi.listItems(booklist.id, { offset: 0, limit: 1 });
-        return data.results?.[0]?.thumbnail_urls?.[0] || null;
-      },
-      staleTime: 5 * 60 * 1000,
-      enabled: !booklist.cover_image_url && booklist.item_count > 0,
-    })),
-  });
-
-  const fallbackCoverMap = useMemo(() => {
-    const map = new Map<number, string | null>();
-    normalizedResults.forEach((booklist, index) => {
-      map.set(booklist.id, latestCoverQueries[index]?.data || null);
-    });
-    return map;
-  }, [latestCoverQueries, normalizedResults]);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-10 p-4 sm:p-6 lg:gap-14 lg:p-8">
@@ -261,11 +239,7 @@ export function BooklistsPage() {
                   undefined
                 }
                 ownerAvatarUrl={booklist.author?.avatar_url ?? null}
-                coverImageUrl={
-                  booklist.cover_image_url ||
-                  fallbackCoverMap.get(booklist.id) ||
-                  null
-                }
+                coverImageUrl={booklist.cover_image_url || null}
                 onOpen={(id) => navigate(`/booklists/${id}`)}
                 onToggleCollect={(item) =>
                   collectMutation.mutate({
