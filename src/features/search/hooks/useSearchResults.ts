@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 
-import type { Thread } from '@/entities/thread/types';
+import type { SearchResponse, Thread } from '@/entities/thread/types';
 import { searchApi } from '@/features/search/api/searchApi';
 import {
   getDiscoveryPreferenceContext,
@@ -10,6 +10,7 @@ import {
 import type { UserPreferencesResponse } from '@/features/preferences/api/preferencesApi';
 import type { SearchParams } from '@/features/search/hooks/useSearchParams';
 import { searchKeys } from '@/features/search/lib/queryKeys';
+import { useResultPagingModeSetting } from '@/shared/hooks/useSettings';
 
 interface UseSearchResultsOptions {
   params: SearchParams;
@@ -26,13 +27,17 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     excludeAuthors,
     tagLogic,
     sortMethod,
+    sortOrder,
+    page,
     timeFrom,
     timeTo,
   } = params;
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
   const [ignoreDiscoveryPreferences, setIgnoreDiscoveryPreferences] = useState(false);
+  const resultPagingMode = useResultPagingModeSetting();
+  const pageSize = 24;
+  const currentPage = Math.max(1, page || 1);
 
   const hasExplicitFilters =
     includeTags.length > 0 ||
@@ -52,14 +57,14 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   const applyPreferences = !ignoreDiscoveryPreferences;
 
 
-  const queryState = useInfiniteQuery<any, Error, any, any, any>({
+  const queryState = useQuery<SearchResponse, Error>({
     queryKey: searchKeys.results({
       ...params,
       applyPreferences,
       preferenceSignature: discoveryPreferenceContext?.signature,
+      resultPagingMode: 'pagination',
     }),
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) => {
+    queryFn: () => {
       return searchApi.search({
         query: query || undefined,
         channel_ids: selectedChannel ? [selectedChannel] : undefined,
@@ -67,27 +72,61 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
         exclude_tags: excludeTags.length > 0 ? excludeTags : undefined,
         tag_logic: tagLogic,
         sort_method: sortMethod,
+        sort_order: sortOrder,
         apply_preferences: applyPreferences,
-        // 当使用 exclude_thread_ids 时，必须将 offset 设为 0，
-        // 否则会导致后端在排除后的集合基础上再次进行偏移，产生跳页 Bug。
-        offset: 0,
-        exclude_thread_ids: typeof pageParam === 'object' ? (pageParam as any).exclude_thread_ids : [],
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize,
         created_after: timeFrom || undefined,
         created_before: timeTo || undefined,
       });
     },
-    getNextPageParam: (lastPage, allPages) => {
-      const excludeIds = allPages.flatMap((page: any) => 
-        (page.results || []).map((t: any) => t.thread_id)
-      ).filter(Boolean);
+    enabled: resultPagingMode === 'pagination',
+    placeholderData: (prev) => prev,
+    staleTime: 0,
+  });
 
-      // 【注意】适配后端特有的“余量总计”逻辑：
-      // 这里的 total 是指排除掉已加载项后，数据库里还剩下多少。
-      // 只要余量 > 0，就说明还没到底，可以继续“拉黑”翻页。
-      return (lastPage.total || 0) > 0 
-        ? { offset: 0, exclude_thread_ids: excludeIds } 
-        : undefined;
+  const infiniteQueryState = useInfiniteQuery<SearchResponse, Error, InfiniteData<SearchResponse>, ReturnType<typeof searchKeys.results>, string[]>({
+    queryKey: searchKeys.results({
+      ...params,
+      page: 1,
+      applyPreferences,
+      preferenceSignature: discoveryPreferenceContext?.signature,
+      resultPagingMode: 'infinite',
+    }),
+    queryFn: ({ pageParam }) => {
+      const excludeThreadIds = pageParam;
+      return searchApi.search({
+        query: query || undefined,
+        channel_ids: selectedChannel ? [selectedChannel] : undefined,
+        include_tags: includeTags.length > 0 ? includeTags : undefined,
+        exclude_tags: excludeTags.length > 0 ? excludeTags : undefined,
+        tag_logic: tagLogic,
+        sort_method: sortMethod,
+        sort_order: sortOrder,
+        apply_preferences: applyPreferences,
+        limit: pageSize,
+        offset: 0,
+        exclude_thread_ids: excludeThreadIds,
+        created_after: timeFrom || undefined,
+        created_before: timeTo || undefined,
+      });
     },
+    initialPageParam: [],
+    getNextPageParam: (_lastPage, allPages = []) => {
+      if (allPages.length === 0) return undefined;
+
+      const loadedThreadIds = allPages.flatMap((pageData) =>
+        ((pageData?.results || []) as Thread[]).map((thread) => String(thread.thread_id)),
+      );
+      const lastTotal = Number(allPages[allPages.length - 1]?.total || 0);
+
+      if (loadedThreadIds.length === 0 || loadedThreadIds.length >= lastTotal) {
+        return undefined;
+      }
+
+      return Array.from(new Set(loadedThreadIds));
+    },
+    enabled: resultPagingMode === 'infinite',
     staleTime: 0,
   });
 
@@ -98,50 +137,18 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
   }, [applyPreferences, queryClient]);
 
   const results = useMemo<Thread[]>(() => {
-    const pages = queryState.data?.pages || [];
-    const mergedResults = pages.flatMap(
-      (page: any) => page.results || [],
-    ) as Thread[];
-
-    const uniqueResults = new Map<string, Thread>();
-    for (const thread of mergedResults) {
-      if (!thread?.thread_id) continue;
-      // 强制转 String，防止 Map 键值类型不匹配导致合并失败
-      const key = String(thread.thread_id);
-      if (!uniqueResults.has(key)) {
-        uniqueResults.set(key, thread);
-      }
+    if (resultPagingMode === 'infinite') {
+      return infiniteQueryState.data?.pages.flatMap((pageData) => (pageData?.results || []) as Thread[]) || [];
     }
 
-    const finalResults = Array.from(uniqueResults.values());
-    
-    return finalResults;
-  }, [queryState.data, applyPreferences, discoveryPreferenceContext]);
+    return (queryState.data?.results || []) as Thread[];
+  }, [infiniteQueryState.data, queryState.data, resultPagingMode]);
 
-  const totalResults = Number(queryState.data?.pages?.[0]?.total || 0);
-
-  const lastFetchTimeRef = useRef<number>(0);
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !queryState.hasNextPage) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && queryState.hasNextPage && !queryState.isFetchingNextPage) {
-          const now = Date.now();
-          // 强力节流：1秒钟内只准发起一次翻页请求，给 UI 渲染和去重留足时间
-          if (now - lastFetchTimeRef.current > 1000) {
-            lastFetchTimeRef.current = now;
-            queryState.fetchNextPage();
-          }
-        }
-      },
-      { rootMargin: '200px 0px' },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [queryState.fetchNextPage, queryState.hasNextPage, queryState.isFetchingNextPage]);
+  const totalResults = Number(
+    resultPagingMode === 'infinite'
+      ? infiniteQueryState.data?.pages[0]?.total || 0
+      : queryState.data?.total || 0,
+  );
 
   const hasSearchFilters = !!query || hasExplicitFilters;
   const isPreferenceActive = !!discoveryPreferenceContext && applyPreferences;
@@ -153,11 +160,13 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     hasExplicitFilters,
     hasSearchFilters,
     ignoreDiscoveryPreferences,
+    infiniteQueryState,
     isPreferenceActive,
     showPreferenceBanner,
-    loadMoreRef,
-    queryState,
+    pageSize,
+    queryState: resultPagingMode === 'infinite' ? infiniteQueryState : queryState,
     results,
+    resultPagingMode,
     setIgnoreDiscoveryPreferences,
     totalResults,
   };

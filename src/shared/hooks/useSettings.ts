@@ -25,6 +25,10 @@ export function useLayoutMode() {
   return useSettingsStore((state) => state.settings.layoutMode);
 }
 
+export function useResultPagingModeSetting() {
+  return useSettingsStore((state) => state.settings.resultPagingMode);
+}
+
 export function useFontSizeSetting() {
   return useSettingsStore((state) => state.settings.fontSize);
 }

@@ -7,6 +7,7 @@ import {
   Maximize2,
   Minimize2,
   Monitor,
+  ScrollText,
   Scan,
   Type,
 } from 'lucide-react';
@@ -178,6 +179,36 @@ export function DisplaySettingsSection({ settings, updateSettings }: DisplaySett
                   <div className="text-xs text-(--od-text-tertiary)">适合搜索、筛选和连续阅读</div>
                 </div>
               </button>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">Result Loading</p>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => updateSettings({ resultPagingMode: 'pagination' })}
+                  data-active={settings.resultPagingMode === 'pagination'}
+                  className={`${rowChoiceClass} ${settings.resultPagingMode === 'pagination' ? '' : ''}`}
+                >
+                  <List className={`od-choice-icon h-5 w-5 ${settings.resultPagingMode === 'pagination' ? 'text-(--od-accent)' : 'text-(--od-text-secondary)'}`} />
+                  <div className="text-left">
+                    <div className="od-choice-title text-sm font-medium text-(--od-text-primary)">分页浏览</div>
+                    <div className="text-xs text-(--od-text-tertiary)">保留页码，适合精确跳转和回看</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSettings({ resultPagingMode: 'infinite' })}
+                  data-active={settings.resultPagingMode === 'infinite'}
+                  className={`${rowChoiceClass} ${settings.resultPagingMode === 'infinite' ? '' : ''}`}
+                >
+                  <ScrollText className={`od-choice-icon h-5 w-5 ${settings.resultPagingMode === 'infinite' ? 'text-(--od-accent)' : 'text-(--od-text-secondary)'}`} />
+                  <div className="text-left">
+                    <div className="od-choice-title text-sm font-medium text-(--od-text-primary)">连续滚动</div>
+                    <div className="text-xs text-(--od-text-tertiary)">滚动到底部时自动加载更多帖子</div>
+                  </div>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

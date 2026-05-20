@@ -154,7 +154,7 @@ export function useTopBarSearchController({
           `/search${nextParams.toString() ? `?${nextParams.toString()}` : ""}`,
         );
       } else {
-        setParams({ query: trimmed });
+        setParams({ query: trimmed, page: 1 });
       }
 
       if (trimmed) {
@@ -206,7 +206,7 @@ export function useTopBarSearchController({
           `/search${nextParams.toString() ? `?${nextParams.toString()}` : ""}`,
         );
       } else {
-        setParams({ query: trimmed });
+        setParams({ query: trimmed, page: 1 });
       }
     },
     [isSearchPage, navigate, params.query, setParams],
@@ -245,6 +245,8 @@ export function useTopBarSearchController({
             (item.sortMethod as SearchParams["sortMethod"]) ||
             "last_active_desc",
           tagLogic: item.tagLogic || "and",
+          sortOrder: "desc",
+          page: 1,
         });
       }
 
@@ -292,7 +294,7 @@ export function useTopBarSearchController({
     (nextQuery: string) => {
       setSearchInput(nextQuery);
       setPersistedDraftQuery(nextQuery);
-      setParams({ query: nextQuery });
+      setParams({ query: nextQuery, page: 1 });
     },
     [setParams],
   );
@@ -337,6 +339,8 @@ export function useTopBarSearchController({
     setParams({
       query: "",
       sortMethod: "last_active_desc",
+      sortOrder: "desc",
+      page: 1,
       timeFrom: "",
       timeTo: "",
       tagLogic: "and",

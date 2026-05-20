@@ -21,6 +21,7 @@ export type SortMethod =
   | "created_desc"
   | "reply_desc"
   | "reaction_desc";
+export type SortOrder = "asc" | "desc";
 
 export type TagLogic = "and" | "or";
 export type SearchTargetType = "thread" | "booklist";
@@ -30,6 +31,8 @@ export interface SearchParams {
   channel: string | null;
   type: SearchTargetType;
   sortMethod: SortMethod;
+  sortOrder: SortOrder;
+  page: number;
   includeTags: string[];
   excludeTags: string[];
   includeAuthors: string[];
@@ -75,12 +78,17 @@ export function parseParams(sp: URLSearchParams): SearchParams {
 
   const rawType = sp.get("type");
   const type: SearchTargetType = rawType === "booklist" ? "booklist" : "thread";
+  const rawPage = Number.parseInt(sp.get("page") || "1", 10);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const sortOrder: SortOrder = sp.get("order") === "asc" ? "asc" : "desc";
 
   return {
     query,
     channel: sp.get("channel") || tokenized.channels[0] || null,
     type,
     sortMethod,
+    sortOrder,
+    page,
     includeTags: tokenizeSearchPayload(query).includeTags,
     excludeTags: tokenizeSearchPayload(query).excludeTags,
     includeAuthors: tokenizeSearchPayload(query).includeAuthors,
@@ -102,6 +110,8 @@ export function serializeParams(
   if (params.sortMethod && params.sortMethod !== "last_active_desc") {
     sp.set("sort", params.sortMethod);
   }
+  if (params.sortOrder && params.sortOrder !== "desc") sp.set("order", params.sortOrder);
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
   if (params.tagLogic && params.tagLogic !== "and") {
     sp.set("tag_logic", params.tagLogic);
   }
@@ -119,7 +129,16 @@ export function useSearchURLParams() {
   const setParams = useCallback(
     (updates: Partial<SearchParams>) => {
       const current = parseParams(searchParams);
-      const merged = { ...current, ...updates };
+      const shouldResetPage =
+        updates.page === undefined &&
+        ((updates.query !== undefined && updates.query !== current.query) ||
+          (updates.channel !== undefined && updates.channel !== current.channel) ||
+          (updates.sortMethod !== undefined && updates.sortMethod !== current.sortMethod) ||
+          (updates.sortOrder !== undefined && updates.sortOrder !== current.sortOrder) ||
+          (updates.tagLogic !== undefined && updates.tagLogic !== current.tagLogic) ||
+          (updates.timeFrom !== undefined && updates.timeFrom !== current.timeFrom) ||
+          (updates.timeTo !== undefined && updates.timeTo !== current.timeTo));
+      const merged = { ...current, ...updates, page: shouldResetPage ? 1 : (updates.page ?? current.page) };
       const newSP = serializeParams(merged);
       if (updates.sortMethod === "last_active_desc") {
         newSP.set("sort", "last_active_desc");
@@ -146,6 +165,8 @@ export function useSearchURLParams() {
       params.timeFrom ||
       params.timeTo ||
       (params.sortMethod && params.sortMethod !== "last_active_desc") ||
+      (params.sortOrder && params.sortOrder !== "desc") ||
+      params.page > 1 ||
       (params.tagLogic && params.tagLogic !== "and")
     );
   }, [params]);

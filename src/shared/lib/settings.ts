@@ -5,6 +5,7 @@ export interface UserSettings {
   fontMode: 'system' | 'theme';
   cardSize: 'compact' | 'normal' | 'large';
   layoutMode: 'grid' | 'list';
+  resultPagingMode: 'pagination' | 'infinite';
   compactMode: boolean;
   /**
    * 图片加载策略：
@@ -48,6 +49,7 @@ const defaultSettings: UserSettings = {
   fontMode: 'system',
   cardSize: 'normal',
   layoutMode: 'grid',
+  resultPagingMode: 'pagination',
   compactMode: false,
   imageMode: 'normal',
   theme: 'discord-dark',

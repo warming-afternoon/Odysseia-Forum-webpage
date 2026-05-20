@@ -8,6 +8,7 @@ export type UISortMethod =
   | 'created_desc'
   | 'reply_desc'
   | 'reaction_desc';
+export type UISortOrder = 'asc' | 'desc';
 
 export interface SearchUIRequest {
   query?: string;
@@ -18,6 +19,7 @@ export interface SearchUIRequest {
   exclude_authors?: Array<number | string>;
   tag_logic?: 'and' | 'or';
   sort_method?: UISortMethod;
+  sort_order?: UISortOrder;
   created_after?: string | null;
   created_before?: string | null;
   active_after?: string | null;
@@ -204,7 +206,7 @@ function buildSearchRequest(params: SearchUIRequest): ApiSearchParams {
     active_after: params.active_after || undefined,
     active_before: params.active_before || undefined,
     sort_method: params.sort_method ? mapSortMethod(params.sort_method) : undefined,
-    sort_order: 'desc',
+    sort_order: params.sort_order ?? 'desc',
     limit: params.limit || 24,
     offset: params.offset || 0,
     exclude_thread_ids: (params.exclude_thread_ids || []) as unknown as number[],

@@ -25,9 +25,14 @@ vi.mock('@/features/search/hooks/useSearchParams', () => ({
 const DEFAULT_PARAMS = {
   query: '',
   channel: null,
+  type: 'thread',
   sortMethod: 'last_active_desc',
+  sortOrder: 'desc',
+  page: 1,
   includeTags: [],
   excludeTags: [],
+  includeAuthors: [],
+  excludeAuthors: [],
   tagLogic: 'and',
   timeFrom: '',
   timeTo: '',
@@ -74,4 +79,3 @@ describe('SearchPage 交互测试', () => {
     expect(mockClearParams).toHaveBeenCalled();
   });
 });
-

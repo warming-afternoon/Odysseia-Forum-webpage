@@ -6,6 +6,7 @@ export const searchKeys = {
     params: SearchParams & {
       applyPreferences?: boolean;
       preferenceSignature?: string;
+      resultPagingMode?: string;
     },
   ) =>
     [
@@ -18,8 +19,11 @@ export const searchKeys = {
         excludeAuthors: params.excludeAuthors,
         tagLogic: params.tagLogic,
         sortMethod: params.sortMethod,
+        sortOrder: params.sortOrder,
+        page: params.page,
         timeFrom: params.timeFrom,
         timeTo: params.timeTo,
+        resultPagingMode: params.resultPagingMode ?? "pagination",
         applyPreferences: params.applyPreferences ?? false,
         preferenceSignature: params.preferenceSignature ?? "no-preferences",
       },

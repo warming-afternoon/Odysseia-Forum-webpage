@@ -9,7 +9,7 @@ import {
   useBooklistsList,
   useToggleBooklistCollection,
 } from "@/features/booklists/hooks/useBooklistsData";
-import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
+import { useCardGridClass, useResultPagingModeSetting, useSettings } from "@/shared/hooks/useSettings";
 import { useMascotStore } from "@/features/mascot/store/mascotStore";
 import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
@@ -18,10 +18,13 @@ import { useChannels } from "@/shared/hooks/useChannels";
 import { addToken, parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { Select } from "@/shared/ui/Select";
+import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import {
   ArrowUpDown,
   Compass,
   Dices,
+  MoveDown,
+  MoveUp,
   LayoutGrid,
   Rows3,
   Search,
@@ -51,8 +54,10 @@ export function SearchPage() {
   const reactToSearch = useMascotStore((state) => state.reactToSearch);
 
   const layoutMode = useLayoutMode();
+  const resultPagingMode = useResultPagingModeSetting();
   const { updateSettings } = useSettings();
   const hasTriggeredSearchCueRef = useRef<string | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const {
     discoveryPreferenceContext,
@@ -60,15 +65,14 @@ export function SearchPage() {
     ignoreDiscoveryPreferences,
     isPreferenceActive,
     showPreferenceBanner,
-    loadMoreRef,
     queryState: {
       isLoading,
       isError,
       refetch,
-      hasNextPage,
-      isFetchingNextPage,
     },
+    infiniteQueryState,
     results,
+    pageSize,
     setIgnoreDiscoveryPreferences,
     totalResults,
   } = useSearchResults({ params, preferences });
@@ -83,6 +87,8 @@ export function SearchPage() {
 
   const booklistResults = booklistQuery.data?.results ?? [];
   const booklistTotal = booklistQuery.data?.total ?? 0;
+  const searchTotalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+  const isInfiniteMode = resultPagingMode === "infinite";
 
 
   const handleTagClick = (tagName: string) => {
@@ -132,6 +138,25 @@ export function SearchPage() {
       }
     }
   }, [preferences, params.sortMethod, setParams]);
+
+  useEffect(() => {
+    if (!isInfiniteMode) return;
+
+    const target = loadMoreRef.current;
+    if (!target || !infiniteQueryState.hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && infiniteQueryState.hasNextPage && !infiniteQueryState.isFetchingNextPage) {
+          infiniteQueryState.fetchNextPage();
+        }
+      },
+      { rootMargin: "360px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [infiniteQueryState, isInfiniteMode]);
 
   const isThreadTab = params.type === "thread";
 
@@ -248,6 +273,23 @@ export function SearchPage() {
                   }
                   variant="inline"
                 />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setParams({
+                      sortOrder: params.sortOrder === "desc" ? "asc" : "desc",
+                    })
+                  }
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-(--od-text-secondary) transition-colors hover:bg-(--od-surface-hover) hover:text-(--od-text-primary)"
+                  title={params.sortOrder === "desc" ? "当前为倒序" : "当前为正序"}
+                >
+                  {params.sortOrder === "desc" ? (
+                    <MoveDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <MoveUp className="h-3.5 w-3.5" />
+                  )}
+                  {params.sortOrder === "desc" ? "倒序" : "正序"}
+                </button>
               </div>
             )}
 
@@ -310,6 +352,8 @@ export function SearchPage() {
                   setParams({
                     query: "",
                     sortMethod: "last_active_desc",
+                    sortOrder: "desc",
+                    page: 1,
                     timeFrom: "",
                     timeTo: "",
                     tagLogic: "and",
@@ -467,24 +511,22 @@ export function SearchPage() {
                 listClassName="flex flex-col space-y-od-list-gap pb-4"
               />
 
-              <div
-                ref={loadMoreRef}
-                className="flex items-center justify-center py-8"
-              >
-                {isFetchingNextPage ? (
-                  <span className="text-sm text-(--od-text-tertiary)">
-                    正在加载更多结果…
-                  </span>
-                ) : hasNextPage ? (
-                  <span className="text-sm text-(--od-text-tertiary)">
-                    继续下滑以加载更多
-                  </span>
-                ) : (
-                  <span className="text-sm text-(--od-text-tertiary)">
-                    已经到底了
-                  </span>
-                )}
-              </div>
+              {isInfiniteMode ? (
+                <div ref={loadMoreRef} className="flex justify-center py-8 text-sm text-(--od-text-secondary)">
+                  {infiniteQueryState.isFetchingNextPage
+                    ? "正在加载更多帖子..."
+                    : infiniteQueryState.hasNextPage
+                      ? "继续向下滚动加载更多"
+                      : "已经到底啦"}
+                </div>
+              ) : (
+                <AnimatedPagination
+                  currentPage={params.page}
+                  totalPages={searchTotalPages}
+                  totalItems={totalResults}
+                  onChange={(page) => setParams({ page })}
+                />
+              )}
             </div>
           ) : (
             <div className="animate-in fade-in zoom-in-95 duration-500 flex flex-col items-center justify-center py-20 text-center">

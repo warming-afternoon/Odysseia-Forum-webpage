@@ -19,9 +19,6 @@ import { GUILD_ID } from '@/shared/config/channelCategories.private';
 import { buildDiscordWebThreadUrl } from '@/shared/lib/discord';
 import { FluidDivider } from '@/shared/ui/FluidDivider';
 import { useCardGridClass } from '@/shared/hooks/useSettings';
-import defaultBannerImage from '@/assets/images/banners/banner.png';
-
-const WIKI_URL = 'https://wiki.xn--35zx7g.org/';
 
 interface RailRefreshButtonProps {
   onRefresh: () => void;
@@ -177,34 +174,7 @@ export function PlazaPage() {
             }}
           />
         ) : (
-          <div className="group relative overflow-hidden">
-            <div className="relative aspect-video">
-              <img
-                src={defaultBannerImage}
-                alt="欢迎来到 Odysseia"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:px-10 lg:px-16">
-                <h2 className="mb-2 text-2xl font-bold text-white line-clamp-1">
-                  欢迎来到 类脑Odysseia
-                </h2>
-                <p className="text-sm text-gray-200 line-clamp-2">
-                  今天的头图位还空着呢，不过没关系，先往下逛逛看吧。
-                </p>
-                <div className="mt-4">
-                  <a
-                    href={WIKI_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-full border border-white/20 bg-black/30 px-4 py-2 text-xs font-semibold tracking-[0.12em] text-white transition-colors hover:bg-black/45"
-                  >
-                    类脑智识库 Wiki
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+          <BannerCarousel fullWidth={true} banners={[]} />
         )}
       </section>
 
