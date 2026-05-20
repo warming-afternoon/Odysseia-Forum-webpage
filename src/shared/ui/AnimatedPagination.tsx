@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronsLeft,
@@ -22,6 +22,12 @@ export function AnimatedPagination({
   maxVisible = 5,
   totalItems,
 }: AnimatedPaginationProps) {
+  const [jumpValue, setJumpValue] = useState(String(currentPage));
+
+  useEffect(() => {
+    setJumpValue(String(currentPage));
+  }, [currentPage]);
+
   // 计算需要显示的页码范围
   const visiblePages = useMemo(() => {
     let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
@@ -32,6 +38,20 @@ export function AnimatedPagination({
     }
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [currentPage, totalPages, maxVisible]);
+
+  const commitJump = () => {
+    const page = Number(jumpValue);
+    if (!Number.isInteger(page)) {
+      setJumpValue(String(currentPage));
+      return;
+    }
+
+    const nextPage = Math.max(1, Math.min(totalPages, page));
+    setJumpValue(String(nextPage));
+    if (nextPage !== currentPage) {
+      onChange(nextPage);
+    }
+  };
 
   if (totalPages <= 1) return null;
 
@@ -126,6 +146,25 @@ export function AnimatedPagination({
       </div>
       <div className="text-xs font-medium tracking-wide text-(--od-text-tertiary)">
         第 {currentPage} / {totalPages} 页 {totalItems !== undefined && `· 共 ${totalItems} 条`}
+      </div>
+      <div className="flex items-center gap-2 text-xs text-(--od-text-secondary)">
+        <span>跳转到</span>
+        <input
+          type="number"
+          min={1}
+          max={totalPages}
+          value={jumpValue}
+          onChange={(event) => setJumpValue(event.target.value)}
+          onBlur={commitJump}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
+            }
+          }}
+          aria-label="跳转页码"
+          className="h-8 w-20 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] px-3 text-center text-sm font-medium text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
+        />
+        <span>页</span>
       </div>
     </div>
   );
