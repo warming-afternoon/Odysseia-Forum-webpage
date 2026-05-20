@@ -168,7 +168,7 @@ export function BooklistDetailPage() {
                   <h1 className="text-2xl font-bold tracking-tight text-(--od-text-primary)">
                     {booklist.title}
                   </h1>
-                  <p className="mt-1 text-sm text-(--od-text-secondary)">
+                  <p className="mt-1 whitespace-pre-line text-sm text-(--od-text-secondary)">
                     {booklist.description || "暂无简介"}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-(--od-text-tertiary)">

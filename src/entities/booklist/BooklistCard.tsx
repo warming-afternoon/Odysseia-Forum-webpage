@@ -90,7 +90,7 @@ export function BooklistCard({
           <h3 className="mt-2 line-clamp-2 text-base font-semibold tracking-tight text-(--od-text-primary) transition-colors group-hover:text-(--od-accent)">
             {booklist.title}
           </h3>
-          <p className="mt-2 line-clamp-3 text-sm leading-6 text-(--od-text-secondary)">
+          <p className="mt-2 line-clamp-3 whitespace-pre-line text-sm leading-6 text-(--od-text-secondary)">
             {booklist.description || '暂无简介'}
           </p>
 

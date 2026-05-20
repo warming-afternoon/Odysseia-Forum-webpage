@@ -110,7 +110,7 @@ export function BooklistListItem({
             </button>
           </div>
 
-          <p className="mb-3 line-clamp-2 break-all text-sm leading-relaxed text-(--od-text-secondary) md:max-w-[72ch]">
+          <p className="mb-3 line-clamp-2 whitespace-pre-line break-all text-sm leading-relaxed text-(--od-text-secondary) md:max-w-[72ch]">
             {booklist.description || "暂无简介"}
           </p>
 

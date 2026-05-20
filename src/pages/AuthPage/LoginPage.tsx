@@ -9,16 +9,21 @@ import { showMascotToast } from '@/features/mascot/lib/mascotToast';
 import { notifySuccess } from '@/shared/lib/notify';
 import { WordLogoStatic } from '@/shared/ui/loaders/WordLogoStatic';
 import backgroundImage from '@/assets/images/background/summer2.png';
+import ruleImage from '@/assets/images/background/rule.png';
 import { WordLoader } from '@/shared/ui/loaders/WordLoader';
 import { CinematicCard } from '@/shared/ui/CinematicCard';
+import { ImageViewer } from '@/shared/ui/ImageViewer';
+import { useImageViewerStore } from '@/shared/store/useImageViewerStore';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const refreshAuth = useRefreshAuth();
+  const openImageViewer = useImageViewerStore((state) => state.open);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(true);
   const [isSharpening, setIsSharpening] = useState(true);
+  const [hasAcceptedRules, setHasAcceptedRules] = useState(false);
 
   const loadingWordStyle: CSSProperties & { '--od-text-primary': string } = {
     '--od-text-primary': 'color-mix(in oklab, var(--od-accent) 78%, white 22%)',
@@ -51,6 +56,17 @@ export function LoginPage() {
   }, [isAuthenticated, navigate]);
 
   const handleLogin = async () => {
+    if (!hasAcceptedRules) {
+      showMascotToast({
+        id: 'login-rules-required',
+        emotion: 'confused',
+        eyebrow: 'Rules Required',
+        title: '还差一枚确认标记',
+        message: '登录前需要先确认已经阅读并遵守社区规则。',
+      });
+      return;
+    }
+
     setIsRedirecting(true);
     setIsWakingUp(true); // 闭眼
 
@@ -177,10 +193,33 @@ export function LoginPage() {
 
               <p className="mb-10 text-(--od-text-secondary)">使用 Discord 登录以继续</p>
 
+              <label className="mb-5 flex items-start gap-3 rounded-2xl border border-(--od-border) bg-[color-mix(in_srgb,var(--od-bg-secondary)_64%,transparent)] px-4 py-3 text-left text-sm text-(--od-text-secondary)">
+                <input
+                  type="checkbox"
+                  checked={hasAcceptedRules}
+                  onChange={(e) => setHasAcceptedRules(e.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-(--od-accent)"
+                />
+                <span>
+                  我已阅读并遵守
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openImageViewer(ruleImage, '社区规则');
+                    }}
+                    className="mx-1 font-semibold text-(--od-link) underline-offset-4 hover:underline"
+                  >
+                    社区规则
+                  </button>
+                </span>
+              </label>
+
               {/* 登录按钮 */}
               <button
                 onClick={handleLogin}
-                className="w-full rounded-2xl bg-(--od-accent) px-8 py-5 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                disabled={!hasAcceptedRules}
+                className="w-full rounded-2xl bg-(--od-accent) px-8 py-5 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:scale-100 disabled:hover:shadow-lg"
               >
                 <div className="flex items-center justify-center gap-3">
                   <DiscordIcon className="h-7 w-7" />
@@ -220,6 +259,7 @@ export function LoginPage() {
           )}
         </AnimatePresence>
       </div>
+      <ImageViewer />
     </div>
   );
 }
