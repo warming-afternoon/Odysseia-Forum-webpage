@@ -26,6 +26,7 @@ type ThemeOption = {
     | 'everforest'
     | 'sakuraDay'
     | 'yozakuraNight'
+    | 'dangerPinkRed'
     | 'tokyoNight'
     | null;
   description: string;
@@ -103,6 +104,14 @@ export const themeOptions: ThemeOption[] = [
     description: '根据系统深浅色自动切换',
   },
 ];
+
+export const dangerPinkThemeOption: ThemeOption = {
+  id: 'danger-pink-red',
+  label: '红粉警戒',
+  icon: Moon,
+  themeKey: 'dangerPinkRed',
+  description: '高危双色视觉实验',
+};
 
 export const backgroundPresets = [
   {

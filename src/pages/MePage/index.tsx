@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { FakeCaptchaEntry } from "@/features/easter-eggs/components/FakeCaptchaEntry";
 import type { Thread } from "@/entities/thread/types";
 import { useFollowsFeed } from "@/features/follows/hooks/useFollowsData";
 import { searchApi } from "@/features/search/api/searchApi";
@@ -315,6 +316,9 @@ export function MePage() {
             tabOptions={tabOptions}
             user={user}
           />
+          <div className="mt-5 flex justify-end">
+            <FakeCaptchaEntry />
+          </div>
         </section>
 
         {tab === "booklists" && (

@@ -2,6 +2,7 @@ import { ThreadCardSkeleton } from "@/entities/thread/ThreadCardSkeleton";
 import { ThreadListItemSkeleton } from "@/entities/thread/ThreadListItemSkeleton";
 import { ThreadResultsCollection } from "@/entities/thread/ThreadResultsCollection";
 import { BooklistCard } from "@/entities/booklist/BooklistCard";
+import { useSearchWhisper } from "@/features/easter-eggs/hooks/useSearchWhisper";
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
 import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
 import { useSearchResults } from "@/features/search/hooks/useSearchResults";
@@ -89,6 +90,7 @@ export function SearchPage() {
   const booklistTotal = booklistQuery.data?.total ?? 0;
   const searchTotalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const isInfiniteMode = resultPagingMode === "infinite";
+  useSearchWhisper(query);
 
 
   const handleTagClick = (tagName: string) => {

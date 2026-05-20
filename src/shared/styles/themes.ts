@@ -497,6 +497,42 @@ export const yozakuraNightTheme: Theme = {
   },
 };
 
+export const dangerPinkRedTheme: Theme = {
+  name: 'Danger Pink Red',
+  colors: {
+    background: '#FE0000',
+    backgroundSecondary: '#E400E4',
+    backgroundTertiary: '#FE0000',
+    card: '#E400E4',
+    cardHover: '#FE0000',
+    textPrimary: '#FE0000',
+    textSecondary: '#E400E4',
+    textTertiary: '#FE0000',
+    textHeading: '#E400E4',
+    textLabel: '#FE0000',
+    textMeta: '#E400E4',
+    textLink: '#FE0000',
+    textValue: '#E400E4',
+    textEmphasis: '#FE0000',
+    accent: '#E400E4',
+    accentHover: '#FE0000',
+    link: '#E400E4',
+    linkHover: '#FE0000',
+    border: '#FE0000',
+    borderStrong: '#E400E4',
+    success: '#E400E4',
+    warning: '#FE0000',
+    error: '#E400E4',
+    info: '#FE0000',
+    glassBg: '#FE0000',
+    glassBorder: '#E400E4',
+    glassBlur: '16px',
+    surfaceGhost: '#FE0000',
+    surfaceGhostHover: '#E400E4',
+  },
+  typography: discordDarkTheme.typography,
+};
+
 export const defaultTheme = discordDarkTheme;
 
 export const themes = {
@@ -509,6 +545,7 @@ export const themes = {
   everforest: everforestTheme,
   sakuraDay: sakuraDayTheme,
   yozakuraNight: yozakuraNightTheme,
+  dangerPinkRed: dangerPinkRedTheme,
 } as const;
 
 export type ThemeName = keyof typeof themes;

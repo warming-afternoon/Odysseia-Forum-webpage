@@ -1,5 +1,6 @@
 import ServerIcon from '@/assets/images/icon/A90C044F8DDF1959B2E9078CB629C239.png';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useServerIconSecret } from '@/features/easter-eggs/hooks/useServerIconSecret';
 import { useSearchURLParams } from '@/features/search/hooks/useSearchParams';
 import { useChannels } from '@/shared/hooks/useChannels';
 import { clearStoredAuthToken } from '@/shared/lib/authSession';
@@ -27,6 +28,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { params, setParams } = useSearchURLParams();
   const { data: channelsData } = useChannels();
+  const handleServerIconClick = useServerIconSecret();
 
   const groupedChannels = useMemo(() => {
     if (!channelsData?.channels) return [];
@@ -108,9 +110,14 @@ export function AppSidebar() {
   return (
     <nav className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-3 py-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md">
+        <button
+          type="button"
+          onClick={handleServerIconClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md focus:outline-hidden focus:ring-2 focus:ring-(--od-accent)"
+          aria-label="站点图标"
+        >
           <img src={ServerIcon} alt="Server Icon" className="h-full w-full object-cover" />
-        </div>
+        </button>
         <div className="flex min-w-0 flex-col justify-center gap-1">
           <span className="truncate text-[12px] font-bold leading-none tracking-widest text-(--od-text-primary)">
             类脑

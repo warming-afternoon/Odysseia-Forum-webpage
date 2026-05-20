@@ -24,6 +24,7 @@ export interface UserSettings {
   | 'everforest'
   | 'sakura-day'
   | 'yozakura-night'
+  | 'danger-pink-red'
   | 'auto';
   glassMode: 'off' | 'on' | 'auto';
   glassBlur: number;

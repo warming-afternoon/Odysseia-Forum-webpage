@@ -15,8 +15,9 @@ import {
 import { themes } from '@/shared/styles/themes';
 import type { UserSettings } from '@/shared/lib/settings';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useEasterEggUnlocks } from '@/features/easter-eggs/hooks/useEasterEggUnlocks';
 
-import { themeOptions } from './config';
+import { dangerPinkThemeOption, themeOptions } from './config';
 import { SettingsPageSection } from './SettingsPageSection';
 
 type DisplaySettingsSectionProps = {
@@ -26,6 +27,10 @@ type DisplaySettingsSectionProps = {
 
 export function DisplaySettingsSection({ settings, updateSettings }: DisplaySettingsSectionProps) {
   const { setThemeWithTransition } = useTheme();
+  const { dangerPinkThemeUnlocked } = useEasterEggUnlocks();
+  const visibleThemeOptions = dangerPinkThemeUnlocked
+    ? [...themeOptions, dangerPinkThemeOption]
+    : themeOptions;
   const inlineChoiceClass = 'od-option-inline';
   const rowChoiceClass = 'od-setting-choice flex items-center gap-3 p-4 text-left';
 
@@ -248,7 +253,7 @@ export function DisplaySettingsSection({ settings, updateSettings }: DisplaySett
             每套主题都是成组的色彩与字形方案，不只是单纯换个底色。
           </p>
           <div className="space-y-2">
-            {themeOptions.map((option) => {
+            {visibleThemeOptions.map((option) => {
               const isSelected = settings.theme === option.id;
               const themeColors = option.themeKey ? themes[option.themeKey].colors : null;
 

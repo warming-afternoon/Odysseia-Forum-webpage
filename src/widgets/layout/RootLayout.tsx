@@ -1,5 +1,6 @@
 import { MascotBar } from '@/features/mascot/components/MascotBar';
 import { EasterEggLayer } from '@/features/mascot/components/EasterEggLayer';
+import { GlobalEasterEggLayer } from '@/features/easter-eggs/components/GlobalEasterEggLayer';
 import { useSettings, useSidebarCollapsedSetting } from '@/shared/hooks/useSettings';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
 import { AppSidebar } from '@/widgets/layout/AppSidebar';
@@ -143,6 +144,7 @@ export function RootLayout() {
       {/* ── 全局辅助层 ── */}
       <GlobalThreadPreview />
       <EasterEggLayer />
+      <GlobalEasterEggLayer />
       <MascotBar />
       <ScrollToTop />
       <OnboardingManager />

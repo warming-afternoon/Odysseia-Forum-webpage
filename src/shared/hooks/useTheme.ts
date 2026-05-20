@@ -34,6 +34,8 @@ function mapSettingsThemeToKey(
       return 'sakuraDay';
     case 'yozakura-night':
       return 'yozakuraNight';
+    case 'danger-pink-red':
+      return 'dangerPinkRed';
     case 'auto':
     default:
       // 自动模式下，跟随系统：深色用 Claude Dark，浅色用 Discord Light
@@ -63,6 +65,8 @@ function mapThemeNameToSettings(themeName: ThemeName): UserSettings['theme'] {
       return 'sakura-day';
     case 'yozakuraNight':
       return 'yozakura-night';
+    case 'dangerPinkRed':
+      return 'danger-pink-red';
     default:
       return 'claude-dark';
   }
