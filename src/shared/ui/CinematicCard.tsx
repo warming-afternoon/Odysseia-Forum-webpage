@@ -43,7 +43,6 @@ export function CinematicCard({
   imageUrl,
   children,
   className = '',
-  tiltSensitivity = 3.5,
   parallaxIntensity = 35, // 对应 POV 模式的 povRange
   damping = 0.05,        // 对应 POV 模式的沉重感
   scaleBase = 1.2,        // 对应 POV 模式的放大率

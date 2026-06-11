@@ -10,7 +10,9 @@ export type Author = components["schemas"]["AuthorDetail-Output"];
 /**
  * 帖子核心实体 (扩展了后端 OpenAPI 定义以支持前端状态)
  */
-export type Thread = components["schemas"]["ThreadDetail"] & {
+export type Thread = Omit<components["schemas"]["ThreadDetail"], "collection_count" | "tags"> & {
+  tags: string[];
+  collection_count?: number;
   id?: string;           // 兼容旧版代码使用的 id (即 thread_id)
   is_following?: boolean; // 兼容旧版关注状态 (后端目前使用 collected_flag)
   has_update?: boolean;   // 兼容旧版未读更新状态
@@ -25,6 +27,11 @@ export type SearchParams = components["schemas"]["SearchRequest"];
  * 搜索响应结果
  */
 export type SearchResponse = components["schemas"]["SearchResponse"];
+
+/**
+ * 相似帖子推荐响应
+ */
+export type SimilarThreadsResponse = components["schemas"]["SimilarThreadsResponse"];
 
 /**
  * Banner 轮播项

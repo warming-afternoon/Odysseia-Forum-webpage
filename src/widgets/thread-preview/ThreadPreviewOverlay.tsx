@@ -26,6 +26,7 @@ import { addToken } from "@/shared/lib/searchTokenizer";
 import { fontSizeMap } from "@/shared/lib/settings";
 import { MarkdownText } from "@/shared/ui/MarkdownText";
 import { AuthorRecommendations } from "@/features/threads/components/AuthorRecommendations";
+import { SimilarRecommendations } from "@/features/threads/components/SimilarRecommendations";
 
 import { createPortal } from "react-dom";
 
@@ -314,6 +315,7 @@ export function ThreadPreviewOverlay({
           )}
 
           {/* Recommendations */}
+          <SimilarRecommendations currentThreadId={thread.thread_id} />
           {thread.author?.id && (
             <AuthorRecommendations
               authorId={thread.author.id}

@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { followsApi } from '@/features/follows/api/followsApi';
+import { followsApi, type FollowsQueryParams } from '@/features/follows/api/followsApi';
 import { followsKeys } from '@/features/follows/lib/queryKeys';
 
-export function useFollowedThreads() {
+export function useFollowedThreads(params: FollowsQueryParams = {}) {
   return useQuery({
-    queryKey: followsKeys.list(),
-    queryFn: followsApi.getFollowsRaw,
+    queryKey: followsKeys.list(params),
+    queryFn: () => followsApi.getFollowsRaw(params),
     staleTime: 60 * 1000,
   });
 }
@@ -21,8 +21,8 @@ export function useUnreadFollowCount() {
   });
 }
 
-export function useFollowsFeed() {
-  const followsQuery = useFollowedThreads();
+export function useFollowsFeed(params: FollowsQueryParams = {}) {
+  const followsQuery = useFollowedThreads(params);
   const unreadQuery = useUnreadFollowCount();
 
   return {

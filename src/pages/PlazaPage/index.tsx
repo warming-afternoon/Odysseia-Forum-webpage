@@ -66,6 +66,7 @@ export function PlazaPage() {
   // 状态：存储每个轨道的具体帖子（由 query 或 refresh 产生）
   const [railThreadsMap, setRailThreadsMap] = useState<Record<string, Thread[]>>({});
   const [refreshingKeys, setRefreshingKeys] = useState<Record<string, boolean>>({});
+  const [railOffsets, setRailOffsets] = useState<Record<string, number>>({});
 
   const bannersQuery = useQuery({
     queryKey: plazaKeys.banners(),
@@ -107,6 +108,13 @@ export function PlazaPage() {
         collection_surge: applyFilter(railsQuery.data.collection_surge || []),
         editors_pick: applyFilter((railsQuery.data as any).editors_pick || []),
       });
+      setRailOffsets({
+        latest: railsQuery.data.latest?.length || 0,
+        reaction_surge: railsQuery.data.reaction_surge?.length || 0,
+        discussion_surge: railsQuery.data.discussion_surge?.length || 0,
+        collection_surge: railsQuery.data.collection_surge?.length || 0,
+        editors_pick: ((railsQuery.data as any).editors_pick || []).length,
+      });
     }
   }, [railsQuery.data, ignorePreferenceFilter, discoveryPreferenceContext]);
 
@@ -116,14 +124,27 @@ export function PlazaPage() {
     setRefreshingKeys(prev => ({ ...prev, [key]: true }));
 
     try {
-      // 获取当前已在显示的 ID，用于去重
-      const currentIds = (railThreadsMap[key] || []).map(t => t.thread_id);
+      const currentList = railThreadsMap[key] || [];
+      const currentOffset = railOffsets[key] ?? currentList.length;
 
-      const nextThreads = await plazaApi.getRail(
-        key,
-        !ignorePreferenceFilter,
-        currentIds
-      );
+      let nextThreads = await plazaApi.getRail(key, {
+        limit: 12,
+        days: 30,
+        offset: currentOffset,
+        apply_preferences: !ignorePreferenceFilter,
+      });
+
+      let nextOffset = currentOffset + nextThreads.length;
+
+      if (nextThreads.length === 0 && currentOffset > 0) {
+        nextThreads = await plazaApi.getRail(key, {
+          limit: 12,
+          days: 30,
+          offset: 0,
+          apply_preferences: !ignorePreferenceFilter,
+        });
+        nextOffset = nextThreads.length;
+      }
 
       if (nextThreads.length > 0) {
         const filteredNextThreads = !ignorePreferenceFilter
@@ -134,13 +155,17 @@ export function PlazaPage() {
           ...prev,
           [key]: filteredNextThreads,
         }));
+        setRailOffsets(prev => ({
+          ...prev,
+          [key]: nextOffset,
+        }));
       }
     } catch (error) {
       console.error(`[PlazaPage] Failed to refresh rail ${key}:`, error);
     } finally {
       setRefreshingKeys(prev => ({ ...prev, [key]: false }));
     }
-  }, [railThreadsMap, refreshingKeys, ignorePreferenceFilter, preferences]);
+  }, [railThreadsMap, railOffsets, refreshingKeys, ignorePreferenceFilter, discoveryPreferenceContext]);
 
   const collectMutation = useToggleBooklistCollection();
 

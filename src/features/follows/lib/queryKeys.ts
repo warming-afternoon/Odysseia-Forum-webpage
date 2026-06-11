@@ -1,6 +1,8 @@
+import type { FollowsQueryParams } from '@/features/follows/api/followsApi';
+
 export const followsKeys = {
   all: ['follows'] as const,
-  list: () => [...followsKeys.all, 'list'] as const,
+  list: (params: FollowsQueryParams = {}) => [...followsKeys.all, 'list', params] as const,
   unreadCount: () => [...followsKeys.all, 'unread-count'] as const,
-  combined: () => [...followsKeys.all, 'combined'] as const,
+  combined: (params: FollowsQueryParams = {}) => [...followsKeys.all, 'combined', params] as const,
 };

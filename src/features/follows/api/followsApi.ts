@@ -20,13 +20,30 @@ export interface UnreadCountResponse {
   unread_count: number;
 }
 
+export interface FollowsQueryParams {
+  limit?: number;
+  offset?: number;
+  active_flag?: boolean | null;
+  channel_ids?: Array<number | string> | null;
+}
+
 export const followsApi = {
   /**
    * 获取关注的帖子列表（后端原始结构）
    * GET /v1/follows/
    */
-  getFollowsRaw: async (): Promise<FollowsThreadsResponse> => {
-    const response = await apiClient.get<FollowsThreadsResponse>('/follows/');
+  getFollowsRaw: async (params: FollowsQueryParams = {}): Promise<FollowsThreadsResponse> => {
+    const response = await apiClient.get<FollowsThreadsResponse>('/follows/', {
+      params: {
+        limit: params.limit,
+        offset: params.offset,
+        active_flag: params.active_flag ?? undefined,
+        channel_ids: params.channel_ids || undefined,
+      },
+      paramsSerializer: {
+        indexes: null,
+      },
+    });
     return response.data;
   },
 
@@ -51,9 +68,9 @@ export const followsApi = {
    * 获取关注列表 + 未读数量的组合数据
    * 兼容现有 FollowsPage 使用的结构
    */
-  getFollows: async (): Promise<FollowsResponse> => {
+  getFollows: async (params: FollowsQueryParams = {}): Promise<FollowsResponse> => {
     const [follows, unread] = await Promise.all([
-      followsApi.getFollowsRaw(),
+      followsApi.getFollowsRaw(params),
       followsApi.getUnreadCount(),
     ]);
 

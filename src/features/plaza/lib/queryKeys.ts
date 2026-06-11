@@ -1,5 +1,5 @@
 import type { PlazaRailKey } from '@/features/plaza/api/plazaApi';
-import type { DiscoveryPreferenceRequestPatch } from '@/features/preferences/lib/discoveryPreferences';
+import type { DiscoveryPreferenceContext } from '@/features/preferences/lib/discoveryPreferences';
 
 export const plazaKeys = {
   all: ['plaza'] as const,
@@ -10,7 +10,7 @@ export const plazaKeys = {
     'rails',
     { params },
   ] as const,
-  rail: (railKey: PlazaRailKey, preferencePatch: DiscoveryPreferenceRequestPatch | null) => [
+  rail: (railKey: PlazaRailKey, preferencePatch: DiscoveryPreferenceContext | null) => [
     ...plazaKeys.all,
     'rail',
     railKey,

@@ -190,6 +190,11 @@
         "summary": "获取作者详情与统计",
         "description": "根据作者ID获取作者信息及统计摘要。",
         "operationId": "get_author_profile_v1_authors__author_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "author_id",
@@ -233,6 +238,11 @@
         "summary": "获取指定用户的搜索偏好",
         "description": "获取用户的搜索偏好设置。固定使用配置的主服务器 ID。",
         "operationId": "get_user_preferences_v1_preferences_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -274,6 +284,11 @@
         "summary": "创建或更新用户搜索偏好",
         "description": "创建或更新用户的搜索偏好设置。固定使用配置的主服务器 ID。",
         "operationId": "update_user_preferences_v1_preferences_users__user_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -358,7 +373,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/search/thread/{thread_id}": {
@@ -369,6 +389,11 @@
         "summary": "按 Discord 帖子 ID 获取详情",
         "description": "用于 Banner 点击等场景；避免依赖当前页搜索结果是否已包含该帖。",
         "operationId": "get_thread_detail_v1_search_thread__thread_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -404,6 +429,75 @@
         }
       }
     },
+    "/v1/search/thread/{thread_id}/similar": {
+      "get": {
+        "tags": [
+          "帖子搜索"
+        ],
+        "summary": "按 TAG 相似度推荐帖子",
+        "description": "根据指定帖子的 TAG 来匹配相似帖子。\n\n降级策略：先全 TAG 匹配，不足时按流行度从低到高逐个丢弃 TAG 继续匹配，\n直到凑足 limit 条或仅剩最热门的一个 TAG。结果按 Reddit Hot 热门算法排序。",
+        "operationId": "get_similar_threads_v1_search_thread__thread_id__similar_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "description": "最大返回结果数量",
+              "default": 5,
+              "title": "Limit"
+            },
+            "description": "最大返回结果数量"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarThreadsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/search/suggestions": {
       "get": {
         "tags": [
@@ -411,6 +505,11 @@
         ],
         "summary": "获取搜索建议",
         "operationId": "get_search_suggestions_v1_search_suggestions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "keyword",
@@ -467,8 +566,13 @@
           "关注列表"
         ],
         "summary": "获取用户的关注列表",
-        "description": "获取当前用户关注的帖子列表\n\n- **limit**: 返回数量限制（默认10000）\n- **offset**: 偏移量（默认0）\n\n返回格式：\n```json\n{\n    \"total\": 总数,\n    \"threads\": [帖子列表],\n    \"limit\": 限制数量,\n    \"offset\": 偏移量\n}\n```",
+        "description": "获取当前用户关注的帖子列表\n\n- **limit**: 返回数量限制（默认10000）\n- **offset**: 偏移量（默认0）\n- **active_flag**: 筛选关注状态（True=当前关注，False=过去关注，不传=全部）\n- **channel_ids**: 频道ID列表（可选，用于按频道筛选）\n\n返回格式：\n```json\n{\n    \"total\": 总数,\n    \"threads\": [帖子列表],\n    \"limit\": 限制数量,\n    \"offset\": 偏移量\n}\n```",
         "operationId": "get_follows_v1_follows__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -489,6 +593,52 @@
               "default": 0,
               "title": "Offset"
             }
+          },
+          {
+            "name": "active_flag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True=当前关注，False=过去关注，不传=全部",
+              "title": "Active Flag"
+            },
+            "description": "True=当前关注，False=过去关注，不传=全部"
+          },
+          {
+            "name": "channel_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "频道ID列表（可选，用于按频道筛选）",
+              "title": "Channel Ids"
+            },
+            "description": "频道ID列表（可选，用于按频道筛选）"
           }
         ],
         "responses": {
@@ -496,7 +646,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/FollowsListResponse"
+                }
               }
             }
           },
@@ -530,7 +682,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/follows/unread-count": {
@@ -550,7 +707,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/follows/{thread_id}": {
@@ -561,6 +723,11 @@
         "summary": "关注帖子",
         "description": "添加关注\n\n- **thread_id**: 帖子Discord ID",
         "operationId": "add_follow_v1_follows__thread_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -600,6 +767,11 @@
         "summary": "取消关注",
         "description": "取消关注\n\n- **thread_id**: 帖子Discord ID\n\n注意：用户不能取消关注自己的帖子",
         "operationId": "remove_follow_v1_follows__thread_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -641,6 +813,11 @@
         "summary": "获取频道目录与基础信息",
         "description": "返回指定频道的标签、虚拟映射及发帖统计量",
         "operationId": "get_indexed_channels_with_tags_v1_meta_channels_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "channel_ids",
@@ -737,7 +914,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/fetch-images/": {
@@ -779,7 +961,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/banner/apply": {
@@ -821,7 +1008,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/banner/active": {
@@ -830,8 +1022,13 @@
           "Banner管理"
         ],
         "summary": "获取当前活跃的Banner列表",
-        "description": "获取当前活跃的Banner列表\n\n- channel_id: 可选，指定频道ID获取该频道的Banner",
+        "description": "获取当前活跃的Banner轮播列表\n\n- channel_id: 可选，指定频道ID获取该频道+全频道的Banner\n- 返回的 guild_id + thread_id 可用于前端构建 Discord 跳转链接",
         "operationId": "get_active_banners_v1_banner_active_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "channel_id",
@@ -846,8 +1043,10 @@
                   "type": "null"
                 }
               ],
+              "description": "频道ID，不传则获取全频道Banner",
               "title": "Channel Id"
-            }
+            },
+            "description": "频道ID，不传则获取全频道Banner"
           }
         ],
         "responses": {
@@ -855,7 +1054,13 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BannerItem-Output"
+                  },
+                  "title": "Response Get Active Banners V1 Banner Active Get"
+                }
               }
             }
           },
@@ -880,6 +1085,11 @@
         "summary": "批量添加收藏",
         "description": "批量添加收藏\n\n- target_ids: 目标ID列表（帖子ID或书单ID）\n- target_type: 目标类型，1=帖子，2=书单，默认为1（帖子）",
         "operationId": "batch_add_collections_v1_collection_batch_add_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "target_type",
@@ -936,6 +1146,11 @@
         "summary": "批量移除收藏",
         "description": "批量移除收藏\n\n- target_ids: 目标ID列表（帖子ID或书单ID）\n- target_type: 目标类型，1=帖子，2=书单，默认为1（帖子）",
         "operationId": "batch_remove_collections_v1_collection_batch_remove_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "target_type",
@@ -990,8 +1205,13 @@
           "书单"
         ],
         "summary": "创建书单",
-        "description": "创建新书单\n\n- title: 书单标题（必填）\n- description: 书单简介（可选）\n- cover_image_url: 封面图 URL（可选）\n- is_public: 是否公开，默认为 True\n- display_type: 展示方式，1=加入时间倒序，2=display_order，默认为1",
+        "description": "创建新书单\n\n- title: 书单标题（必填）\n- description: 书单简介（可选）\n- cover_image_url: 封面图 URL（可选）\n- is_public: 是否公开，默认为 True\n- is_anonymous: 是否匿名，默认为 False\n- display_type: 展示方式，1=加入时间倒序，2=display_order，默认为1",
         "operationId": "create_booklist_v1_booklist_save_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "title",
@@ -1045,6 +1265,16 @@
             }
           },
           {
+            "name": "is_anonymous",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Is Anonymous"
+            }
+          },
+          {
             "name": "display_type",
             "in": "query",
             "required": false,
@@ -1085,8 +1315,13 @@
           "书单"
         ],
         "summary": "分页搜索公开书单",
-        "description": "分页搜索公开书单\n\n- owner_id: 按创建者筛选\n- keywords: 模糊搜索关键词(标题和简介)\n- included_thread_id: 筛选包含指定帖子ID的书单\n- sort_method: 排序方式 (1: 书单内帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)\n- sort_order: 排序顺序 ('asc' 或 'desc')\n- limit: 返回数量\n- offset: 偏移量",
+        "description": "分页搜索公开书单\n\n- owner_id: 按创建者筛选\n- keywords: 模糊搜索关键词(标题和简介)\n- included_thread_id: 筛选包含指定帖子ID的书单\n- is_tournament: 筛选赛事书单\n- sort_method: 排序方式 (1: 书单内帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)\n- sort_order: 排序顺序 ('asc' 或 'desc')\n- limit: 返回数量\n- offset: 偏移量",
         "operationId": "list_public_booklists_v1_booklist_list_page_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "owner_id",
@@ -1141,6 +1376,24 @@
               "title": "Included Thread Id"
             },
             "description": "筛选包含指定帖子ID的书单"
+          },
+          {
+            "name": "is_tournament",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "筛选赛事书单（true=仅赛事，false=仅非赛事，不传=全部）",
+              "title": "Is Tournament"
+            },
+            "description": "筛选赛事书单（true=仅赛事，false=仅非赛事，不传=全部）"
           },
           {
             "name": "search_by_collect",
@@ -1244,6 +1497,11 @@
         "summary": "分页搜索我的书单",
         "description": "分页搜索我的书单（登录用户创建的书单）\n\n- is_public: 按公开状态筛选\n- keywords: 模糊搜索关键词(标题和简介)\n- sort_method: 排序方式 (1: 帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间, 6-收藏时间 collect_by_current_user=true 时可用,)\n- sort_order: 排序顺序 ('asc' 或 'desc')\n- limit: 返回数量\n- offset: 偏移量",
         "operationId": "list_my_booklists_v1_booklist_my_list_page_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "is_public",
@@ -1401,6 +1659,11 @@
         "summary": "获取书单详情",
         "description": "根据ID获取书单详情\n\n- booklist_id: 书单ID",
         "operationId": "get_booklist_v1_booklist_detail__booklist_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1442,8 +1705,13 @@
           "书单"
         ],
         "summary": "更新书单",
-        "description": "更新书单信息\n\n- booklist_id: 书单ID\n- title: 新标题（可选）\n- description: 新简介（可选）\n- cover_image_url: 新封面图URL（可选）\n- is_public: 是否公开（可选）\n- display_type: 展示方式（可选）",
+        "description": "更新书单信息\n\n- booklist_id: 书单ID\n- title: 新标题（可选）\n- description: 新简介（可选）\n- cover_image_url: 新封面图URL（可选）\n- is_public: 是否公开（可选）\n- is_anonymous: 是否匿名（可选）\n- display_type: 展示方式（可选）",
         "operationId": "update_booklist_v1_booklist_update__booklist_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1519,6 +1787,22 @@
             }
           },
           {
+            "name": "is_anonymous",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Is Anonymous"
+            }
+          },
+          {
             "name": "display_type",
             "in": "query",
             "required": false,
@@ -1567,6 +1851,11 @@
         "summary": "删除书单",
         "description": "删除书单及其所有关联项\n\n- booklist_id: 书单ID",
         "operationId": "delete_booklist_v1_booklist_delete__booklist_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1608,6 +1897,11 @@
         "summary": "向书单批量添加帖子",
         "description": "向书单批量添加帖子\n\n- **booklist_id**: 书单ID\n- **request body**: 包含一个`items`列表，每个元素包含:\n    - **thread_id**: 帖子ID (必填)\n    - **comment**: 推荐语 (可选)\n    - **display_order**: 排序序号 (可选)",
         "operationId": "add_threads_to_booklist_v1_booklist_item_add__booklist_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1665,6 +1959,11 @@
         "summary": "从书单批量移除帖子",
         "description": "从书单批量移除帖子\n\n- **booklist_id**: 书单ID\n- **request body**: 包含一个`thread_ids`列表，每个元素为要移除的帖子ID",
         "operationId": "remove_threads_from_booklist_v1_booklist_item_delete__booklist_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1716,6 +2015,11 @@
         "summary": "分页获取书单内的帖子详情",
         "description": "分页获取书单内的帖子详情\n\n- booklist_id: 书单ID\n- limit: 返回数量\n- offset: 偏移量",
         "operationId": "get_booklist_items_v1_booklist_item_list_page__booklist_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1786,6 +2090,11 @@
         "summary": "更新书单内帖子信息",
         "description": "更新书单中的单个项目（帖子）\n\n- booklist_id: 目标书单的ID\n- thread_id: 目标帖子的ID\n- update_data: 要更新的数据\n    - comment: (可选) 新的推荐语/备注\n    - display_order: (可选) 新的排序权重",
         "operationId": "update_booklist_item_v1_booklist_item_update__booklist_id___thread_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "booklist_id",
@@ -1879,7 +2188,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/discovery/rails": {
@@ -1890,6 +2204,11 @@
         "summary": "获取广场轨道数据",
         "description": "一次性获取多条轨道数据并处理收藏标记和虚拟标签",
         "operationId": "get_discovery_rails_v1_discovery_rails_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1964,6 +2283,11 @@
         "summary": "获取随机帖子",
         "description": "根据指定范围随机抽取帖子，包含深渊过滤和虚拟标签解析",
         "operationId": "get_random_threads_v1_discovery_random_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2104,13 +2428,673 @@
         }
       }
     },
+    "/v1/discovery/rails/{rail_name}": {
+      "get": {
+        "tags": [
+          "发现"
+        ],
+        "summary": "获取单条轨道数据（分页）",
+        "description": "获取指定单条轨道的数据，支持 offset 分页，用于点击查看更多",
+        "operationId": "get_single_rail_v1_discovery_rails__rail_name__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rail_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "轨道名称，可选值: latest / reaction_surge / discussion_surge / collection_surge",
+              "title": "Rail Name"
+            },
+            "description": "轨道名称，可选值: latest / reaction_surge / discussion_surge / collection_surge"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "返回数量",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "返回数量"
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "统计时间跨度(天数)",
+              "default": 30,
+              "title": "Days"
+            },
+            "description": "统计时间跨度(天数)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "偏移量，用于分页",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "偏移量，用于分页"
+          },
+          {
+            "name": "apply_preferences",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "是否应用当前用户的过滤偏好",
+              "default": true,
+              "title": "Apply Preferences"
+            },
+            "description": "是否应用当前用户的过滤偏好"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadDetail"
+                  },
+                  "title": "Response Get Single Rail V1 Discovery Rails  Rail Name  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/create": {
+      "post": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "创建赛事书单",
+        "description": "创建赛事书单。同一 tournament_channel_id 多次调用幂等返回已有书单。\n\n- **tournament_channel_id**: 赛事关联的 Discord 频道ID（唯一标识）\n- **owner_id**: 赛事举办者 Discord 用户ID（即书单 owner）\n- **title**: 赛事标题",
+        "operationId": "create_tournament_v1_tournament_create_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TournamentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TournamentCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/tournament/list/page": {
+      "get": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "分页获取赛事书单列表",
+        "description": "分页获取赛事书单列表。\n\n- **tournament_channel_id**: 按赛事频道ID筛选（可选）\n- **sort_method**: 排序方式 (1: 帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)\n- **sort_order**: 排序顺序 ('asc' 或 'desc')\n- **limit**: 返回数量\n- **offset**: 偏移量",
+        "operationId": "list_tournaments_v1_tournament_list_page_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按赛事频道ID筛选",
+              "title": "Tournament Channel Id"
+            },
+            "description": "按赛事频道ID筛选"
+          },
+          {
+            "name": "sort_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "排序方法: 1-帖子数, 2-浏览数, 3-收藏数, 4-创建时间, 5-最后更新时间",
+              "default": 4,
+              "title": "Sort Method"
+            },
+            "description": "排序方法: 1-帖子数, 2-浏览数, 3-收藏数, 4-创建时间, 5-最后更新时间"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序顺序: 'asc'(升序) 或 'desc'(降序)",
+              "default": "desc",
+              "title": "Sort Order"
+            },
+            "description": "排序顺序: 'asc'(升序) 或 'desc'(降序)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每次请求返回的数量 (范围: 1-100)",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "每次请求返回的数量 (范围: 1-100)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "结果的偏移量，从0开始",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "结果的偏移量，从0开始"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_BooklistDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/{tournament_channel_id}": {
+      "get": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "获取赛事书单详情",
+        "description": "根据赛事频道ID获取赛事书单详情。\n\n- **tournament_channel_id**: 赛事频道ID",
+        "operationId": "get_tournament_v1_tournament__tournament_channel_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooklistDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "删除赛事书单",
+        "description": "删除整个赛事书单及其所有关联帖子。\n\n- **tournament_channel_id**: 赛事频道ID",
+        "operationId": "delete_tournament_v1_tournament__tournament_channel_id__delete",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "更新赛事书单详情",
+        "description": "更新赛事书单的标题、描述、封面图、可见性等元信息。\n\n- **tournament_channel_id**: 赛事频道ID\n- 请求体中的字段均为可选，仅更新传入的字段",
+        "operationId": "update_tournament_v1_tournament__tournament_channel_id__patch",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TournamentUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/{tournament_channel_id}/items": {
+      "get": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "分页获取赛事项",
+        "description": "分页获取赛事书单内的帖子详情。\n\n- **tournament_channel_id**: 赛事频道ID\n- **limit**: 返回数量\n- **offset**: 偏移量",
+        "operationId": "get_tournament_items_v1_tournament__tournament_channel_id__items_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每次请求返回的数量 (范围: 1-100)",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "每次请求返回的数量 (范围: 1-100)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "结果的偏移量，从0开始",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "结果的偏移量，从0开始"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_BooklistItemDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/{tournament_channel_id}/items/add": {
+      "post": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "向赛事添加参赛帖子",
+        "description": "向赛事书单批量添加参赛帖子。\n\n- **tournament_channel_id**: 赛事频道ID\n- **items**: 帖子列表，每项包含 thread_id（必填）、comment（可选）、display_order（可选）、tournament_participated_at（可选）",
+        "operationId": "add_tournament_items_v1_tournament__tournament_channel_id__items_add_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TournamentItemsAddRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/{tournament_channel_id}/items/delete": {
+      "delete": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "从赛事移除参赛帖子",
+        "description": "从赛事书单批量移除参赛帖子。\n\n- **tournament_channel_id**: 赛事频道ID\n- **thread_ids**: 要移除的帖子ID列表",
+        "operationId": "remove_tournament_items_v1_tournament__tournament_channel_id__items_delete_delete",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BooklistItemsDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tournament/{tournament_channel_id}/items/{thread_id}": {
+      "patch": {
+        "tags": [
+          "赛事"
+        ],
+        "summary": "更新参赛帖子信息",
+        "description": "更新赛事书单中某个帖子的信息。\n\n- **tournament_channel_id**: 赛事频道ID\n- **thread_id**: 帖子ID\n- **update_data**: 要更新的字段（comment, display_order, tournament_participated_at）",
+        "operationId": "update_tournament_item_v1_tournament__tournament_channel_id__items__thread_id__patch",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tournament_channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tournament Channel Id"
+            }
+          },
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TournamentItemUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
           "系统"
         ],
         "summary": "健康检查",
-        "description": "API 服务健康检查端点",
+        "description": "API 服务健康检查端点，检查数据库和 Redis 连通性",
         "operationId": "health_check_v1_health_get",
         "responses": {
           "200": {
@@ -2132,6 +3116,86 @@
         "summary": "API 根路径",
         "description": "API 服务根路径",
         "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/debug/memory": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "内存诊断",
+        "description": "调试端点：输出进程内存中 Top 对象类型及模块级内存占用",
+        "operationId": "debug_memory_v1_debug_memory_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/debug/memory/sources": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "内存来源诊断",
+        "description": "调试端点：按模块来源汇总对象数量，定位泄漏代码路径",
+        "operationId": "debug_memory_sources_v1_debug_memory_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/debug/memory/force-gc": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "强制 GC 并对比",
+        "description": "调试端点：强制全量 GC，对比回收前后的对象数和 RSS",
+        "operationId": "debug_force_gc_v1_debug_memory_force_gc_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/debug/memory/pools": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "连接池状态",
+        "description": "调试端点：SQLAlchemy 连接池和 Redis 连接池状态",
+        "operationId": "debug_pools_v1_debug_memory_pools_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2496,6 +3560,32 @@
             "title": "Guild Id",
             "description": "帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）",
             "default": 0
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time",
+            "description": "Banner 展示开始时间"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time",
+            "description": "Banner 展示结束时间"
           }
         },
         "type": "object",
@@ -2530,6 +3620,32 @@
             "type": "string",
             "title": "Guild Id",
             "description": "帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time",
+            "description": "Banner 展示开始时间"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time",
+            "description": "Banner 展示结束时间"
           }
         },
         "type": "object",
@@ -2633,10 +3749,33 @@
             "title": "Is Public",
             "description": "是否公开"
           },
+          "is_anonymous": {
+            "type": "boolean",
+            "title": "Is Anonymous",
+            "description": "是否匿名"
+          },
           "is_default": {
             "type": "boolean",
             "title": "Is Default",
             "description": "是否为用户的默认书单"
+          },
+          "is_tournament": {
+            "type": "boolean",
+            "title": "Is Tournament",
+            "description": "是否为赛事书单",
+            "default": false
+          },
+          "tournament_channel_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Channel Id",
+            "description": "赛事频道ID"
           },
           "display_type": {
             "type": "integer",
@@ -2683,6 +3822,7 @@
           "owner_id",
           "title",
           "is_public",
+          "is_anonymous",
           "is_default",
           "display_type",
           "item_count",
@@ -2731,6 +3871,19 @@
             ],
             "title": "Display Order",
             "description": "排序权重"
+          },
+          "tournament_participated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Participated At",
+            "description": "参赛时间（赛事专用）"
           }
         },
         "type": "object",
@@ -2924,6 +4077,19 @@
             "title": "Comment",
             "description": "书单主对该帖子的推荐语"
           },
+          "tournament_participated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Participated At",
+            "description": "参赛时间（赛事专用）"
+          },
           "display_order": {
             "type": "integer",
             "title": "Display Order",
@@ -2984,6 +4150,19 @@
             ],
             "title": "Display Order",
             "description": "排序权重"
+          },
+          "tournament_participated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Participated At",
+            "description": "参赛时间（赛事专用）"
           }
         },
         "type": "object",
@@ -3615,6 +4794,405 @@
         ],
         "title": "FetchImageResponseItem"
       },
+      "FollowedThreadResponse-Input": {
+        "properties": {
+          "thread_id": {
+            "type": "integer",
+            "title": "Thread Id",
+            "description": "帖子的 Discord ID"
+          },
+          "guild_id": {
+            "type": "integer",
+            "title": "Guild Id",
+            "description": "帖子所属的 Discord 服务器 ID",
+            "default": 0
+          },
+          "channel_id": {
+            "type": "integer",
+            "title": "Channel Id",
+            "description": "帖子所在频道的 Discord ID"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "帖子标题"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorDetail-Input"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "帖子作者的详细信息"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "帖子创建时间"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active At",
+            "description": "帖子最后活跃时间"
+          },
+          "reaction_count": {
+            "type": "integer",
+            "title": "Reaction Count",
+            "description": "帖子点赞数"
+          },
+          "reply_count": {
+            "type": "integer",
+            "title": "Reply Count",
+            "description": "帖子回复数"
+          },
+          "collection_count": {
+            "type": "integer",
+            "title": "Collection Count",
+            "description": "帖子被收藏的总次数",
+            "default": 0
+          },
+          "display_count": {
+            "type": "integer",
+            "title": "Display Count",
+            "description": "在搜索结果中的展示次数",
+            "default": 0
+          },
+          "first_message_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Message Excerpt",
+            "description": "帖子首条消息摘要"
+          },
+          "thumbnail_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Thumbnail Urls",
+            "description": "帖子首楼图片URL列表"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "帖子关联的标签列表"
+          },
+          "virtual_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Virtual Tags",
+            "description": "帖子匹配的虚拟映射标签名列表"
+          },
+          "collected_flag": {
+            "type": "boolean",
+            "title": "Collected Flag",
+            "description": "当前用户是否收藏了该帖子",
+            "default": false
+          },
+          "latest_update_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Update At",
+            "description": "帖子最近一次有新消息的时间"
+          },
+          "latest_update_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Update Link",
+            "description": "最新更新的消息链接"
+          },
+          "followed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Followed At",
+            "description": "用户关注该帖子的时间"
+          },
+          "last_viewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Viewed At",
+            "description": "用户最近一次查看该帖子的时间"
+          },
+          "has_update": {
+            "type": "boolean",
+            "title": "Has Update",
+            "description": "自 last_viewed_at 后帖子是否有新内容",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "thread_id",
+          "channel_id",
+          "title",
+          "created_at",
+          "reaction_count",
+          "reply_count",
+          "thumbnail_urls",
+          "followed_at"
+        ],
+        "title": "FollowedThreadResponse",
+        "description": "关注列表中的帖子响应。\n\n继承 ThreadDetail 的所有字段（thread_id, title, author, tags 等），\n追加 latest_update_at / latest_update_link / followed_at / last_viewed_at / has_update。"
+      },
+      "FollowedThreadResponse-Output": {
+        "properties": {
+          "thread_id": {
+            "type": "string",
+            "title": "Thread Id",
+            "description": "帖子的 Discord ID"
+          },
+          "guild_id": {
+            "type": "string",
+            "title": "Guild Id",
+            "description": "帖子所属的 Discord 服务器 ID"
+          },
+          "channel_id": {
+            "type": "string",
+            "title": "Channel Id",
+            "description": "帖子所在频道的 Discord ID"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "帖子标题"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorDetail-Output"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "帖子作者的详细信息"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "帖子创建时间"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active At",
+            "description": "帖子最后活跃时间"
+          },
+          "reaction_count": {
+            "type": "integer",
+            "title": "Reaction Count",
+            "description": "帖子点赞数"
+          },
+          "reply_count": {
+            "type": "integer",
+            "title": "Reply Count",
+            "description": "帖子回复数"
+          },
+          "collection_count": {
+            "type": "integer",
+            "title": "Collection Count",
+            "description": "帖子被收藏的总次数",
+            "default": 0
+          },
+          "display_count": {
+            "type": "integer",
+            "title": "Display Count",
+            "description": "在搜索结果中的展示次数",
+            "default": 0
+          },
+          "first_message_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Message Excerpt",
+            "description": "帖子首条消息摘要"
+          },
+          "thumbnail_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Thumbnail Urls",
+            "description": "帖子首楼图片URL列表"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "帖子关联的标签列表"
+          },
+          "virtual_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Virtual Tags",
+            "description": "帖子匹配的虚拟映射标签名列表"
+          },
+          "collected_flag": {
+            "type": "boolean",
+            "title": "Collected Flag",
+            "description": "当前用户是否收藏了该帖子",
+            "default": false
+          },
+          "latest_update_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Update At",
+            "description": "帖子最近一次有新消息的时间"
+          },
+          "latest_update_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Update Link",
+            "description": "最新更新的消息链接"
+          },
+          "followed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Followed At",
+            "description": "用户关注该帖子的时间"
+          },
+          "last_viewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Viewed At",
+            "description": "用户最近一次查看该帖子的时间"
+          },
+          "has_update": {
+            "type": "boolean",
+            "title": "Has Update",
+            "description": "自 last_viewed_at 后帖子是否有新内容",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "thread_id",
+          "channel_id",
+          "title",
+          "created_at",
+          "reaction_count",
+          "reply_count",
+          "thumbnail_urls",
+          "followed_at"
+        ],
+        "title": "FollowedThreadResponse",
+        "description": "关注列表中的帖子响应。\n\n继承 ThreadDetail 的所有字段（thread_id, title, author, tags 等），\n追加 latest_update_at / latest_update_link / followed_at / last_viewed_at / has_update。"
+      },
+      "FollowsListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "关注总数"
+          },
+          "threads": {
+            "items": {
+              "$ref": "#/components/schemas/FollowedThreadResponse-Output"
+            },
+            "type": "array",
+            "title": "Threads",
+            "description": "帖子列表"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "返回数量限制"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "description": "偏移量"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "threads",
+          "limit",
+          "offset"
+        ],
+        "title": "FollowsListResponse",
+        "description": "关注列表的 API 响应体"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -4016,7 +5594,7 @@
           "sort_method": {
             "type": "string",
             "title": "Sort Method",
-            "description": "排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数), 'collected_at'(收藏时间), 'custom'(自定义)",
+            "description": "排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数), 'collected_at'(收藏时间), 'reddit_hot'(Reddit Hot 热门算法), 'custom'(自定义)",
             "default": "comprehensive"
           },
           "custom_base_sort": {
@@ -4073,7 +5651,7 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Offset",
-            "description": "结果的偏移页（已弃用，为兼容旧版本保留）",
+            "description": "结果的偏移数",
             "default": 0
           }
         },
@@ -4176,6 +5754,35 @@
         "type": "object",
         "title": "SearchSuggestionResponse",
         "description": "全局搜索建议的完整响应体"
+      },
+      "SimilarThreadsResponse": {
+        "properties": {
+          "source_thread_id": {
+            "type": "string",
+            "title": "Source Thread Id",
+            "description": "源帖子的 Discord ID"
+          },
+          "matched_tag_count": {
+            "type": "integer",
+            "title": "Matched Tag Count",
+            "description": "最后一级命中使用的 TAG 数量（越大代表相似度越高）；若为 0 说明未按 TAG 匹配到任何结果",
+            "default": 0
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadDetail"
+            },
+            "type": "array",
+            "title": "Results",
+            "description": "推荐的相似帖子列表（最多 limit 条）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_thread_id"
+        ],
+        "title": "SimilarThreadsResponse",
+        "description": "相似帖子推荐接口的响应体"
       },
       "TagDetail-Input": {
         "properties": {
@@ -4545,6 +6152,254 @@
         ],
         "title": "ThreadSuggestion",
         "description": "搜索建议中的帖子模型"
+      },
+      "TournamentCreateRequest": {
+        "properties": {
+          "tournament_channel_id": {
+            "type": "integer",
+            "title": "Tournament Channel Id",
+            "description": "赛事关联的 Discord 频道ID"
+          },
+          "owner_id": {
+            "type": "integer",
+            "title": "Owner Id",
+            "description": "赛事举办者 Discord 用户ID（即书单 owner）"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "赛事标题"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "赛事简介"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Url",
+            "description": "封面图URL"
+          },
+          "is_public": {
+            "type": "boolean",
+            "title": "Is Public",
+            "description": "是否公开",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "tournament_channel_id",
+          "owner_id",
+          "title"
+        ],
+        "title": "TournamentCreateRequest",
+        "description": "创建赛事书单请求"
+      },
+      "TournamentCreateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "提示信息",
+            "default": "赛事书单创建成功"
+          },
+          "booklist_id": {
+            "type": "integer",
+            "title": "Booklist Id",
+            "description": "书单ID"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "赛事标题"
+          },
+          "tournament_channel_id": {
+            "type": "integer",
+            "title": "Tournament Channel Id",
+            "description": "赛事频道ID"
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created",
+            "description": "是否为新创建（false 表示已存在，幂等返回）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "booklist_id",
+          "title",
+          "tournament_channel_id",
+          "created"
+        ],
+        "title": "TournamentCreateResponse",
+        "description": "创建赛事书单响应"
+      },
+      "TournamentItemAddData": {
+        "properties": {
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Thread Id",
+            "description": "Discord Thread ID"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "推荐语/备注"
+          },
+          "tournament_participated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Participated At",
+            "description": "参赛时间"
+          }
+        },
+        "type": "object",
+        "required": [
+          "thread_id"
+        ],
+        "title": "TournamentItemAddData",
+        "description": "赛事项添加数据"
+      },
+      "TournamentItemUpdateRequest": {
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "推荐语/备注"
+          },
+          "tournament_participated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tournament Participated At",
+            "description": "参赛时间"
+          }
+        },
+        "type": "object",
+        "title": "TournamentItemUpdateRequest",
+        "description": "更新赛事项请求体"
+      },
+      "TournamentItemsAddRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TournamentItemAddData"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "要添加的帖子列表"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "TournamentItemsAddRequest",
+        "description": "批量添加赛事项请求"
+      },
+      "TournamentUpdateRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "赛事标题"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "赛事简介"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Url",
+            "description": "封面图URL"
+          },
+          "is_public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Public",
+            "description": "是否公开"
+          }
+        },
+        "type": "object",
+        "title": "TournamentUpdateRequest",
+        "description": "更新赛事书单请求"
       },
       "UserPreferencesResponse": {
         "properties": {
@@ -5068,6 +6923,17 @@
         ],
         "title": "VirtualTagDetail",
         "description": "虚拟标签详细信息模型"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
       }
     }
   }

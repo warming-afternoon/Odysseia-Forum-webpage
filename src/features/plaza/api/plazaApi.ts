@@ -1,6 +1,5 @@
-import type { SearchResponse, Thread, Author } from "@/entities/thread/types";
+import type { Thread, Author } from "@/entities/thread/types";
 import type { Booklist } from "@/entities/booklist/types";
-import { searchApi } from "@/features/search/api/searchApi";
 import { bannerApi } from "@/features/banner/api/bannerApi";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import { apiClient } from "@/shared/api/client";
@@ -81,64 +80,43 @@ function dedupeThreads(threads: Thread[]): Thread[] {
 export const plazaApi = {
   getBanners: async (): Promise<PlazaBannerItem[]> => {
     const result = await bannerApi.getActiveBanners();
-    const items = Array.isArray(result?.banners) ? result.banners : [];
+    const legacyResult = result as unknown as { banners?: unknown };
+    const items = Array.isArray(result)
+      ? result
+      : Array.isArray(legacyResult?.banners)
+        ? legacyResult.banners
+        : [];
     return items.map((item: any) => ({
       thread_id: String(item.thread_id ?? ""),
       title: String(item.title ?? ""),
       cover_image_url: String(item.cover_image_url ?? ""),
       channel_id: item.channel_id ? String(item.channel_id) : undefined,
+      guild_id: item.guild_id ? String(item.guild_id) : undefined,
       author: item.author,
     }));
   },
 
   getRail: async (
     key: PlazaRailKey,
-    apply_preferences: boolean = true,
-    exclude_thread_ids?: string[],
-    exclude_tags?: string[],
+    params: {
+      limit?: number;
+      days?: number;
+      offset?: number;
+      apply_preferences?: boolean;
+    } = {},
   ): Promise<Thread[]> => {
-    let response: SearchResponse;
-    const baseFilter = {
-      apply_preferences,
-      exclude_thread_ids,
-      exclude_tags,
-    };
+    if (key === "editors_pick") return [];
 
-    if (key === "latest") {
-      response = await searchApi.search({
-        ...baseFilter,
-        sort_method: "created_desc",
-        limit: 12,
-      });
-    } else if (key === "reaction_surge") {
-      response = await searchApi.search({
-        ...baseFilter,
-        sort_method: "reaction_desc",
-        created_after: "-7d",
-        limit: 12,
-      });
-    } else if (key === "discussion_surge") {
-      response = await searchApi.search({
-        ...baseFilter,
-        sort_method: "reply_desc",
-        active_after: "-7d",
-        limit: 12,
-      });
-    } else if (key === "collection_surge") {
-      response = await searchApi.search({
-        ...baseFilter,
-        sort_method: "reaction_desc", // 对齐搜索页的 reaction_desc 逻辑
-        limit: 12,
-      });
-    } else {
-      response = await searchApi.search({
-        ...baseFilter,
-        sort_method: "relevance",
-        limit: 12,
-      });
-    }
+    const response = await apiClient.get<Thread[]>(`/discovery/rails/${key}`, {
+      params: {
+        limit: params.limit ?? 12,
+        days: params.days ?? 30,
+        offset: params.offset ?? 0,
+        apply_preferences: params.apply_preferences ?? true,
+      },
+    });
 
-    return dedupeThreads((response.results || []) as Thread[]).slice(0, 8);
+    return dedupeThreads(response.data || []);
   },
 
   getRails: async (

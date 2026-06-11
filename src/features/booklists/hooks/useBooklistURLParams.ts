@@ -47,7 +47,7 @@ export function useBooklistURLParams() {
       if (
         (updates.scope !== undefined && updates.scope !== current.scope) ||
         (updates.keywords !== undefined && updates.keywords !== current.q) ||
-        (updates.sort !== undefined && updates.sort !== current.sort)
+        (updates.sort !== undefined && String(updates.sort) !== current.sort)
       ) {
         next.page = "1";
       }

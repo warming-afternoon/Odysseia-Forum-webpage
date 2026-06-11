@@ -23,8 +23,6 @@ export interface PreferencesFormValue {
   sortMethod: PreferencesSortUi;
 }
 
-const DEFAULT_RESULTS_PER_PAGE = 24;
-
 const sortApiToUiMap: Record<string, PreferencesSortUi> = {
   comprehensive: 'relevance',
   last_active: 'last_active_desc',

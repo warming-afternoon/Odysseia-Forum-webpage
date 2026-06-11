@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api/client';
+import type { BannerItem } from '@/entities/thread/types';
 
 export interface BannerApplicationRequest {
     thread_id: string;
@@ -18,8 +19,8 @@ export const bannerApi = {
         return response.data;
     },
 
-    getActiveBanners: async (channelId?: string) => {
-        const response = await apiClient.get('/banner/active', {
+    getActiveBanners: async (channelId?: string): Promise<BannerItem[]> => {
+        const response = await apiClient.get<BannerItem[]>('/banner/active', {
             params: { channel_id: channelId },
         });
         return response.data;

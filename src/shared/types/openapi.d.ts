@@ -211,6 +211,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/search/thread/{thread_id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 按 TAG 相似度推荐帖子
+         * @description 根据指定帖子的 TAG 来匹配相似帖子。
+         *
+         *     降级策略：先全 TAG 匹配，不足时按流行度从低到高逐个丢弃 TAG 继续匹配，
+         *     直到凑足 limit 条或仅剩最热门的一个 TAG。结果按 Reddit Hot 热门算法排序。
+         */
+        get: operations["get_similar_threads_v1_search_thread__thread_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/search/suggestions": {
         parameters: {
             query?: never;
@@ -241,6 +264,8 @@ export interface paths {
          *
          *     - **limit**: 返回数量限制（默认10000）
          *     - **offset**: 偏移量（默认0）
+         *     - **active_flag**: 筛选关注状态（True=当前关注，False=过去关注，不传=全部）
+         *     - **channel_ids**: 频道ID列表（可选，用于按频道筛选）
          *
          *     返回格式：
          *     ```json
@@ -428,9 +453,10 @@ export interface paths {
         };
         /**
          * 获取当前活跃的Banner列表
-         * @description 获取当前活跃的Banner列表
+         * @description 获取当前活跃的Banner轮播列表
          *
-         *     - channel_id: 可选，指定频道ID获取该频道的Banner
+         *     - channel_id: 可选，指定频道ID获取该频道+全频道的Banner
+         *     - 返回的 guild_id + thread_id 可用于前端构建 Discord 跳转链接
          */
         get: operations["get_active_banners_v1_banner_active_get"];
         put?: never;
@@ -504,6 +530,7 @@ export interface paths {
          *     - description: 书单简介（可选）
          *     - cover_image_url: 封面图 URL（可选）
          *     - is_public: 是否公开，默认为 True
+         *     - is_anonymous: 是否匿名，默认为 False
          *     - display_type: 展示方式，1=加入时间倒序，2=display_order，默认为1
          */
         post: operations["create_booklist_v1_booklist_save_post"];
@@ -527,6 +554,7 @@ export interface paths {
          *     - owner_id: 按创建者筛选
          *     - keywords: 模糊搜索关键词(标题和简介)
          *     - included_thread_id: 筛选包含指定帖子ID的书单
+         *     - is_tournament: 筛选赛事书单
          *     - sort_method: 排序方式 (1: 书单内帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)
          *     - sort_order: 排序顺序 ('asc' 或 'desc')
          *     - limit: 返回数量
@@ -607,6 +635,7 @@ export interface paths {
          *     - description: 新简介（可选）
          *     - cover_image_url: 新封面图URL（可选）
          *     - is_public: 是否公开（可选）
+         *     - is_anonymous: 是否匿名（可选）
          *     - display_type: 展示方式（可选）
          */
         put: operations["update_booklist_v1_booklist_update__booklist_id__put"];
@@ -798,6 +827,205 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/discovery/rails/{rail_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取单条轨道数据（分页）
+         * @description 获取指定单条轨道的数据，支持 offset 分页，用于点击查看更多
+         */
+        get: operations["get_single_rail_v1_discovery_rails__rail_name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 创建赛事书单
+         * @description 创建赛事书单。同一 tournament_channel_id 多次调用幂等返回已有书单。
+         *
+         *     - **tournament_channel_id**: 赛事关联的 Discord 频道ID（唯一标识）
+         *     - **owner_id**: 赛事举办者 Discord 用户ID（即书单 owner）
+         *     - **title**: 赛事标题
+         */
+        post: operations["create_tournament_v1_tournament_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/list/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 分页获取赛事书单列表
+         * @description 分页获取赛事书单列表。
+         *
+         *     - **tournament_channel_id**: 按赛事频道ID筛选（可选）
+         *     - **sort_method**: 排序方式 (1: 帖子数, 2: 浏览数, 3: 收藏数, 4: 创建时间, 5: 更新时间)
+         *     - **sort_order**: 排序顺序 ('asc' 或 'desc')
+         *     - **limit**: 返回数量
+         *     - **offset**: 偏移量
+         */
+        get: operations["list_tournaments_v1_tournament_list_page_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/{tournament_channel_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取赛事书单详情
+         * @description 根据赛事频道ID获取赛事书单详情。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         */
+        get: operations["get_tournament_v1_tournament__tournament_channel_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * 删除赛事书单
+         * @description 删除整个赛事书单及其所有关联帖子。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         */
+        delete: operations["delete_tournament_v1_tournament__tournament_channel_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 更新赛事书单详情
+         * @description 更新赛事书单的标题、描述、封面图、可见性等元信息。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         *     - 请求体中的字段均为可选，仅更新传入的字段
+         */
+        patch: operations["update_tournament_v1_tournament__tournament_channel_id__patch"];
+        trace?: never;
+    };
+    "/v1/tournament/{tournament_channel_id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 分页获取赛事项
+         * @description 分页获取赛事书单内的帖子详情。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         *     - **limit**: 返回数量
+         *     - **offset**: 偏移量
+         */
+        get: operations["get_tournament_items_v1_tournament__tournament_channel_id__items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/{tournament_channel_id}/items/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 向赛事添加参赛帖子
+         * @description 向赛事书单批量添加参赛帖子。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         *     - **items**: 帖子列表，每项包含 thread_id（必填）、comment（可选）、display_order（可选）、tournament_participated_at（可选）
+         */
+        post: operations["add_tournament_items_v1_tournament__tournament_channel_id__items_add_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/{tournament_channel_id}/items/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 从赛事移除参赛帖子
+         * @description 从赛事书单批量移除参赛帖子。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         *     - **thread_ids**: 要移除的帖子ID列表
+         */
+        delete: operations["remove_tournament_items_v1_tournament__tournament_channel_id__items_delete_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tournament/{tournament_channel_id}/items/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 更新参赛帖子信息
+         * @description 更新赛事书单中某个帖子的信息。
+         *
+         *     - **tournament_channel_id**: 赛事频道ID
+         *     - **thread_id**: 帖子ID
+         *     - **update_data**: 要更新的字段（comment, display_order, tournament_participated_at）
+         */
+        patch: operations["update_tournament_item_v1_tournament__tournament_channel_id__items__thread_id__patch"];
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -807,7 +1035,7 @@ export interface paths {
         };
         /**
          * 健康检查
-         * @description API 服务健康检查端点
+         * @description API 服务健康检查端点，检查数据库和 Redis 连通性
          */
         get: operations["health_check_v1_health_get"];
         put?: never;
@@ -830,6 +1058,86 @@ export interface paths {
          * @description API 服务根路径
          */
         get: operations["root__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/debug/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 内存诊断
+         * @description 调试端点：输出进程内存中 Top 对象类型及模块级内存占用
+         */
+        get: operations["debug_memory_v1_debug_memory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/debug/memory/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 内存来源诊断
+         * @description 调试端点：按模块来源汇总对象数量，定位泄漏代码路径
+         */
+        get: operations["debug_memory_sources_v1_debug_memory_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/debug/memory/force-gc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 强制 GC 并对比
+         * @description 调试端点：强制全量 GC，对比回收前后的对象数和 RSS
+         */
+        get: operations["debug_force_gc_v1_debug_memory_force_gc_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/debug/memory/pools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 连接池状态
+         * @description 调试端点：SQLAlchemy 连接池和 Redis 连接池状态
+         */
+        get: operations["debug_pools_v1_debug_memory_pools_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1065,6 +1373,16 @@ export interface components {
              * @default 0
              */
             guild_id: number;
+            /**
+             * Start Time
+             * @description Banner 展示开始时间
+             */
+            start_time?: string | null;
+            /**
+             * End Time
+             * @description Banner 展示结束时间
+             */
+            end_time?: string | null;
         };
         /**
          * BannerItem
@@ -1084,6 +1402,16 @@ export interface components {
              * @description 帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）
              */
             guild_id?: string;
+            /**
+             * Start Time
+             * @description Banner 展示开始时间
+             */
+            start_time?: string | null;
+            /**
+             * End Time
+             * @description Banner 展示结束时间
+             */
+            end_time?: string | null;
         };
         /**
          * BooklistCreateResponse
@@ -1151,10 +1479,26 @@ export interface components {
              */
             is_public: boolean;
             /**
+             * Is Anonymous
+             * @description 是否匿名
+             */
+            is_anonymous: boolean;
+            /**
              * Is Default
              * @description 是否为用户的默认书单
              */
             is_default: boolean;
+            /**
+             * Is Tournament
+             * @description 是否为赛事书单
+             * @default false
+             */
+            is_tournament: boolean;
+            /**
+             * Tournament Channel Id
+             * @description 赛事频道ID
+             */
+            tournament_channel_id?: string | null;
             /**
              * Display Type
              * @description 展示方式: 1=加入时间倒序, 2=作者自定义排序(display_order)
@@ -1214,6 +1558,11 @@ export interface components {
              * @description 排序权重
              */
             display_order?: number | null;
+            /**
+             * Tournament Participated At
+             * @description 参赛时间（赛事专用）
+             */
+            tournament_participated_at?: string | null;
         };
         /**
          * BooklistItemAddResponse
@@ -1348,6 +1697,11 @@ export interface components {
              */
             comment?: string | null;
             /**
+             * Tournament Participated At
+             * @description 参赛时间（赛事专用）
+             */
+            tournament_participated_at?: string | null;
+            /**
              * Display Order
              * @description 排序权重
              */
@@ -1380,6 +1734,11 @@ export interface components {
              * @description 排序权重
              */
             display_order?: number | null;
+            /**
+             * Tournament Participated At
+             * @description 参赛时间（赛事专用）
+             */
+            tournament_participated_at?: string | null;
         };
         /** BooklistItemsAddRequest */
         BooklistItemsAddRequest: {
@@ -1743,6 +2102,267 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /**
+         * FollowedThreadResponse
+         * @description 关注列表中的帖子响应。
+         *
+         *     继承 ThreadDetail 的所有字段（thread_id, title, author, tags 等），
+         *     追加 latest_update_at / latest_update_link / followed_at / last_viewed_at / has_update。
+         */
+        "FollowedThreadResponse-Input": {
+            /**
+             * Thread Id
+             * @description 帖子的 Discord ID
+             */
+            thread_id: number;
+            /**
+             * Guild Id
+             * @description 帖子所属的 Discord 服务器 ID
+             * @default 0
+             */
+            guild_id: number;
+            /**
+             * Channel Id
+             * @description 帖子所在频道的 Discord ID
+             */
+            channel_id: number;
+            /**
+             * Title
+             * @description 帖子标题
+             */
+            title: string;
+            /** @description 帖子作者的详细信息 */
+            author?: components["schemas"]["AuthorDetail-Input"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description 帖子创建时间
+             */
+            created_at: string;
+            /**
+             * Last Active At
+             * @description 帖子最后活跃时间
+             */
+            last_active_at?: string | null;
+            /**
+             * Reaction Count
+             * @description 帖子点赞数
+             */
+            reaction_count: number;
+            /**
+             * Reply Count
+             * @description 帖子回复数
+             */
+            reply_count: number;
+            /**
+             * Collection Count
+             * @description 帖子被收藏的总次数
+             * @default 0
+             */
+            collection_count: number;
+            /**
+             * Display Count
+             * @description 在搜索结果中的展示次数
+             * @default 0
+             */
+            display_count: number;
+            /**
+             * First Message Excerpt
+             * @description 帖子首条消息摘要
+             */
+            first_message_excerpt?: string | null;
+            /**
+             * Thumbnail Urls
+             * @description 帖子首楼图片URL列表
+             */
+            thumbnail_urls: string[];
+            /**
+             * Tags
+             * @description 帖子关联的标签列表
+             */
+            tags?: string[];
+            /**
+             * Virtual Tags
+             * @description 帖子匹配的虚拟映射标签名列表
+             */
+            virtual_tags?: string[];
+            /**
+             * Collected Flag
+             * @description 当前用户是否收藏了该帖子
+             * @default false
+             */
+            collected_flag: boolean;
+            /**
+             * Latest Update At
+             * @description 帖子最近一次有新消息的时间
+             */
+            latest_update_at?: string | null;
+            /**
+             * Latest Update Link
+             * @description 最新更新的消息链接
+             */
+            latest_update_link?: string | null;
+            /**
+             * Followed At
+             * Format: date-time
+             * @description 用户关注该帖子的时间
+             */
+            followed_at: string;
+            /**
+             * Last Viewed At
+             * @description 用户最近一次查看该帖子的时间
+             */
+            last_viewed_at?: string | null;
+            /**
+             * Has Update
+             * @description 自 last_viewed_at 后帖子是否有新内容
+             * @default false
+             */
+            has_update: boolean;
+        };
+        /**
+         * FollowedThreadResponse
+         * @description 关注列表中的帖子响应。
+         *
+         *     继承 ThreadDetail 的所有字段（thread_id, title, author, tags 等），
+         *     追加 latest_update_at / latest_update_link / followed_at / last_viewed_at / has_update。
+         */
+        "FollowedThreadResponse-Output": {
+            /**
+             * Thread Id
+             * @description 帖子的 Discord ID
+             */
+            thread_id: string;
+            /**
+             * Guild Id
+             * @description 帖子所属的 Discord 服务器 ID
+             */
+            guild_id?: string;
+            /**
+             * Channel Id
+             * @description 帖子所在频道的 Discord ID
+             */
+            channel_id: string;
+            /**
+             * Title
+             * @description 帖子标题
+             */
+            title: string;
+            /** @description 帖子作者的详细信息 */
+            author?: components["schemas"]["AuthorDetail-Output"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description 帖子创建时间
+             */
+            created_at: string;
+            /**
+             * Last Active At
+             * @description 帖子最后活跃时间
+             */
+            last_active_at?: string | null;
+            /**
+             * Reaction Count
+             * @description 帖子点赞数
+             */
+            reaction_count: number;
+            /**
+             * Reply Count
+             * @description 帖子回复数
+             */
+            reply_count: number;
+            /**
+             * Collection Count
+             * @description 帖子被收藏的总次数
+             * @default 0
+             */
+            collection_count: number;
+            /**
+             * Display Count
+             * @description 在搜索结果中的展示次数
+             * @default 0
+             */
+            display_count: number;
+            /**
+             * First Message Excerpt
+             * @description 帖子首条消息摘要
+             */
+            first_message_excerpt?: string | null;
+            /**
+             * Thumbnail Urls
+             * @description 帖子首楼图片URL列表
+             */
+            thumbnail_urls: string[];
+            /**
+             * Tags
+             * @description 帖子关联的标签列表
+             */
+            tags?: string[];
+            /**
+             * Virtual Tags
+             * @description 帖子匹配的虚拟映射标签名列表
+             */
+            virtual_tags?: string[];
+            /**
+             * Collected Flag
+             * @description 当前用户是否收藏了该帖子
+             * @default false
+             */
+            collected_flag: boolean;
+            /**
+             * Latest Update At
+             * @description 帖子最近一次有新消息的时间
+             */
+            latest_update_at?: string | null;
+            /**
+             * Latest Update Link
+             * @description 最新更新的消息链接
+             */
+            latest_update_link?: string | null;
+            /**
+             * Followed At
+             * Format: date-time
+             * @description 用户关注该帖子的时间
+             */
+            followed_at: string;
+            /**
+             * Last Viewed At
+             * @description 用户最近一次查看该帖子的时间
+             */
+            last_viewed_at?: string | null;
+            /**
+             * Has Update
+             * @description 自 last_viewed_at 后帖子是否有新内容
+             * @default false
+             */
+            has_update: boolean;
+        };
+        /**
+         * FollowsListResponse
+         * @description 关注列表的 API 响应体
+         */
+        FollowsListResponse: {
+            /**
+             * Total
+             * @description 关注总数
+             */
+            total: number;
+            /**
+             * Threads
+             * @description 帖子列表
+             */
+            threads: components["schemas"]["FollowedThreadResponse-Output"][];
+            /**
+             * Limit
+             * @description 返回数量限制
+             */
+            limit: number;
+            /**
+             * Offset
+             * @description 偏移量
+             */
+            offset: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1961,7 +2581,7 @@ export interface components {
             reply_count_range: string;
             /**
              * Sort Method
-             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数), 'collected_at'(收藏时间), 'custom'(自定义)
+             * @description 排序方法：'comprehensive'(综合排序), 'created_at'(发帖时间), 'last_active'(最后活跃时间), 'reaction_count'(点赞数), 'reply_count'(回复数), 'collection_count'(收藏数), 'collected_at'(收藏时间), 'reddit_hot'(Reddit Hot 热门算法), 'custom'(自定义)
              * @default comprehensive
              */
             sort_method: string;
@@ -1995,7 +2615,7 @@ export interface components {
             exclude_channel_ids?: (number | string)[];
             /**
              * Offset
-             * @description 结果的偏移页（已弃用，为兼容旧版本保留）
+             * @description 结果的偏移数
              * @default 0
              */
             offset: number;
@@ -2064,6 +2684,28 @@ export interface components {
              * @description 匹配的书单 (最多3个)
              */
             booklists?: components["schemas"]["BooklistSuggestion"][];
+        };
+        /**
+         * SimilarThreadsResponse
+         * @description 相似帖子推荐接口的响应体
+         */
+        SimilarThreadsResponse: {
+            /**
+             * Source Thread Id
+             * @description 源帖子的 Discord ID
+             */
+            source_thread_id: string;
+            /**
+             * Matched Tag Count
+             * @description 最后一级命中使用的 TAG 数量（越大代表相似度越高）；若为 0 说明未按 TAG 匹配到任何结果
+             * @default 0
+             */
+            matched_tag_count: number;
+            /**
+             * Results
+             * @description 推荐的相似帖子列表（最多 limit 条）
+             */
+            results?: components["schemas"]["ThreadDetail"][];
         };
         /**
          * TagDetail
@@ -2315,6 +2957,149 @@ export interface components {
              * @description 服务器 ID
              */
             guild_id: string;
+        };
+        /**
+         * TournamentCreateRequest
+         * @description 创建赛事书单请求
+         */
+        TournamentCreateRequest: {
+            /**
+             * Tournament Channel Id
+             * @description 赛事关联的 Discord 频道ID
+             */
+            tournament_channel_id: number;
+            /**
+             * Owner Id
+             * @description 赛事举办者 Discord 用户ID（即书单 owner）
+             */
+            owner_id: number;
+            /**
+             * Title
+             * @description 赛事标题
+             */
+            title: string;
+            /**
+             * Description
+             * @description 赛事简介
+             */
+            description?: string | null;
+            /**
+             * Cover Image Url
+             * @description 封面图URL
+             */
+            cover_image_url?: string | null;
+            /**
+             * Is Public
+             * @description 是否公开
+             * @default true
+             */
+            is_public: boolean;
+        };
+        /**
+         * TournamentCreateResponse
+         * @description 创建赛事书单响应
+         */
+        TournamentCreateResponse: {
+            /**
+             * Message
+             * @description 提示信息
+             * @default 赛事书单创建成功
+             */
+            message: string;
+            /**
+             * Booklist Id
+             * @description 书单ID
+             */
+            booklist_id: number;
+            /**
+             * Title
+             * @description 赛事标题
+             */
+            title: string;
+            /**
+             * Tournament Channel Id
+             * @description 赛事频道ID
+             */
+            tournament_channel_id: number;
+            /**
+             * Created
+             * @description 是否为新创建（false 表示已存在，幂等返回）
+             */
+            created: boolean;
+        };
+        /**
+         * TournamentItemAddData
+         * @description 赛事项添加数据
+         */
+        TournamentItemAddData: {
+            /**
+             * Thread Id
+             * @description Discord Thread ID
+             */
+            thread_id: number | string;
+            /**
+             * Comment
+             * @description 推荐语/备注
+             */
+            comment?: string | null;
+            /**
+             * Tournament Participated At
+             * @description 参赛时间
+             */
+            tournament_participated_at?: string | null;
+        };
+        /**
+         * TournamentItemUpdateRequest
+         * @description 更新赛事项请求体
+         */
+        TournamentItemUpdateRequest: {
+            /**
+             * Comment
+             * @description 推荐语/备注
+             */
+            comment?: string | null;
+            /**
+             * Tournament Participated At
+             * @description 参赛时间
+             */
+            tournament_participated_at?: string | null;
+        };
+        /**
+         * TournamentItemsAddRequest
+         * @description 批量添加赛事项请求
+         */
+        TournamentItemsAddRequest: {
+            /**
+             * Items
+             * @description 要添加的帖子列表
+             */
+            items: components["schemas"]["TournamentItemAddData"][];
+        };
+        /**
+         * TournamentUpdateRequest
+         * @description 更新赛事书单请求
+         */
+        TournamentUpdateRequest: {
+            /**
+             * Title
+             * @description 赛事标题
+             */
+            title?: string | null;
+            /**
+             * Description
+             * @description 赛事简介
+             */
+            description?: string | null;
+            /**
+             * Cover Image Url
+             * @description 封面图URL
+             */
+            cover_image_url?: string | null;
+            /**
+             * Is Public
+             * @description 是否公开
+             */
+            is_public?: boolean | null;
         };
         /**
          * UserPreferencesResponse
@@ -2869,6 +3654,40 @@ export interface operations {
             };
         };
     };
+    get_similar_threads_v1_search_thread__thread_id__similar_get: {
+        parameters: {
+            query?: {
+                /** @description 最大返回结果数量 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                thread_id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarThreadsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_search_suggestions_v1_search_suggestions_get: {
         parameters: {
             query: {
@@ -2908,6 +3727,10 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                /** @description True=当前关注，False=过去关注，不传=全部 */
+                active_flag?: boolean | null;
+                /** @description 频道ID列表（可选，用于按频道筛选） */
+                channel_ids?: (number | string)[] | null;
             };
             header?: never;
             path?: never;
@@ -2921,7 +3744,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["FollowsListResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3160,6 +3983,7 @@ export interface operations {
     get_active_banners_v1_banner_active_get: {
         parameters: {
             query?: {
+                /** @description 频道ID，不传则获取全频道Banner */
                 channel_id?: number | null;
             };
             header?: never;
@@ -3174,7 +3998,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BannerItem-Output"][];
                 };
             };
             /** @description Validation Error */
@@ -3265,6 +4089,7 @@ export interface operations {
                 description?: string | null;
                 cover_image_url?: string | null;
                 is_public?: boolean;
+                is_anonymous?: boolean;
                 display_type?: number;
             };
             header?: never;
@@ -3302,6 +4127,8 @@ export interface operations {
                 keywords?: string | null;
                 /** @description 筛选包含指定帖子ID的书单 */
                 included_thread_id?: number | null;
+                /** @description 筛选赛事书单（true=仅赛事，false=仅非赛事，不传=全部） */
+                is_tournament?: boolean | null;
                 /** @description 从当前用户收藏的书单中筛选 */
                 search_by_collect?: boolean | null;
                 /** @description 排序方法: 1-书单内帖子数量, 2-被浏览次数,3-被收藏次数,4-创建时间,5-最后更新时间 */
@@ -3423,6 +4250,7 @@ export interface operations {
                 description?: string | null;
                 cover_image_url?: string | null;
                 is_public?: boolean | null;
+                is_anonymous?: boolean | null;
                 display_type?: number | null;
             };
             header?: never;
@@ -3737,6 +4565,359 @@ export interface operations {
             };
         };
     };
+    get_single_rail_v1_discovery_rails__rail_name__get: {
+        parameters: {
+            query?: {
+                /** @description 返回数量 */
+                limit?: number;
+                /** @description 统计时间跨度(天数) */
+                days?: number;
+                /** @description 偏移量，用于分页 */
+                offset?: number;
+                /** @description 是否应用当前用户的过滤偏好 */
+                apply_preferences?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description 轨道名称，可选值: latest / reaction_surge / discussion_surge / collection_surge */
+                rail_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadDetail"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_tournament_v1_tournament_create_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tournaments_v1_tournament_list_page_get: {
+        parameters: {
+            query?: {
+                /** @description 按赛事频道ID筛选 */
+                tournament_channel_id?: number | null;
+                /** @description 排序方法: 1-帖子数, 2-浏览数, 3-收藏数, 4-创建时间, 5-最后更新时间 */
+                sort_method?: number;
+                /** @description 排序顺序: 'asc'(升序) 或 'desc'(降序) */
+                sort_order?: string;
+                /** @description 每次请求返回的数量 (范围: 1-100) */
+                limit?: number;
+                /** @description 结果的偏移量，从0开始 */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_BooklistDetail_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tournament_v1_tournament__tournament_channel_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BooklistDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_tournament_v1_tournament__tournament_channel_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tournament_v1_tournament__tournament_channel_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tournament_items_v1_tournament__tournament_channel_id__items_get: {
+        parameters: {
+            query?: {
+                /** @description 每次请求返回的数量 (范围: 1-100) */
+                limit?: number;
+                /** @description 结果的偏移量，从0开始 */
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_BooklistItemDetail_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_tournament_items_v1_tournament__tournament_channel_id__items_add_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentItemsAddRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_tournament_items_v1_tournament__tournament_channel_id__items_delete_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BooklistItemsDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tournament_item_v1_tournament__tournament_channel_id__items__thread_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_channel_id: number;
+                thread_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentItemUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_check_v1_health_get: {
         parameters: {
             query?: never;
@@ -3758,6 +4939,86 @@ export interface operations {
         };
     };
     root__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    debug_memory_v1_debug_memory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    debug_memory_sources_v1_debug_memory_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    debug_force_gc_v1_debug_memory_force_gc_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    debug_pools_v1_debug_memory_pools_get: {
         parameters: {
             query?: never;
             header?: never;

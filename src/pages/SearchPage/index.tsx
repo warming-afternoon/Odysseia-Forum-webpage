@@ -20,6 +20,7 @@ import { addToken, parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { Select } from "@/shared/ui/Select";
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
+import { scrollPageToTop } from "@/shared/lib/pageScroll";
 import {
   ArrowUpDown,
   Compass,
@@ -32,7 +33,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const searchSortOptions = [
   { value: 'last_active_desc', label: '最近活跃' },
@@ -44,6 +45,7 @@ const searchSortOptions = [
 
 export function SearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { params, setParams } = useSearchURLParams();
   const { query, channel: selectedChannel } = params;
 
@@ -59,6 +61,7 @@ export function SearchPage() {
   const { updateSettings } = useSettings();
   const hasTriggeredSearchCueRef = useRef<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const lastSearchLocationRef = useRef<string | null>(null);
 
   const {
     discoveryPreferenceContext,
@@ -91,6 +94,32 @@ export function SearchPage() {
   const searchTotalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const isInfiniteMode = resultPagingMode === "infinite";
   useSearchWhisper(query);
+
+  useEffect(() => {
+    const searchLocation = `${location.pathname}?${location.search}`;
+
+    if (lastSearchLocationRef.current === null) {
+      lastSearchLocationRef.current = searchLocation;
+      return;
+    }
+
+    if (lastSearchLocationRef.current === searchLocation) return;
+    lastSearchLocationRef.current = searchLocation;
+
+    scrollPageToTop("auto");
+    const frame = window.requestAnimationFrame(() => scrollPageToTop("auto"));
+    let attempts = 0;
+    const interval = window.setInterval(() => {
+      scrollPageToTop("auto");
+      attempts += 1;
+      if (attempts >= 6) window.clearInterval(interval);
+    }, 80);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(interval);
+    };
+  }, [location.pathname, location.search]);
 
 
   const handleTagClick = (tagName: string) => {
@@ -163,7 +192,7 @@ export function SearchPage() {
   const isThreadTab = params.type === "thread";
 
   return (
-    <div className="flex min-h-full flex-col overflow-x-hidden">
+    <div className="flex min-h-full min-w-0 flex-col">
       <div className="animate-in fade-in duration-500 flex-1 p-4 sm:p-6 lg:p-8">
         <FluidDivider label="Search" tone="strong" className="mb-6" />
         <div className="mb-6 flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">

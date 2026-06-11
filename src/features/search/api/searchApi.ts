@@ -1,4 +1,4 @@
-import { SearchParams as ApiSearchParams, SearchResponse, Thread } from '@/entities/thread/types';
+import { SearchParams as ApiSearchParams, SearchResponse, SimilarThreadsResponse, Thread } from '@/entities/thread/types';
 import { apiClient } from '@/shared/api/client';
 import { tokenizeSearchPayload } from '@/shared/lib/searchTokenizer';
 
@@ -231,6 +231,13 @@ export const searchApi = {
 
   getThread: async (threadId: string): Promise<Thread> => {
     const response = await apiClient.get<Thread>(`/search/thread/${threadId}`);
+    return response.data;
+  },
+
+  getSimilarThreads: async (threadId: string, limit = 6): Promise<SimilarThreadsResponse> => {
+    const response = await apiClient.get<SimilarThreadsResponse>(`/search/thread/${threadId}/similar`, {
+      params: { limit },
+    });
     return response.data;
   },
 

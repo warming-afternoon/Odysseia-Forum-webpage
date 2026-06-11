@@ -96,7 +96,7 @@ export function NotificationCenter({ open, onClose, onUnreadChange }: Notificati
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['follows'],
-    queryFn: followsApi.getFollows,
+    queryFn: () => followsApi.getFollows(),
     staleTime: 60 * 1000,
     refetchInterval: 30 * 1000,
     refetchOnWindowFocus: true,
