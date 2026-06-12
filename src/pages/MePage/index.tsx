@@ -225,7 +225,16 @@ export function MePage() {
     () => getBrowseHistory(),
     [browseHistoryVersion],
   );
-  const followedThreads = followsQuery.data?.results || [];
+  const followedThreads = useMemo(() => {
+    const threads = followsQuery.data?.results || [];
+    if (followStatus === "current") {
+      return threads.filter((thread) => Boolean(thread.collected_flag));
+    }
+    if (followStatus === "past") {
+      return threads.filter((thread) => !thread.collected_flag);
+    }
+    return threads;
+  }, [followStatus, followsQuery.data?.results]);
   const totalReactions = createdThreads.reduce(
     (sum, item) => sum + (Number(item.reaction_count) || 0),
     0,
@@ -280,6 +289,17 @@ export function MePage() {
       sp.delete("follow_status");
     } else {
       sp.set("follow_status", next);
+    }
+    setSearchParams(sp, { replace: true });
+  };
+
+  const setFollowChannel = (channelId: string | null) => {
+    const sp = new URLSearchParams(searchParams);
+    sp.set("tab", "follows");
+    if (channelId) {
+      sp.set("channel", channelId);
+    } else {
+      sp.delete("channel");
     }
     setSearchParams(sp, { replace: true });
   };
@@ -373,6 +393,7 @@ export function MePage() {
 
         {tab === "follows" && (
           <MeFollowsSection
+            channelOptions={channelOptions}
             hasAnyResults={(followsQuery.data?.results?.length || 0) > 0}
             followStatus={followStatus}
             isError={followsQuery.isError}
@@ -386,6 +407,7 @@ export function MePage() {
             }}
             onPreview={openPreview}
             onRefresh={() => void followsQuery.refetch()}
+            onSetChannel={setFollowChannel}
             onSetFollowStatus={setFollowStatus}
             onUnfollow={(thread) => {
               if (!window.confirm(`确认取消关注「${thread.title}」？`)) return;

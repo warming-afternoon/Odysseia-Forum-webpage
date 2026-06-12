@@ -6,7 +6,13 @@ import { FluidDivider } from '@/shared/ui/FluidDivider';
 
 type FollowStatusFilter = 'current' | 'past' | 'all';
 
+type FollowChannelOption = {
+  id: string;
+  name: string;
+};
+
 interface MeFollowsSectionProps {
+  channelOptions: FollowChannelOption[];
   followStatus: FollowStatusFilter;
   hasAnyResults: boolean;
   isError: boolean;
@@ -16,12 +22,14 @@ interface MeFollowsSectionProps {
   onClearChannel: () => void;
   onPreview: (thread: Thread) => void;
   onRefresh: () => void;
+  onSetChannel: (channelId: string | null) => void;
   onSetFollowStatus: (status: FollowStatusFilter) => void;
   onUnfollow: (thread: Thread) => void;
   unfollowPendingThreadId?: string | null;
 }
 
 export function MeFollowsSection({
+  channelOptions,
   followStatus,
   hasAnyResults,
   isError,
@@ -31,6 +39,7 @@ export function MeFollowsSection({
   onClearChannel,
   onPreview,
   onRefresh,
+  onSetChannel,
   onSetFollowStatus,
   onUnfollow,
   unfollowPendingThreadId,
@@ -50,6 +59,24 @@ export function MeFollowsSection({
         <div className="flex items-center justify-center gap-2">
           <Bookmark className="h-4 w-4 text-(--od-accent)" />
           <h2 className="od-text-title">我的关注</h2>
+        </div>
+        <div className="w-full max-w-xs">
+          <label htmlFor="follow-channel-filter" className="sr-only">
+            频道筛选
+          </label>
+          <select
+            id="follow-channel-filter"
+            value={selectedChannel || ''}
+            onChange={(event) => onSetChannel(event.target.value || null)}
+            className="w-full rounded-full border border-(--od-shell-line) bg-(--od-surface-input) px-4 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors hover:bg-(--od-interactive-hover) focus:border-(--od-accent)"
+          >
+            <option value="">全频道</option>
+            {channelOptions.map((channel) => (
+              <option key={channel.id} value={channel.id}>
+                {channel.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {([

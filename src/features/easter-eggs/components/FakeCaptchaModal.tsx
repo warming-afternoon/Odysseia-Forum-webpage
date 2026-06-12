@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, RefreshCw, X } from 'lucide-react';
 
 import {
@@ -61,7 +62,7 @@ export function FakeCaptchaModal({ isOpen, onClose }: FakeCaptchaModalProps) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
         className="w-full max-w-[26rem] overflow-hidden rounded-sm bg-white text-[#202124] shadow-2xl"
@@ -125,6 +126,7 @@ export function FakeCaptchaModal({ isOpen, onClose }: FakeCaptchaModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

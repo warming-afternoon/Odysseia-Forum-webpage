@@ -200,7 +200,16 @@ export function MePreferencesSection({
               <p className="mt-2 text-[11px] leading-relaxed text-(--od-text-tertiary)">
                 支持多组关键词组合：使用逗号 <code className="px-1 text-(--od-accent)">,</code> 分隔表示“且”（AND），使用斜杠 <code className="px-1 text-(--od-accent)">/</code> 分隔表示“或”（OR）。
                 <br />
-                精确匹配请使用双引号包裹，例如 <code className="px-1 text-(--od-accent)">"原神"</code>。搜索不区分大小写。
+                精确匹配请使用双引号包裹，例如 <code className="px-1 text-(--od-accent)">"</code>
+                <a
+                  href="https://ys.mihoyo.com/main/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-0.5 text-(--od-accent) underline-offset-2 hover:underline"
+                >
+                  原神
+                </a>
+                <code className="px-1 text-(--od-accent)">"</code>。搜索不区分大小写。
               </p>
             </label>
             <label className="block space-y-2">
