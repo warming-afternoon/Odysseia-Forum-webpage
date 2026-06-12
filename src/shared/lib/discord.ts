@@ -33,35 +33,30 @@ export function getAvatarUrl(user: DiscordUser, size: number = 128): string {
 
 interface DiscordThreadLinkOptions {
     guildId?: string | null;
+    // Forum post/thread links use threadId as the route channel segment; this is the parent channel id.
     channelId?: string | null;
     threadId: string;
 }
 
 export type DiscordOpenMode = 'app' | 'web';
 
-function resolveDiscordLinkSegments({ guildId, channelId, threadId }: DiscordThreadLinkOptions) {
+function resolveDiscordLinkSegments({ guildId, threadId }: DiscordThreadLinkOptions) {
     const normalizedGuildId = guildId || import.meta.env.VITE_GUILD_ID || '@me';
-    const normalizedChannelId = channelId || null;
 
     return {
         guildId: normalizedGuildId,
-        channelId: normalizedChannelId,
         threadId,
     };
 }
 
 export function buildDiscordWebThreadUrl(options: DiscordThreadLinkOptions): string {
-    const { guildId, channelId, threadId } = resolveDiscordLinkSegments(options);
-    return channelId
-        ? `${DISCORD_WEB_BASE}/channels/${guildId}/${channelId}/${threadId}`
-        : `${DISCORD_WEB_BASE}/channels/${guildId}/${threadId}`;
+    const { guildId, threadId } = resolveDiscordLinkSegments(options);
+    return `${DISCORD_WEB_BASE}/channels/${guildId}/${threadId}`;
 }
 
 export function buildDiscordAppThreadUrl(options: DiscordThreadLinkOptions): string {
-    const { guildId, channelId, threadId } = resolveDiscordLinkSegments(options);
-    return channelId
-        ? `discord://-/channels/${guildId}/${channelId}/${threadId}`
-        : `discord://-/channels/${guildId}/${threadId}`;
+    const { guildId, threadId } = resolveDiscordLinkSegments(options);
+    return `discord://-/channels/${guildId}/${threadId}`;
 }
 
 export function buildDiscordThreadUrl(options: DiscordThreadLinkOptions, openMode: DiscordOpenMode): string {

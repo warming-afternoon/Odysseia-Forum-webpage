@@ -9,19 +9,19 @@ import {
 describe('discord link builders', () => {
   const options = {
     guildId: '1134557553011998840',
-    channelId: '1307242450300964986',
-    threadId: '1442755349311651901',
+    channelId: '1134822069222264874',
+    threadId: '1503799480804446349',
   };
 
   it('生成 Discord 网页端帖子链接', () => {
     expect(buildDiscordWebThreadUrl(options)).toBe(
-      'https://discord.com/channels/1134557553011998840/1307242450300964986/1442755349311651901',
+      'https://discord.com/channels/1134557553011998840/1503799480804446349',
     );
   });
 
   it('生成 Discord App Deep Link', () => {
     expect(buildDiscordAppThreadUrl(options)).toBe(
-      'discord://-/channels/1134557553011998840/1307242450300964986/1442755349311651901',
+      'discord://-/channels/1134557553011998840/1503799480804446349',
     );
   });
 
