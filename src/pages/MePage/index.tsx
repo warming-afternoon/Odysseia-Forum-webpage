@@ -13,7 +13,10 @@ import {
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FakeCaptchaEntry } from "@/features/easter-eggs/components/FakeCaptchaEntry";
 import type { Thread } from "@/entities/thread/types";
-import { useFollowsFeed } from "@/features/follows/hooks/useFollowsData";
+import {
+  useFollowsFeed,
+  useUnfollowThread,
+} from "@/features/follows/hooks/useFollowsData";
 import { searchApi } from "@/features/search/api/searchApi";
 import type { Booklist } from "@/entities/booklist/types";
 import {
@@ -55,6 +58,7 @@ import {
 import { notifyError, notifySuccess } from "@/shared/lib/notify";
 
 type MeTab = "booklists" | "follows" | "threads" | "history" | "preferences";
+type FollowStatusFilter = "current" | "past" | "all";
 
 const DEFAULT_FORM: PreferencesFormValue = {
   preferredChannelIds: [],
@@ -93,6 +97,11 @@ function parseBooklistSubTab(value: string | null): BooklistSubTab {
   return value === "collected" ? "collected" : "mine";
 }
 
+function parseFollowStatus(value: string | null): FollowStatusFilter {
+  if (value === "past" || value === "all") return value;
+  return "current";
+}
+
 export function MePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -101,6 +110,8 @@ export function MePage() {
 
   const tab = parseTab(searchParams.get("tab"));
   const booklistSubTab = parseBooklistSubTab(searchParams.get("booklists"));
+  const selectedFollowChannel = searchParams.get("channel");
+  const followStatus = parseFollowStatus(searchParams.get("follow_status"));
 
   const [showCreateBooklist, setShowCreateBooklist] = useState(false);
   const [editingBooklist, setEditingBooklist] = useState<Booklist | null>(null);
@@ -176,7 +187,11 @@ export function MePage() {
     return Array.from(tagSet);
   }, [channelTagCatalog, form.preferredChannelIds]);
 
-  const followsQuery = useFollowsFeed();
+  const followsQuery = useFollowsFeed({
+    active_flag:
+      followStatus === "all" ? null : followStatus === "past" ? false : true,
+    channel_ids: selectedFollowChannel ? [selectedFollowChannel] : undefined,
+  });
 
   const createdThreadsQuery = useQuery({
     queryKey: ["me", "threads", user?.id],
@@ -195,6 +210,7 @@ export function MePage() {
   const collectedBooklistsQuery = useCollectedBooklistsList();
 
   const collectMutation = useToggleBooklistCollection();
+  const unfollowMutation = useUnfollowThread();
 
   const createMutation = useCreateBooklist(() => setShowCreateBooklist(false));
 
@@ -209,14 +225,7 @@ export function MePage() {
     () => getBrowseHistory(),
     [browseHistoryVersion],
   );
-  const followedThreads = useMemo(() => {
-    const threads = followsQuery.data?.results || [];
-    const selectedFollowChannel = searchParams.get("channel");
-    if (!selectedFollowChannel) return threads;
-    return threads.filter(
-      (thread) => String(thread.channel_id) === String(selectedFollowChannel),
-    );
-  }, [followsQuery.data?.results, searchParams]);
+  const followedThreads = followsQuery.data?.results || [];
   const totalReactions = createdThreads.reduce(
     (sum, item) => sum + (Number(item.reaction_count) || 0),
     0,
@@ -261,6 +270,17 @@ export function MePage() {
     const sp = new URLSearchParams(searchParams);
     sp.set("tab", "booklists");
     sp.set("booklists", next);
+    setSearchParams(sp, { replace: true });
+  };
+
+  const setFollowStatus = (next: FollowStatusFilter) => {
+    const sp = new URLSearchParams(searchParams);
+    sp.set("tab", "follows");
+    if (next === "current") {
+      sp.delete("follow_status");
+    } else {
+      sp.set("follow_status", next);
+    }
     setSearchParams(sp, { replace: true });
   };
 
@@ -354,9 +374,10 @@ export function MePage() {
         {tab === "follows" && (
           <MeFollowsSection
             hasAnyResults={(followsQuery.data?.results?.length || 0) > 0}
+            followStatus={followStatus}
             isError={followsQuery.isError}
             isLoading={followsQuery.isLoading}
-            selectedChannel={searchParams.get("channel")}
+            selectedChannel={selectedFollowChannel}
             threads={followedThreads}
             onClearChannel={() => {
               const nextParams = new URLSearchParams(searchParams);
@@ -365,6 +386,16 @@ export function MePage() {
             }}
             onPreview={openPreview}
             onRefresh={() => void followsQuery.refetch()}
+            onSetFollowStatus={setFollowStatus}
+            onUnfollow={(thread) => {
+              if (!window.confirm(`确认取消关注「${thread.title}」？`)) return;
+              unfollowMutation.mutate(thread.thread_id);
+            }}
+            unfollowPendingThreadId={
+              unfollowMutation.isPending
+                ? unfollowMutation.variables
+                : null
+            }
           />
         )}
 
