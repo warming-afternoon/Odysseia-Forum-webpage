@@ -1,5 +1,6 @@
 import {
   Grid,
+  Globe2,
   Image as ImageIcon,
   ImageOff,
   Layout,
@@ -9,6 +10,7 @@ import {
   Monitor,
   ScrollText,
   Scan,
+  Smartphone,
   Type,
 } from 'lucide-react';
 
@@ -241,6 +243,36 @@ export function DisplaySettingsSection({ settings, updateSettings }: DisplaySett
                   <div className="text-xs text-(--od-text-tertiary)">更纯粹，也更省流</div>
                 </div>
               </button>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-(--od-text-label)">Discord Link</p>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => updateSettings({ openMode: 'web' })}
+                  data-active={settings.openMode === 'web'}
+                  className={`${rowChoiceClass} ${settings.openMode === 'web' ? '' : ''}`}
+                >
+                  <Globe2 className={`od-choice-icon h-5 w-5 ${settings.openMode === 'web' ? 'text-(--od-accent)' : 'text-(--od-text-secondary)'}`} />
+                  <div className="text-left">
+                    <div className="od-choice-title text-sm font-medium text-(--od-text-primary)">网页端打开</div>
+                    <div className="text-xs text-(--od-text-tertiary)">使用 discord.com 链接，兼容性最好</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSettings({ openMode: 'app' })}
+                  data-active={settings.openMode === 'app'}
+                  className={`${rowChoiceClass} ${settings.openMode === 'app' ? '' : ''}`}
+                >
+                  <Smartphone className={`od-choice-icon h-5 w-5 ${settings.openMode === 'app' ? 'text-(--od-accent)' : 'text-(--od-text-secondary)'}`} />
+                  <div className="text-left">
+                    <div className="od-choice-title text-sm font-medium text-(--od-text-primary)">Discord App 打开</div>
+                    <div className="text-xs text-(--od-text-tertiary)">使用 Deep Link 唤起已安装的客户端</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>

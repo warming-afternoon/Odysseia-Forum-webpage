@@ -2,7 +2,8 @@ import { Tooltip } from '@/shared/ui/Tooltip';
 import { DiscordIcon } from '@/shared/ui/icons/DiscordIcon';
 import { AnimatedIcon } from '@/shared/ui/animation/AnimatedIcon';
 import { useState } from 'react';
-import { buildDiscordWebThreadUrl } from '@/shared/lib/discord';
+import { buildDiscordThreadUrl } from '@/shared/lib/discord';
+import { useOpenModeSetting } from '@/shared/hooks/useSettings';
 
 interface ThreadActionsProps {
     threadId: string;
@@ -24,12 +25,17 @@ interface ThreadActionsProps {
  */
 export function ThreadActions({ threadId, channelId, guildId, size = 'md', variant = 'default', alwaysVisible = false, className, externalUrlOverride }: ThreadActionsProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const targetUrl = externalUrlOverride || buildDiscordWebThreadUrl({
+    const openMode = useOpenModeSetting();
+    const targetUrl = externalUrlOverride || buildDiscordThreadUrl({
         guildId,
         channelId,
         threadId,
-    });
-    const tooltipContent = "打开 Discord 链接";
+    }, openMode);
+    const tooltipContent = externalUrlOverride
+        ? '打开 Discord 链接'
+        : openMode === 'app' ? '用 Discord App 打开' : '在 Discord 网页端打开';
+    const linkTarget = openMode === 'web' || externalUrlOverride ? '_blank' : undefined;
+    const linkRel = linkTarget ? 'noopener noreferrer' : undefined;
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.stopPropagation();
@@ -53,8 +59,8 @@ export function ThreadActions({ threadId, channelId, guildId, size = 'md', varia
             <Tooltip content={tooltipContent} position="left">
                 <a
                     href={targetUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={linkTarget}
+                    rel={linkRel}
                     onClick={handleClick}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
@@ -84,8 +90,8 @@ export function ThreadActions({ threadId, channelId, guildId, size = 'md', varia
             <Tooltip content={tooltipContent} position="left">
                 <a
                     href={targetUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={linkTarget}
+                    rel={linkRel}
                     onClick={handleClick}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}

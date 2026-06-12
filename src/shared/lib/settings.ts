@@ -67,7 +67,7 @@ const defaultSettings: UserSettings = {
     replies: true,
     mentions: true,
   },
-  openMode: 'app',
+  openMode: 'web',
 };
 
 // 获取用户设置

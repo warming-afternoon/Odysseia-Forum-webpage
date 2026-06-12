@@ -37,16 +37,35 @@ interface DiscordThreadLinkOptions {
     threadId: string;
 }
 
-function resolveDiscordLinkSegments({ guildId, threadId }: DiscordThreadLinkOptions) {
+export type DiscordOpenMode = 'app' | 'web';
+
+function resolveDiscordLinkSegments({ guildId, channelId, threadId }: DiscordThreadLinkOptions) {
     const normalizedGuildId = guildId || import.meta.env.VITE_GUILD_ID || '@me';
+    const normalizedChannelId = channelId || null;
 
     return {
         guildId: normalizedGuildId,
+        channelId: normalizedChannelId,
         threadId,
     };
 }
 
 export function buildDiscordWebThreadUrl(options: DiscordThreadLinkOptions): string {
-    const { guildId, threadId } = resolveDiscordLinkSegments(options);
-    return `${DISCORD_WEB_BASE}/channels/${guildId}/${threadId}`;
+    const { guildId, channelId, threadId } = resolveDiscordLinkSegments(options);
+    return channelId
+        ? `${DISCORD_WEB_BASE}/channels/${guildId}/${channelId}/${threadId}`
+        : `${DISCORD_WEB_BASE}/channels/${guildId}/${threadId}`;
+}
+
+export function buildDiscordAppThreadUrl(options: DiscordThreadLinkOptions): string {
+    const { guildId, channelId, threadId } = resolveDiscordLinkSegments(options);
+    return channelId
+        ? `discord://-/channels/${guildId}/${channelId}/${threadId}`
+        : `discord://-/channels/${guildId}/${threadId}`;
+}
+
+export function buildDiscordThreadUrl(options: DiscordThreadLinkOptions, openMode: DiscordOpenMode): string {
+    return openMode === 'app'
+        ? buildDiscordAppThreadUrl(options)
+        : buildDiscordWebThreadUrl(options);
 }
