@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, LayoutGrid, Rows3, Save } from "lucide-react";
+import { Check, Globe2, LayoutGrid, Rows3, Save, Smartphone } from "lucide-react";
 
 import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
 import { searchApi } from "@/features/search/api/searchApi";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { useChannels } from "@/shared/hooks/useChannels";
+import { useSettings } from "@/shared/hooks/useSettings";
 import { useLayoutPreference, type LayoutMode } from "@/shared/hooks/useLayoutPreference";
 
 const DRAFT_KEY = "odysseia_preference_onboarding_draft";
@@ -194,6 +195,7 @@ function LayoutChoice({
 }
 
 function PreferenceLayoutStep() {
+  const { settings, updateSettings } = useSettings();
   const [searchLayout, setSearchLayout] = useLayoutPreference("search", "grid");
   const [booklistsLayout, setBooklistsLayout] = useLayoutPreference("booklists", "grid");
   const [booklistDetailLayout, setBooklistDetailLayout] = useLayoutPreference(
@@ -211,6 +213,35 @@ function PreferenceLayoutStep() {
       <LayoutChoice title="书单列表" value={booklistsLayout} onChange={setBooklistsLayout} />
       <LayoutChoice title="书单内容" value={booklistDetailLayout} onChange={setBooklistDetailLayout} />
       <LayoutChoice title="赛事区" value={tournamentsLayout} onChange={setTournamentsLayout} />
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-(--od-shell-line) px-3 py-2">
+        <span className="text-xs font-medium text-(--od-text-secondary)">Discord 跳转</span>
+        <div className="inline-flex items-center gap-1 rounded-full bg-[color-mix(in_srgb,var(--od-surface-input)_70%,transparent)] p-1">
+          <button
+            type="button"
+            onClick={() => updateSettings({ openMode: "web" })}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] transition-colors ${
+              settings.openMode === "web"
+                ? "bg-(--od-accent) text-white"
+                : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+            }`}
+          >
+            <Globe2 className="h-3 w-3" />
+            Web
+          </button>
+          <button
+            type="button"
+            onClick={() => updateSettings({ openMode: "app" })}
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] transition-colors ${
+              settings.openMode === "app"
+                ? "bg-(--od-accent) text-white"
+                : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+            }`}
+          >
+            <Smartphone className="h-3 w-3" />
+            App
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

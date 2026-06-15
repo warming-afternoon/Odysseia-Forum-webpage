@@ -26,8 +26,8 @@ export const INITIAL_SETUP_TUTORIAL: OnboardingTutorial = {
     },
     {
       id: 'preference_layouts',
-      title: '每个区可以有自己的浏览方式',
-      content: '搜索、书单和赛事不再共用一个布局。比如赛事默认列表，书单内容可以单独切成卡片。',
+      title: '设置顺手的浏览和跳转方式',
+      content: '搜索、书单和赛事不再共用一个布局。Discord 跳转也可以选择网页端或 App，默认保持兼容性最好的 Web。',
       emotion: 'letsgo',
       placement: 'center',
     },
