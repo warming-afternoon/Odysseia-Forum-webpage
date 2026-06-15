@@ -18,7 +18,8 @@ import { useToggleBooklistCollection } from "@/features/booklists/hooks/useBookl
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import { Select } from "@/shared/ui/Select";
 import { useTournamentURLParams } from "@/features/tournaments/hooks/useTournamentURLParams";
-import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
+import { useCardGridClass } from "@/shared/hooks/useSettings";
+import { useLayoutPreference } from "@/shared/hooks/useLayoutPreference";
 
 const sortOptions = [
   { value: 1, label: "按参赛数" },
@@ -31,8 +32,10 @@ const sortOptions = [
 export function TournamentsPage() {
   const navigate = useNavigate();
   const { params, setParams } = useTournamentURLParams();
-  const { settings, updateSettings } = useSettings();
-  const layoutMode = settings.layoutMode;
+  const [layoutMode, setLayoutMode] = useLayoutPreference(
+    "tournaments",
+    "list",
+  );
   const gridClass = useCardGridClass();
   const collectMutation = useToggleBooklistCollection();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
@@ -161,7 +164,7 @@ export function TournamentsPage() {
             <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "list" })}
+                onClick={() => setLayoutMode("list")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "list"
                     ? "bg-(--od-accent) text-white"
@@ -175,7 +178,7 @@ export function TournamentsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "grid" })}
+                onClick={() => setLayoutMode("grid")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "grid"
                     ? "bg-(--od-accent) text-white"

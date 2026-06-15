@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MASCOT_IMAGES } from '@/features/mascot/assets';
 import { useOnboardingStore } from '../store/useOnboardingStore';
+import { PreferenceOnboardingControls } from './PreferenceOnboardingControls';
 
 export function OnboardingBalloon() {
   const { activeTutorial, stepIndex, nextStep, skipTutorial, skipAllTutorials } = useOnboardingStore();
@@ -212,6 +213,8 @@ export function OnboardingBalloon() {
             <p className={`text-(--od-text-secondary) ${isMobile ? 'text-[11px]' : 'text-xs sm:text-sm'} leading-relaxed mb-6 sm:mb-8`}>
               {step.content}
             </p>
+
+            <PreferenceOnboardingControls stepId={step.id} />
 
             <div className="flex items-center justify-between gap-4 sm:gap-6">
               {isFirstStepOfFirstTutorial ? (

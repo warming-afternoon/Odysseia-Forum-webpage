@@ -9,6 +9,7 @@ import type { Thread } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { DiscordMarkdownText } from "@/shared/ui/DiscordMarkdownText";
 import { optimizeDiscordImageUrl } from "@/shared/lib/imageOptimization";
+import { formatPreciseRelativeDateTime } from "@/shared/lib/dateTime";
 
 type DrawOverlayPhase = "charging" | "revealing" | "result" | "error";
 
@@ -323,7 +324,7 @@ export function DrawRevealOverlay({
                           className="flex items-center gap-2"
                         >
                           <Calendar className="h-4 w-4" />
-                          {new Date(activeThread.created_at).toLocaleDateString()}
+                          {formatPreciseRelativeDateTime(activeThread.created_at)}
                         </motion.div>
                       </div>
 

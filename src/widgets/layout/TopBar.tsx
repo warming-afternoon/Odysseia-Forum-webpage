@@ -10,6 +10,7 @@ import { useSearchAutocomplete } from "@/features/search/hooks/useSearchAutocomp
 import type {
   TagLogic,
 } from "@/features/search/hooks/useSearchParams";
+import { getSearchTagLogicPreference } from "@/features/search/hooks/useSearchParams";
 import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
 import { useTopBarFilterState } from "@/features/search/hooks/useTopBarFilterState";
 import { useTopBarSearchController } from "@/features/search/hooks/useTopBarSearchController";
@@ -197,7 +198,7 @@ export function TopBar({ onMenuClick, sidebarCollapsed = false }: TopBarProps) {
     params.excludeAuthors.length > 0 ||
     !!params.timeFrom ||
     !!params.timeTo ||
-    (params.tagLogic && params.tagLogic !== "and");
+    (params.tagLogic && params.tagLogic !== getSearchTagLogicPreference());
 
   const hasPanelFilters = hasActiveFilters;
 

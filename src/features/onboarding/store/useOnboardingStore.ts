@@ -38,6 +38,21 @@ export const ALL_TUTORIAL_IDS = [
   'advanced_search_guide'
 ];
 
+function runOnboardingTransition(execute: () => void) {
+  if (!document.startViewTransition) {
+    execute();
+    return;
+  }
+
+  document.documentElement.dataset.odViewTransition = 'onboarding';
+  const transition = document.startViewTransition(execute);
+  transition.finished.finally(() => {
+    if (document.documentElement.dataset.odViewTransition === 'onboarding') {
+      delete document.documentElement.dataset.odViewTransition;
+    }
+  });
+}
+
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
@@ -62,22 +77,14 @@ export const useOnboardingStore = create<OnboardingState>()(
           }
         };
 
-        if (document.startViewTransition) {
-          document.startViewTransition(execute);
-        } else {
-          execute();
-        }
+        runOnboardingTransition(execute);
       },
 
       prevStep: () => {
         const { stepIndex } = get();
         if (stepIndex > 0) {
           const execute = () => set({ stepIndex: stepIndex - 1 });
-          if (document.startViewTransition) {
-            document.startViewTransition(execute);
-          } else {
-            execute();
-          }
+          runOnboardingTransition(execute);
         }
       },
 

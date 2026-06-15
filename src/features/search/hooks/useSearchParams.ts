@@ -49,6 +49,19 @@ const VALID_SORT_METHODS: Set<string> = new Set([
   "reply_desc",
   "reaction_desc",
 ]);
+const SEARCH_TAG_LOGIC_KEY = "odysseia_search_tag_logic";
+
+export function getSearchTagLogicPreference(): TagLogic {
+  if (typeof window === "undefined") return "and";
+  return window.localStorage.getItem(SEARCH_TAG_LOGIC_KEY) === "or"
+    ? "or"
+    : "and";
+}
+
+export function setSearchTagLogicPreference(value: TagLogic) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SEARCH_TAG_LOGIC_KEY, value);
+}
 
 function normalizeQuery(rawQuery: string) {
   return migrateLegacySyntax(rawQuery || "")
@@ -74,7 +87,10 @@ export function parseParams(sp: URLSearchParams): SearchParams {
     : (tokenized.text ? "relevance" : "last_active_desc");
 
   const rawTagLogic = sp.get("tag_logic");
-  const tagLogic: TagLogic = rawTagLogic === "or" ? "or" : "and";
+  const tagLogic: TagLogic =
+    rawTagLogic === "or" || rawTagLogic === "and"
+      ? rawTagLogic
+      : getSearchTagLogicPreference();
 
   const rawType = sp.get("type");
   const type: SearchTargetType = rawType === "booklist" ? "booklist" : "thread";
@@ -112,7 +128,11 @@ export function serializeParams(
   }
   if (params.sortOrder && params.sortOrder !== "desc") sp.set("order", params.sortOrder);
   if (params.page && params.page > 1) sp.set("page", String(params.page));
-  if (params.tagLogic && params.tagLogic !== "and") {
+  if (
+    params.tagLogic &&
+    (params.tagLogic === "or" ||
+      params.tagLogic !== getSearchTagLogicPreference())
+  ) {
     sp.set("tag_logic", params.tagLogic);
   }
   if (params.timeFrom) sp.set("time_from", params.timeFrom);
@@ -143,6 +163,9 @@ export function useSearchURLParams() {
       if (updates.sortMethod === "last_active_desc") {
         newSP.set("sort", "last_active_desc");
       }
+      if (updates.tagLogic) {
+        setSearchTagLogicPreference(updates.tagLogic);
+      }
       const isQueryChange =
         updates.query !== undefined && updates.query !== current.query;
       setSearchParams(newSP, { replace: !isQueryChange });
@@ -167,7 +190,7 @@ export function useSearchURLParams() {
       (params.sortMethod && params.sortMethod !== "last_active_desc") ||
       (params.sortOrder && params.sortOrder !== "desc") ||
       params.page > 1 ||
-      (params.tagLogic && params.tagLogic !== "and")
+      (params.tagLogic && params.tagLogic !== getSearchTagLogicPreference())
     );
   }, [params]);
 

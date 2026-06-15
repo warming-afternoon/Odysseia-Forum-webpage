@@ -1,5 +1,3 @@
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import {
   BookOpen,
   Calendar,
@@ -23,6 +21,7 @@ import {
   useCardSizeSetting,
   useFontSizeSetting,
 } from "@/shared/hooks/useSettings";
+import { formatPreciseRelativeDateTime } from "@/shared/lib/dateTime";
 import { fontSizeMap } from "@/shared/lib/settings";
 import { DiscordMarkdownText } from "@/shared/ui/DiscordMarkdownText";
 import { HighlightText } from "@/shared/ui/HighlightText";
@@ -100,15 +99,9 @@ function ThreadCardImpl({
     return () => window.removeEventListener("resize", updateTitleShift);
   }, [thread.title, fontSize, searchQuery]);
 
-  const createdTime = formatDistanceToNow(new Date(thread.created_at), {
-    addSuffix: true,
-    locale: zhCN,
-  });
+  const createdTime = formatPreciseRelativeDateTime(thread.created_at);
   const lastActiveTime = thread.last_active_at
-    ? formatDistanceToNow(new Date(thread.last_active_at), {
-        addSuffix: true,
-        locale: zhCN,
-      })
+    ? formatPreciseRelativeDateTime(thread.last_active_at)
     : null;
   const virtualOnlyTags = (thread.virtual_tags || []).filter(
     (tag) => !thread.tags.includes(tag),
@@ -192,17 +185,15 @@ function ThreadCardImpl({
                   </button>
                   <ThreadTournamentBadges thread={thread} variant="icon" />
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 text-[10px] text-(--od-text-tertiary)">
-                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-(--od-text-tertiary)">
+                  <span className="inline-flex min-w-0 items-center gap-1">
                     <Calendar className="h-3 w-3 shrink-0" />
                     <span>{createdTime}</span>
                   </span>
                   {lastActiveTime && (
-                    <span className="inline-flex items-center gap-1 min-w-0 whitespace-nowrap">
+                    <span className="inline-flex min-w-0 items-center gap-1">
                       <Clock3 className="h-3 w-3 shrink-0" />
-                      <span className="truncate max-w-[88px]">
-                        活跃 {lastActiveTime}
-                      </span>
+                      <span>活跃 {lastActiveTime}</span>
                     </span>
                   )}
                 </div>

@@ -6,8 +6,36 @@ export const INITIAL_SETUP_TUTORIAL: OnboardingTutorial = {
     {
       id: 'welcome',
       title: '你好呀！欢迎加入！',
-      content: '欢迎来到 Odysseia Forum！我是这里的看板娘类脑娘。看起来你是第一次来呢，需要我带你快速熟悉一下社区的功能吗？',
+      content: '欢迎来到 Odysseia Forum！第一次进来时，可以先把发现偏好和浏览方式调成顺手的样子。不想现在设置也可以直接跳过。',
       emotion: 'hi',
+      placement: 'center',
+    },
+    {
+      id: 'preference_channels',
+      title: '先排除不想看的频道',
+      content: '频道很多，反选更轻松。点掉少数不想看的频道，其余频道会作为发现范围保留下来。',
+      emotion: 'searching',
+      placement: 'center',
+    },
+    {
+      id: 'preference_tags',
+      title: '再排除不想看的标签',
+      content: '标签也适合反选。点选你不想被推荐到的标签，之后探索和搜索建议会尽量避开它们。',
+      emotion: 'pride',
+      placement: 'center',
+    },
+    {
+      id: 'preference_layouts',
+      title: '每个区可以有自己的浏览方式',
+      content: '搜索、书单和赛事不再共用一个布局。比如赛事默认列表，书单内容可以单独切成卡片。',
+      emotion: 'letsgo',
+      placement: 'center',
+    },
+    {
+      id: 'preference_save',
+      title: '保存这份发现偏好',
+      content: '布局选择会直接保存在本机。排除频道会转换成保留频道范围，排除标签会保存到账号偏好里。',
+      emotion: 'success',
       placement: 'center',
     },
     {

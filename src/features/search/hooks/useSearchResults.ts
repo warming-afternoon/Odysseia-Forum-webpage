@@ -8,7 +8,10 @@ import {
   getDiscoveryPreferenceContext,
 } from '@/features/preferences/lib/discoveryPreferences';
 import type { UserPreferencesResponse } from '@/features/preferences/api/preferencesApi';
-import type { SearchParams } from '@/features/search/hooks/useSearchParams';
+import {
+  getSearchTagLogicPreference,
+  type SearchParams,
+} from '@/features/search/hooks/useSearchParams';
 import { searchKeys } from '@/features/search/lib/queryKeys';
 import { useResultPagingModeSetting } from '@/shared/hooks/useSettings';
 
@@ -47,7 +50,7 @@ export function useSearchResults({ params, preferences }: UseSearchResultsOption
     !!timeFrom ||
     !!timeTo ||
     (sortMethod && sortMethod !== 'last_active_desc') ||
-    (tagLogic && tagLogic !== 'and');
+    (tagLogic && tagLogic !== getSearchTagLogicPreference());
 
   const discoveryPreferenceContext = useMemo(
     () => getDiscoveryPreferenceContext(preferences),

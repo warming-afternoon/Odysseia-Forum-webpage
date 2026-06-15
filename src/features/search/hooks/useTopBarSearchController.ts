@@ -14,7 +14,10 @@ import {
   removeToken,
   type SearchToken,
 } from "@/shared/lib/searchTokenizer";
-import type { SearchParams } from "@/features/search/hooks/useSearchParams";
+import {
+  getSearchTagLogicPreference,
+  type SearchParams,
+} from "@/features/search/hooks/useSearchParams";
 
 const SEARCH_DRAFT_QUERY_KEY = "odysseia_search_draft_query";
 const SEARCH_DRAFT_CHANNEL_KEY = "odysseia_search_draft_channel";
@@ -232,7 +235,11 @@ export function useTopBarSearchController({
         }
         if (item.sortMethod && item.sortMethod !== "last_active_desc")
           nextParams.set("sort", item.sortMethod);
-        if (item.tagLogic && item.tagLogic !== "and")
+        if (
+          item.tagLogic &&
+          (item.tagLogic === "or" ||
+            item.tagLogic !== getSearchTagLogicPreference())
+        )
           nextParams.set("tag_logic", item.tagLogic);
         navigate(
           `/search${nextParams.toString() ? `?${nextParams.toString()}` : ""}`,
@@ -343,7 +350,7 @@ export function useTopBarSearchController({
       page: 1,
       timeFrom: "",
       timeTo: "",
-      tagLogic: "and",
+      tagLogic: getSearchTagLogicPreference(),
     });
   }, [setParams]);
 

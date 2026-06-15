@@ -217,6 +217,12 @@
   pointer-events: none;
 }
 
+html[data-od-view-transition='onboarding']::view-transition-group(root),
+html[data-od-view-transition='onboarding']::view-transition-group(onboarding-balloon) {
+  animation-duration: 180ms;
+  animation-timing-function: ease-out;
+}
+
 /* 1. Circle Reveal */
 [data-theme-transition='circle']::view-transition-old(root) {
   animation: none;

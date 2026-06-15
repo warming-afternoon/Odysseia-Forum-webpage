@@ -6,8 +6,6 @@ import {
   Images,
   BookOpen,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { memo, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -26,6 +24,7 @@ import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
 import { ThreadTournamentBadges } from "@/entities/thread/ThreadTournamentBadges";
 import { usePretextClampText } from "@/shared/hooks/usePretextClampText";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
+import { formatPreciseRelativeDateTime } from "@/shared/lib/dateTime";
 
 interface ThreadListItemProps {
   thread: Thread;
@@ -52,15 +51,9 @@ function ThreadListItemImpl({
   const fontSizes = fontSizeMap[fontSize];
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
-  const createdTime = formatDistanceToNow(new Date(thread.created_at), {
-    addSuffix: true,
-    locale: zhCN,
-  });
+  const createdTime = formatPreciseRelativeDateTime(thread.created_at);
   const lastActiveTime = thread.last_active_at
-    ? formatDistanceToNow(new Date(thread.last_active_at), {
-        addSuffix: true,
-        locale: zhCN,
-      })
+    ? formatPreciseRelativeDateTime(thread.last_active_at)
     : null;
   const virtualOnlyTags = (thread.virtual_tags || []).filter(
     (tag) => !thread.tags.includes(tag),

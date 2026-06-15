@@ -2,6 +2,7 @@ import { ThreadCard } from '@/entities/thread/ThreadCard';
 import { ThreadListItem } from '@/entities/thread/ThreadListItem';
 import type { Thread } from '@/entities/thread/types';
 import { useLayoutMode } from '@/shared/hooks/useSettings';
+import type { LayoutMode } from '@/shared/hooks/useLayoutPreference';
 import { memo } from 'react';
 
 interface ThreadResultsCollectionProps {
@@ -12,6 +13,7 @@ interface ThreadResultsCollectionProps {
   searchQuery?: string;
   gridClassName?: string;
   listClassName?: string;
+  layoutMode?: LayoutMode;
 }
 
 const DEFAULT_GRID_CLASS = 'grid auto-rows-fr grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
@@ -25,8 +27,10 @@ function ThreadResultsCollectionImpl({
   searchQuery,
   gridClassName = DEFAULT_GRID_CLASS,
   listClassName = DEFAULT_LIST_CLASS,
+  layoutMode: controlledLayoutMode,
 }: ThreadResultsCollectionProps) {
-  const layoutMode = useLayoutMode();
+  const fallbackLayoutMode = useLayoutMode();
+  const layoutMode = controlledLayoutMode ?? fallbackLayoutMode;
 
   return (
     <div className={layoutMode === 'list' ? listClassName : gridClassName}>

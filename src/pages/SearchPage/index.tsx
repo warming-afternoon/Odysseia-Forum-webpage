@@ -2,19 +2,23 @@ import { ThreadCardSkeleton } from "@/entities/thread/ThreadCardSkeleton";
 import { ThreadListItemSkeleton } from "@/entities/thread/ThreadListItemSkeleton";
 import { ThreadResultsCollection } from "@/entities/thread/ThreadResultsCollection";
 import { BooklistCard } from "@/entities/booklist/BooklistCard";
+import { BooklistListItem } from "@/entities/booklist/BooklistListItem";
 import { useSearchWhisper } from "@/features/easter-eggs/hooks/useSearchWhisper";
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
-import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
+import {
+  getSearchTagLogicPreference,
+  useSearchURLParams,
+} from "@/features/search/hooks/useSearchParams";
 import { useSearchResults } from "@/features/search/hooks/useSearchResults";
 import {
   useBooklistsList,
   useToggleBooklistCollection,
 } from "@/features/booklists/hooks/useBooklistsData";
 import { useCardGridClass, useResultPagingModeSetting, useSettings } from "@/shared/hooks/useSettings";
+import { useLayoutPreference } from "@/shared/hooks/useLayoutPreference";
 import { useMascotStore } from "@/features/mascot/store/mascotStore";
 import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
-import { useLayoutMode } from "@/shared/hooks/useSettings";
 import { useChannels } from "@/shared/hooks/useChannels";
 import { addToken, parseSearchQuery } from "@/shared/lib/searchTokenizer";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
@@ -56,9 +60,12 @@ export function SearchPage() {
   const { openPreview } = usePreviewThread();
   const reactToSearch = useMascotStore((state) => state.reactToSearch);
 
-  const layoutMode = useLayoutMode();
+  const { settings } = useSettings();
+  const [layoutMode, setLayoutMode] = useLayoutPreference(
+    "search",
+    settings.layoutMode,
+  );
   const resultPagingMode = useResultPagingModeSetting();
-  const { updateSettings } = useSettings();
   const hasTriggeredSearchCueRef = useRef<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const lastSearchLocationRef = useRef<string | null>(null);
@@ -327,7 +334,7 @@ export function SearchPage() {
             <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "list" })}
+                onClick={() => setLayoutMode("list")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "list"
                     ? "bg-(--od-accent) text-white"
@@ -341,7 +348,7 @@ export function SearchPage() {
               </button>
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "grid" })}
+                onClick={() => setLayoutMode("grid")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "grid"
                     ? "bg-(--od-accent) text-white"
@@ -387,7 +394,7 @@ export function SearchPage() {
                     page: 1,
                     timeFrom: "",
                     timeTo: "",
-                    tagLogic: "and",
+                    tagLogic: getSearchTagLogicPreference(),
                   });
                 }}
                 className="od-inline-action od-inline-action-soft"
@@ -540,6 +547,7 @@ export function SearchPage() {
                 onPreview={openPreview}
                 gridClassName={gridClass}
                 listClassName="flex flex-col space-y-od-list-gap pb-4"
+                layoutMode={layoutMode}
               />
 
               {isInfiniteMode ? (
@@ -604,24 +612,45 @@ export function SearchPage() {
             </button>
           </div>
         ) : booklistResults.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {booklistResults.map((booklist) => (
-              <BooklistCard
-                key={booklist.id}
-                booklist={booklist}
-                canManage={false}
-                onOpen={(id) => navigate(`/booklists/${id}`)}
-                onToggleCollect={(item) =>
+          <div
+            className={
+              layoutMode === "list"
+                ? "flex flex-col space-y-od-list-gap"
+                : gridClass
+            }
+          >
+            {booklistResults.map((booklist) => {
+              const commonProps = {
+                booklist,
+                canManage: false,
+                onOpen: (id: number) => navigate(`/booklists/${id}`),
+                onToggleCollect: (item: typeof booklist) =>
                   collectBooklistMutation.mutate({
                     id: item.id,
                     collected: Boolean(item.collected_flag),
-                  })
-                }
-                onEdit={() => undefined}
-                onDelete={() => undefined}
-                collectLoading={collectBooklistMutation.isPending}
-              />
-            ))}
+                  }),
+                onEdit: () => undefined,
+                onDelete: () => undefined,
+                collectLoading: collectBooklistMutation.isPending,
+              };
+
+              return layoutMode === "list" ? (
+                <BooklistListItem
+                  key={booklist.id}
+                  {...commonProps}
+                  ownerName={
+                    booklist.author?.display_name ||
+                    booklist.author?.global_name ||
+                    booklist.author?.name ||
+                    undefined
+                  }
+                  ownerAvatarUrl={booklist.author?.avatar_url ?? null}
+                  coverImageUrl={booklist.cover_image_url || null}
+                />
+              ) : (
+                <BooklistCard key={booklist.id} {...commonProps} />
+              );
+            })}
           </div>
         ) : (
           <div className="animate-in fade-in zoom-in-95 duration-500 flex flex-col items-center justify-center py-20 text-center">

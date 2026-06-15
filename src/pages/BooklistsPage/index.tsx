@@ -27,6 +27,7 @@ import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import { useBooklistURLParams } from "@/features/booklists/hooks/useBooklistURLParams";
 import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
+import { useLayoutPreference } from "@/shared/hooks/useLayoutPreference";
 
 type BooklistScope = "public" | "mine" | "collected";
 
@@ -40,8 +41,11 @@ export function BooklistsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { params, setParams } = useBooklistURLParams();
-  const { settings, updateSettings } = useSettings();
-  const layoutMode = settings.layoutMode;
+  const { settings } = useSettings();
+  const [layoutMode, setLayoutMode] = useLayoutPreference(
+    "booklists",
+    settings.layoutMode,
+  );
   const gridClass = useCardGridClass();
 
   const { scope, keywords, sort: sortMethod, page } = params;
@@ -207,7 +211,7 @@ export function BooklistsPage() {
             <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "list" })}
+                onClick={() => setLayoutMode("list")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "list"
                     ? "bg-(--od-accent) text-white"
@@ -221,7 +225,7 @@ export function BooklistsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => updateSettings({ layoutMode: "grid" })}
+                onClick={() => setLayoutMode("grid")}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   layoutMode === "grid"
                     ? "bg-(--od-accent) text-white"

@@ -33,8 +33,9 @@ import {
 import { buildDiscordWebChannelUrl } from "@/shared/lib/discord";
 import { GUILD_ID } from "@/shared/config/channelCategories.private";
 import { ShareTextDialog } from "@/shared/ui/ShareTextDialog";
-import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
-import { formatAbsoluteDateTime } from "@/shared/lib/dateTime";
+import { useCardGridClass } from "@/shared/hooks/useSettings";
+import { useLayoutPreference } from "@/shared/hooks/useLayoutPreference";
+import { formatPreciseRelativeDateTime } from "@/shared/lib/dateTime";
 
 function toTournamentThread(item: TournamentItem, tournament: Tournament): Thread {
   return {
@@ -69,8 +70,10 @@ export function TournamentDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { openPreview } = usePreviewThread();
-  const { settings, updateSettings } = useSettings();
-  const layoutMode = settings.layoutMode;
+  const [layoutMode, setLayoutMode] = useLayoutPreference(
+    "tournament-detail",
+    "list",
+  );
   const gridClass = useCardGridClass();
   const [shareText, setShareText] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -279,7 +282,7 @@ export function TournamentDetailPage() {
                   <Star className="h-3.5 w-3.5" />
                   {tournament.collection_count} 次收藏
                 </span>
-                <span>{formatAbsoluteDateTime(tournament.updated_at)}</span>
+                <span>{formatPreciseRelativeDateTime(tournament.updated_at)}</span>
                 <span>{tournament.is_public ? "公开赛事" : "私有赛事"}</span>
               </div>
 
@@ -287,7 +290,7 @@ export function TournamentDetailPage() {
                 <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
                   <button
                     type="button"
-                    onClick={() => updateSettings({ layoutMode: "list" })}
+                    onClick={() => setLayoutMode("list")}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       layoutMode === "list"
                         ? "bg-(--od-accent) text-white"
@@ -301,7 +304,7 @@ export function TournamentDetailPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => updateSettings({ layoutMode: "grid" })}
+                    onClick={() => setLayoutMode("grid")}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       layoutMode === "grid"
                         ? "bg-(--od-accent) text-white"

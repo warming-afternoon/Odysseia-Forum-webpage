@@ -1,5 +1,3 @@
-import { format, formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import {
   Calendar,
   Clock3,
@@ -23,6 +21,10 @@ import { useSearchURLParams } from "@/features/search/hooks/useSearchParams";
 import { ThreadActions } from "@/features/threads/components/ThreadActions";
 import { useLockBodyScroll } from "@/shared/hooks/useLockBodyScroll";
 import { useFontSizeSetting } from "@/shared/hooks/useSettings";
+import {
+  formatAbsoluteDateTime,
+  formatPreciseRelativeDateTime,
+} from "@/shared/lib/dateTime";
 import { addToken } from "@/shared/lib/searchTokenizer";
 import { fontSizeMap } from "@/shared/lib/settings";
 import { MarkdownText } from "@/shared/ui/MarkdownText";
@@ -83,19 +85,10 @@ export function ThreadPreviewOverlay({
     handleClose();
   };
 
-  const createdTime = formatDistanceToNow(new Date(thread.created_at), {
-    addSuffix: true,
-    locale: zhCN,
-  });
-
-  const fullTime = format(new Date(thread.created_at), "yyyy年MM月dd日 HH:mm", {
-    locale: zhCN,
-  });
+  const createdTime = formatPreciseRelativeDateTime(thread.created_at);
+  const fullTime = formatAbsoluteDateTime(thread.created_at);
   const lastActiveTime = thread.last_active_at
-    ? formatDistanceToNow(new Date(thread.last_active_at), {
-      addSuffix: true,
-      locale: zhCN,
-    })
+    ? formatPreciseRelativeDateTime(thread.last_active_at)
     : null;
   const virtualOnlyTags = (thread.virtual_tags || []).filter(
     (tag) => !thread.tags?.includes(tag),
