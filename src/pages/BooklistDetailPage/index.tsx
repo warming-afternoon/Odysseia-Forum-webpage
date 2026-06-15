@@ -33,8 +33,12 @@ import { BooklistFormModal } from "@/features/booklists/components/BooklistFormM
 import { AddThreadsToBooklistModal } from "@/features/booklists/components/AddThreadsToBooklistModal";
 import { BooklistItemEditorModal } from "@/features/booklists/components/BooklistItemEditorModal";
 import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
-import { buildBooklistShareText, copyTextToClipboard } from "@/shared/lib/shareText";
+import {
+  buildBooklistShareText,
+  copyTextToClipboard,
+} from "@/shared/lib/shareText";
 import { ShareTextDialog } from "@/shared/ui/ShareTextDialog";
+import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
 
 function toThread(item: BooklistItem): Thread {
   return {
@@ -62,12 +66,14 @@ export function BooklistDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { openPreview } = usePreviewThread();
+  const { settings, updateSettings } = useSettings();
+  const layoutMode = settings.layoutMode;
+  const gridClass = useCardGridClass();
 
   const booklistId = String(id || "").trim();
   const [showEdit, setShowEdit] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);
-  const [itemViewMode, setItemViewMode] = useState<"list" | "grid">("list");
   const [shareText, setShareText] = useState<string | null>(null);
 
   const detailQuery = useBooklistDetail(booklistId);
@@ -104,21 +110,27 @@ export function BooklistDetailPage() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && itemsQuery.hasNextPage && !itemsQuery.isFetchingNextPage) {
+        if (
+          entry.isIntersecting &&
+          itemsQuery.hasNextPage &&
+          !itemsQuery.isFetchingNextPage
+        ) {
           itemsQuery.fetchNextPage();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [itemsQuery.hasNextPage, itemsQuery.isFetchingNextPage, itemsQuery.fetchNextPage]);
+  }, [
+    itemsQuery.hasNextPage,
+    itemsQuery.isFetchingNextPage,
+    itemsQuery.fetchNextPage,
+  ]);
 
   if (!booklistId) {
-    return (
-      <div className="p-8 text-sm text-(--od-error)">无效书单 ID</div>
-    );
+    return <div className="p-8 text-sm text-(--od-error)">无效书单 ID</div>;
   }
 
   if (detailQuery.isLoading || itemsQuery.isLoading) {
@@ -159,7 +171,8 @@ export function BooklistDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="mt-1 rounded-md border border-(--od-border) p-2 text-(--od-text-secondary) transition-colors hover:text-(--od-text-primary)"
+                  className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-(--od-text-secondary) transition-colors hover:text-(--od-text-primary)"
+                  aria-label="返回"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
@@ -189,34 +202,38 @@ export function BooklistDetailPage() {
                 <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
                   <button
                     type="button"
-                    onClick={() => setItemViewMode("list")}
+                    onClick={() => updateSettings({ layoutMode: "list" })}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                      itemViewMode === "list"
+                      layoutMode === "list"
                         ? "bg-(--od-accent) text-white"
                         : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                     }`}
+                    aria-label="切换到列表展示"
+                    title="列表展示"
                   >
                     <Rows3 className="h-3.5 w-3.5" />
                     列表
                   </button>
                   <button
                     type="button"
-                    onClick={() => setItemViewMode("grid")}
+                    onClick={() => updateSettings({ layoutMode: "grid" })}
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                      itemViewMode === "grid"
+                      layoutMode === "grid"
                         ? "bg-(--od-accent) text-white"
                         : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
                     }`}
+                    aria-label="切换到网格展示"
+                    title="网格展示"
                   >
                     <LayoutGrid className="h-3.5 w-3.5" />
-                    卡片
+                    网格
                   </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => detailQuery.refetch()}
-                  className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs text-(--od-text-secondary) transition-colors hover:text-(--od-accent)"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   刷新
@@ -225,7 +242,7 @@ export function BooklistDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShareText(buildBooklistShareText(booklist))}
-                  className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs text-(--od-text-secondary) transition-colors hover:text-(--od-accent)"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   分享
@@ -239,12 +256,15 @@ export function BooklistDetailPage() {
                       collected: Boolean(booklist.collected_flag),
                     })
                   }
-                  className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-semibold transition-colors hover:text-(--od-accent) ${
                     booklist.collected_flag
-                      ? "bg-(--od-accent)/15 text-(--od-accent)"
-                      : "bg-(--od-bg-tertiary) text-(--od-text-secondary)"
+                      ? "text-(--od-accent)"
+                      : "text-(--od-text-secondary)"
                   }`}
                 >
+                  <Star
+                    className={`h-3.5 w-3.5 ${booklist.collected_flag ? "fill-current" : ""}`}
+                  />
                   {booklist.collected_flag ? "已收藏" : "收藏书单"}
                 </button>
 
@@ -253,7 +273,7 @@ export function BooklistDetailPage() {
                     <button
                       type="button"
                       onClick={() => setShowEdit(true)}
-                      className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-text-secondary)"
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs text-(--od-text-secondary) transition-colors hover:text-(--od-accent)"
                     >
                       <Edit3 className="h-3.5 w-3.5" />
                       编辑
@@ -261,7 +281,7 @@ export function BooklistDetailPage() {
                     <button
                       type="button"
                       onClick={() => setShowAdd(true)}
-                      className="inline-flex items-center gap-1 rounded-md bg-(--od-accent) px-3 py-1.5 text-xs font-semibold text-white"
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-semibold text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       添加帖子
@@ -275,7 +295,7 @@ export function BooklistDetailPage() {
                           return;
                         deleteMutation.mutate(Number(booklistId));
                       }}
-                      className="inline-flex items-center gap-1 rounded-md border border-(--od-border) px-3 py-1.5 text-xs text-(--od-error)"
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs text-(--od-error) transition-colors hover:text-(--od-error)"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       删除
@@ -300,56 +320,51 @@ export function BooklistDetailPage() {
           ) : (
             <div
               className={
-                itemViewMode === "list"
+                layoutMode === "list"
                   ? "min-w-0 flex flex-col space-y-od-list-gap"
-                  : "grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+                  : `${gridClass} min-w-0`
               }
             >
               {items.map((item) => (
                 <div
                   key={`${item.booklist_item_id}-${item.thread_id}`}
                   className={
-                    itemViewMode === "list" ? "space-y-2" : "space-y-3"
+                    layoutMode === "list" ? "min-w-0" : "flex min-w-0 flex-col"
                   }
                 >
-                  {itemViewMode === "list" ? (
+                  {layoutMode === "list" ? (
                     <ThreadListItem
                       thread={toThread(item)}
                       onPreview={openPreview}
+                      booklistComment={item.comment || ""}
                     />
                   ) : (
                     <ThreadCard
                       thread={toThread(item)}
                       onPreview={openPreview}
+                      booklistComment={item.comment || ""}
                     />
                   )}
-                  {(isOwner || item.comment) && (
-                    <div className="rounded-lg border border-(--od-border) bg-(--od-card) px-3 py-2">
-                      {isOwner && (
-                        <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
-                          <button
-                            type="button"
-                            onClick={() => setEditingItem(item)}
-                            className="rounded border border-(--od-border) px-2 py-1 text-(--od-text-secondary)"
-                          >
-                            编辑条目
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              removeItemMutation.mutate(String(item.thread_id));
-                            }}
-                            className="rounded border border-(--od-border) px-2 py-1 text-(--od-error)"
-                          >
-                            移除
-                          </button>
-                        </div>
-                      )}
-                      {item.comment && (
-                        <p className={`${isOwner ? "mt-2" : ""} text-sm text-(--od-text-secondary)`}>
-                          推荐语: {item.comment}
-                        </p>
-                      )}
+                  {isOwner && (
+                    <div className="mt-2 flex flex-wrap items-center justify-end gap-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem(item)}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-(--od-text-secondary) transition-colors hover:text-(--od-accent)"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                        编辑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          removeItemMutation.mutate(String(item.thread_id));
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-(--od-error) transition-colors hover:text-(--od-error)"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        移除
+                      </button>
                     </div>
                   )}
                 </div>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
+  LayoutGrid,
   Plus,
   RefreshCw,
+  Rows3,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
@@ -10,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Select } from "@/shared/ui/Select";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { BooklistCard } from "@/entities/booklist/BooklistCard";
 import { BooklistListItem } from "@/entities/booklist/BooklistListItem";
 import type { Booklist } from "@/entities/booklist/types";
 import {
@@ -23,6 +26,7 @@ import { BooklistFormModal } from "@/features/booklists/components/BooklistFormM
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import { useBooklistURLParams } from "@/features/booklists/hooks/useBooklistURLParams";
+import { useCardGridClass, useSettings } from "@/shared/hooks/useSettings";
 
 type BooklistScope = "public" | "mine" | "collected";
 
@@ -36,6 +40,9 @@ export function BooklistsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { params, setParams } = useBooklistURLParams();
+  const { settings, updateSettings } = useSettings();
+  const layoutMode = settings.layoutMode;
+  const gridClass = useCardGridClass();
 
   const { scope, keywords, sort: sortMethod, page } = params;
   const pageIndex = page - 1;
@@ -173,7 +180,10 @@ export function BooklistsPage() {
                 <SlidersHorizontal className="h-4 w-4 text-(--od-text-tertiary)" />
                 <Select
                   value={String(sortMethod)}
-                  options={sortOptions.map((o) => ({ value: String(o.value), label: o.label }))}
+                  options={sortOptions.map((o) => ({
+                    value: String(o.value),
+                    label: o.label,
+                  }))}
                   onChange={(v) => {
                     setParams({ sort: Number.parseInt(v, 10), page: 1 });
                   }}
@@ -188,6 +198,39 @@ export function BooklistsPage() {
               >
                 <RefreshCw className="h-4 w-4" />
                 刷新
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+              <button
+                type="button"
+                onClick={() => updateSettings({ layoutMode: "list" })}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  layoutMode === "list"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+                }`}
+                aria-label="切换到列表展示"
+                title="列表展示"
+              >
+                <Rows3 className="h-3.5 w-3.5" />
+                列表
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSettings({ layoutMode: "grid" })}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  layoutMode === "grid"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+                }`}
+                aria-label="切换到网格展示"
+                title="网格展示"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                网格
               </button>
             </div>
           </div>
@@ -226,36 +269,49 @@ export function BooklistsPage() {
         </div>
       ) : (
         <>
-          <div className="flex flex-col space-y-od-list-gap">
-            {normalizedResults.map((booklist) => (
-              <BooklistListItem
-                key={booklist.id}
-                booklist={booklist}
-                canManage={String(booklist.owner_id) === String(user?.id)}
-                ownerName={
-                  booklist.author?.display_name ||
-                  booklist.author?.global_name ||
-                  booklist.author?.name ||
-                  undefined
-                }
-                ownerAvatarUrl={booklist.author?.avatar_url ?? null}
-                coverImageUrl={booklist.cover_image_url || null}
-                onOpen={(id) => navigate(`/booklists/${id}`)}
-                onToggleCollect={(item) =>
+          <div
+            className={
+              layoutMode === "list"
+                ? "flex flex-col space-y-od-list-gap"
+                : gridClass
+            }
+          >
+            {normalizedResults.map((booklist) => {
+              const commonProps = {
+                booklist,
+                canManage: String(booklist.owner_id) === String(user?.id),
+                onOpen: (id: number) => navigate(`/booklists/${id}`),
+                onToggleCollect: (item: Booklist) =>
                   collectMutation.mutate({
                     id: item.id,
                     collected: Boolean(item.collected_flag),
-                  })
-                }
-                onEdit={(item) => setEditing(item)}
-                onDelete={(item) => {
+                  }),
+                onEdit: (item: Booklist) => setEditing(item),
+                onDelete: (item: Booklist) => {
                   if (!window.confirm(`确认删除书单「${item.title}」？`))
                     return;
                   deleteMutation.mutate(item.id);
-                }}
-                collectLoading={collectMutation.isPending}
-              />
-            ))}
+                },
+                collectLoading: collectMutation.isPending,
+              };
+
+              return layoutMode === "list" ? (
+                <BooklistListItem
+                  key={booklist.id}
+                  {...commonProps}
+                  ownerName={
+                    booklist.author?.display_name ||
+                    booklist.author?.global_name ||
+                    booklist.author?.name ||
+                    undefined
+                  }
+                  ownerAvatarUrl={booklist.author?.avatar_url ?? null}
+                  coverImageUrl={booklist.cover_image_url || null}
+                />
+              ) : (
+                <BooklistCard key={booklist.id} {...commonProps} />
+              );
+            })}
           </div>
 
           <AnimatedPagination

@@ -33,6 +33,7 @@ interface ThreadCardProps {
   searchQuery?: string;
   onAuthorClick?: (author: { id: string; name: string }) => void;
   onPreview?: (thread: Thread) => void;
+  booklistComment?: string | null;
   index?: number;
 }
 
@@ -42,12 +43,13 @@ function ThreadCardImpl({
   searchQuery,
   onAuthorClick,
   onPreview,
+  booklistComment,
   index = 0,
 }: ThreadCardProps) {
-  const ariaLabel = `帖子：${thread.title}。作者：${thread.author?.display_name || thread.author?.name || '未知'}。${thread.reply_count}条回复，${thread.reaction_count}个点赞。标签：${thread.tags.join(', ')}`;
+  const ariaLabel = `帖子：${thread.title}。作者：${thread.author?.display_name || thread.author?.name || "未知"}。${thread.reply_count}条回复，${thread.reaction_count}个点赞。标签：${thread.tags.join(", ")}`;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onPreview?.(thread);
     }
@@ -103,9 +105,9 @@ function ThreadCardImpl({
   });
   const lastActiveTime = thread.last_active_at
     ? formatDistanceToNow(new Date(thread.last_active_at), {
-      addSuffix: true,
-      locale: zhCN,
-    })
+        addSuffix: true,
+        locale: zhCN,
+      })
     : null;
   const virtualOnlyTags = (thread.virtual_tags || []).filter(
     (tag) => !thread.tags.includes(tag),
@@ -141,10 +143,11 @@ function ThreadCardImpl({
         className="group flex h-full w-full cursor-pointer flex-col animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both focus:outline-hidden focus-visible:ring-2 focus-visible:ring-(--od-accent) rounded-[1.45rem]"
         style={{
           animationDelay: `${(index % 24) * 40}ms`,
-          WebkitTapHighlightColor: 'transparent',
+          WebkitTapHighlightColor: "transparent",
         }}
         onMouseDown={(e) => {
-          if (!(e.target as HTMLElement).closest('button, a')) e.preventDefault();
+          if (!(e.target as HTMLElement).closest("button, a"))
+            e.preventDefault();
         }}
         onMouseEnter={() => setIsTitleHovered(true)}
         onMouseLeave={() => setIsTitleHovered(false)}
@@ -156,9 +159,11 @@ function ThreadCardImpl({
           className="flex h-full w-full flex-col pointer-events-auto"
           ref={(el) => {
             if (el) {
-              const focusables = el.querySelectorAll('a, button, [tabindex="0"]');
-              focusables.forEach(node => {
-                node.setAttribute('tabindex', '-1');
+              const focusables = el.querySelectorAll(
+                'a, button, [tabindex="0"]',
+              );
+              focusables.forEach((node) => {
+                node.setAttribute("tabindex", "-1");
               });
             }
           }}
@@ -222,8 +227,9 @@ function ThreadCardImpl({
                       ["--od-marquee-gap" as string]: "1.75rem",
                       ["--od-marquee-duration" as string]: `${Math.max(5, titleShift / 22)}s`,
                     }}
-                    className={`od-marquee-track inline-flex items-center font-extrabold leading-snug tracking-[-0.02em] ${shouldMarquee ? "od-marquee-active" : ""
-                      }`}
+                    className={`od-marquee-track inline-flex items-center font-extrabold leading-snug tracking-[-0.02em] ${
+                      shouldMarquee ? "od-marquee-active" : ""
+                    }`}
                   >
                     <span className="shrink-0">
                       <HighlightText
@@ -290,7 +296,6 @@ function ThreadCardImpl({
                 variant="glass"
               />
             </div>
-
           </div>
 
           <div className="flex flex-1 flex-col gap-3 px-1 pt-3 text-(--od-text-primary)">
@@ -337,6 +342,22 @@ function ThreadCardImpl({
                 </div>
               )}
             </div>
+
+            {booklistComment !== undefined && (
+              <p className="min-h-12 line-clamp-2 text-xs leading-6 text-(--od-text-secondary)">
+                {booklistComment ? (
+                  <>
+                    <span className="font-medium text-(--od-accent)">
+                      推荐语
+                    </span>
+                    <span className="mx-1 text-(--od-text-tertiary)">/</span>
+                    {booklistComment}
+                  </>
+                ) : (
+                  "\u00a0"
+                )}
+              </p>
+            )}
 
             <div className="mt-auto grid grid-cols-3 gap-2 text-(--od-text-tertiary)">
               <span

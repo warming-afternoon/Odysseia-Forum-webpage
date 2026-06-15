@@ -1,20 +1,30 @@
-import { MessageCircle, ThumbsUp, Eye, Clock3, Images, BookOpen } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
-import { memo, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  MessageCircle,
+  ThumbsUp,
+  Eye,
+  Clock3,
+  Images,
+  BookOpen,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { memo, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { LazyImage } from '@/shared/ui/LazyImage';
-import { HighlightText } from '@/shared/ui/HighlightText';
-import { MarkdownText } from '@/shared/ui/MarkdownText';
-import type { Thread } from '@/entities/thread/types';
-import { useFontSizeSetting, useImageModeSetting } from '@/shared/hooks/useSettings';
-import { fontSizeMap } from '@/shared/lib/settings';
-import { ThreadActions } from '@/features/threads/components/ThreadActions';
-import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
-import { ThreadStatusBadges } from '@/entities/thread/ThreadStatusBadges';
-import { usePretextClampText } from '@/shared/hooks/usePretextClampText';
-import { QuickAddToBooklistModal } from '@/features/booklists/components/QuickAddToBooklistModal';
+import { LazyImage } from "@/shared/ui/LazyImage";
+import { HighlightText } from "@/shared/ui/HighlightText";
+import { MarkdownText } from "@/shared/ui/MarkdownText";
+import type { Thread } from "@/entities/thread/types";
+import {
+  useFontSizeSetting,
+  useImageModeSetting,
+} from "@/shared/hooks/useSettings";
+import { fontSizeMap } from "@/shared/lib/settings";
+import { ThreadActions } from "@/features/threads/components/ThreadActions";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
+import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import { usePretextClampText } from "@/shared/hooks/usePretextClampText";
+import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
 
 interface ThreadListItemProps {
   thread: Thread;
@@ -22,10 +32,19 @@ interface ThreadListItemProps {
   searchQuery?: string;
   onAuthorClick?: (author: { id: string; name: string }) => void;
   onPreview?: (thread: Thread) => void;
+  booklistComment?: string | null;
   index?: number;
 }
 
-function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, onPreview, index = 0 }: ThreadListItemProps) {
+function ThreadListItemImpl({
+  thread,
+  onTagClick,
+  searchQuery,
+  onAuthorClick,
+  onPreview,
+  booklistComment,
+  index = 0,
+}: ThreadListItemProps) {
   const navigate = useNavigate();
   const fontSize = useFontSizeSetting();
   const imageMode = useImageModeSetting();
@@ -42,27 +61,29 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
         locale: zhCN,
       })
     : null;
-  const virtualOnlyTags = (thread.virtual_tags || []).filter((tag) => !thread.tags.includes(tag));
+  const virtualOnlyTags = (thread.virtual_tags || []).filter(
+    (tag) => !thread.tags.includes(tag),
+  );
 
   const authorName =
     thread.author?.display_name ??
     thread.author?.global_name ??
     thread.author?.name ??
-    '未知用户';
-  const authorId = thread.author?.id || '';
-  const hasExcerpt = !!thread.first_message_excerpt && thread.first_message_excerpt.trim() !== '...';
+    "未知用户";
+  const authorId = thread.author?.id || "";
+  const hasExcerpt =
+    !!thread.first_message_excerpt &&
+    thread.first_message_excerpt.trim() !== "...";
 
   // 获取有效的去重缩略图列表，最多 4 张
   const thumbnails = useMemo(() => {
-    if (imageMode === 'off') return [];
+    if (imageMode === "off") return [];
     const urls = (thread.thumbnail_urls || []).filter(Boolean);
     return Array.from(new Set(urls)).slice(0, 4);
   }, [thread.thumbnail_urls, imageMode]);
 
-  const { measureRef: titleMeasureRef, clampedText: clampedTitle } = usePretextClampText<HTMLHeadingElement>(
-    thread.title,
-    { maxLines: 2 },
-  );
+  const { measureRef: titleMeasureRef, clampedText: clampedTitle } =
+    usePretextClampText<HTMLHeadingElement>(thread.title, { maxLines: 2 });
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -191,14 +212,17 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                         index={index}
                         imageIndex={idx + 1}
                       />
-                      {idx === 2 && (thread.thumbnail_urls?.length || 0) > thumbnails.length && (
-                        <div className="absolute inset-0 flex items-end justify-end bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.42))] p-2 text-white">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.08em]">
-                            <Images className="h-3 w-3" />
-                            +{(thread.thumbnail_urls?.length || 0) - thumbnails.length}
-                          </span>
-                        </div>
-                      )}
+                      {idx === 2 &&
+                        (thread.thumbnail_urls?.length || 0) >
+                          thumbnails.length && (
+                          <div className="absolute inset-0 flex items-end justify-end bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.42))] p-2 text-white">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.08em]">
+                              <Images className="h-3 w-3" />+
+                              {(thread.thumbnail_urls?.length || 0) -
+                                thumbnails.length}
+                            </span>
+                          </div>
+                        )}
                     </div>
                   ))}
                 </>
@@ -212,9 +236,18 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col md:min-h-43">
-          <div className={`mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 ${fontSizes.meta} text-(--od-text-tertiary)`}>
-            <button type="button" onClick={handleAuthorClick} className="shrink-0 rounded-full">
-              <AuthorAvatar author={thread.author} className="h-6 w-6 md:h-7 md:w-7" />
+          <div
+            className={`mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 ${fontSizes.meta} text-(--od-text-tertiary)`}
+          >
+            <button
+              type="button"
+              onClick={handleAuthorClick}
+              className="shrink-0 rounded-full"
+            >
+              <AuthorAvatar
+                author={thread.author}
+                className="h-6 w-6 md:h-7 md:w-7"
+              />
             </button>
             <button
               type="button"
@@ -264,13 +297,31 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
                   #{tag}
                 </button>
               ))}
-              {thread.tags && thread.tags.length > 4 && <span>+{thread.tags.length - 4}</span>}
+              {thread.tags && thread.tags.length > 4 && (
+                <span>+{thread.tags.length - 4}</span>
+              )}
               {virtualOnlyTags.slice(0, 2).map((tag) => (
                 <span key={`vt-${tag}`} className="text-(--od-text-emphasis)">
                   ~{tag}
                 </span>
               ))}
             </div>
+
+            {booklistComment !== undefined && (
+              <p className="text-xs leading-6 text-(--od-text-secondary)">
+                {booklistComment ? (
+                  <>
+                    <span className="font-medium text-(--od-accent)">
+                      推荐语
+                    </span>
+                    <span className="mx-1 text-(--od-text-tertiary)">/</span>
+                    {booklistComment}
+                  </>
+                ) : (
+                  "\u00a0"
+                )}
+              </p>
+            )}
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3 text-[11px] text-(--od-text-tertiary) md:text-xs">
@@ -321,27 +372,27 @@ function ThreadListItemImpl({ thread, onTagClick, searchQuery, onAuthorClick, on
         />
         <div className="hidden items-center gap-2 md:flex">
           <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setQuickAddOpen(true);
-          }}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold text-(--od-text-tertiary) transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary)"
-          aria-label="加入书单"
-          title="加入书单"
-        >
-          <BookOpen className="h-4 w-4" />
-        </button>
-        <div className="text-(--od-text-tertiary) transition-colors group-hover:text-(--od-text-primary)">
-          <ThreadActions
-            threadId={thread.thread_id}
-            channelId={thread.channel_id}
-            guildId={thread.guild_id}
-            size="md"
-          />
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setQuickAddOpen(true);
+            }}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold text-(--od-text-tertiary) transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary)"
+            aria-label="加入书单"
+            title="加入书单"
+          >
+            <BookOpen className="h-4 w-4" />
+          </button>
+          <div className="text-(--od-text-tertiary) transition-colors group-hover:text-(--od-text-primary)">
+            <ThreadActions
+              threadId={thread.thread_id}
+              channelId={thread.channel_id}
+              guildId={thread.guild_id}
+              size="md"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
       <QuickAddToBooklistModal
         isOpen={quickAddOpen}

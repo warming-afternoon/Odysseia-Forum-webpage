@@ -1,10 +1,12 @@
-import { BookOpen, RefreshCw } from 'lucide-react';
+import { BookOpen, RefreshCw } from "lucide-react";
 
-import { BooklistCard } from '@/entities/booklist/BooklistCard';
-import type { Booklist } from '@/entities/booklist/types';
-import { FluidDivider } from '@/shared/ui/FluidDivider';
+import { BooklistCard } from "@/entities/booklist/BooklistCard";
+import { BooklistListItem } from "@/entities/booklist/BooklistListItem";
+import type { Booklist } from "@/entities/booklist/types";
+import { FluidDivider } from "@/shared/ui/FluidDivider";
+import { useCardGridClass, useLayoutMode } from "@/shared/hooks/useSettings";
 
-export type BooklistSubTab = 'mine' | 'collected';
+export type BooklistSubTab = "mine" | "collected";
 
 interface MeBooklistsSectionProps {
   activeBooklists: Booklist[];
@@ -35,6 +37,9 @@ export function MeBooklistsSection({
   onSetSubTab,
   onToggleCollect,
 }: MeBooklistsSectionProps) {
+  const layoutMode = useLayoutMode();
+  const gridClass = useCardGridClass();
+
   return (
     <section className="px-1">
       <FluidDivider label="Booklists" className="mb-8" />
@@ -55,22 +60,22 @@ export function MeBooklistsSection({
       <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
-          onClick={() => onSetSubTab('mine')}
+          onClick={() => onSetSubTab("mine")}
           className={`od-pill-chip text-xs ${
-            subTab === 'mine'
-              ? 'bg-(--od-accent) text-white font-od-bold'
-              : 'text-(--od-text-secondary) font-od-medium'
+            subTab === "mine"
+              ? "bg-(--od-accent) text-white font-od-bold"
+              : "text-(--od-text-secondary) font-od-medium"
           }`}
         >
           我的创建
         </button>
         <button
           type="button"
-          onClick={() => onSetSubTab('collected')}
+          onClick={() => onSetSubTab("collected")}
           className={`od-pill-chip text-xs ${
-            subTab === 'collected'
-              ? 'bg-(--od-accent) text-white font-od-bold'
-              : 'text-(--od-text-secondary) font-od-medium'
+            subTab === "collected"
+              ? "bg-(--od-accent) text-white font-od-bold"
+              : "text-(--od-text-secondary) font-od-medium"
           }`}
         >
           我的收藏
@@ -90,19 +95,41 @@ export function MeBooklistsSection({
       ) : activeBooklists.length === 0 ? (
         <p className="od-text-body">这个分组里还没有内容，去创建一个吧～</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {activeBooklists.map((booklist) => (
-            <BooklistCard
-              key={booklist.id}
-              booklist={booklist}
-              canManage={String(booklist.owner_id) === String(userId)}
-              onOpen={onOpen}
-              onToggleCollect={onToggleCollect}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              collectLoading={collectLoading}
-            />
-          ))}
+        <div
+          className={
+            layoutMode === "list"
+              ? "flex flex-col space-y-od-list-gap"
+              : gridClass
+          }
+        >
+          {activeBooklists.map((booklist) => {
+            const commonProps = {
+              booklist,
+              canManage: String(booklist.owner_id) === String(userId),
+              onOpen,
+              onToggleCollect,
+              onEdit,
+              onDelete,
+              collectLoading,
+            };
+
+            return layoutMode === "list" ? (
+              <BooklistListItem
+                key={booklist.id}
+                {...commonProps}
+                ownerName={
+                  booklist.author?.display_name ||
+                  booklist.author?.global_name ||
+                  booklist.author?.name ||
+                  undefined
+                }
+                ownerAvatarUrl={booklist.author?.avatar_url ?? null}
+                coverImageUrl={booklist.cover_image_url || null}
+              />
+            ) : (
+              <BooklistCard key={booklist.id} {...commonProps} />
+            );
+          })}
         </div>
       )}
     </section>

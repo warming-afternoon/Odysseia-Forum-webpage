@@ -1,10 +1,49 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { BannerApplicationModal } from '@/features/banner/components/BannerApplicationModal';
-import defaultBannerImage from '@/assets/images/banners/banner.png';
+import springBackground from '@/assets/images/background/spring.png';
+import spring2Background from '@/assets/images/background/spring2.png';
+import summer1Background from '@/assets/images/background/summer1.png';
+import summer2Background from '@/assets/images/background/summer2.png';
+import summer3Background from '@/assets/images/background/summer3.png';
 import { LazyImage } from '@/shared/ui/LazyImage';
 
 const WIKI_URL = 'https://wiki.xn--35zx7g.org/';
+const BANNER_LOAD_TIMEOUT_MS = 4500;
+const bannerMediaClass = 'relative aspect-video min-h-[250px] sm:min-h-0';
+
+const fallbackBanners: Banner[] = [
+  {
+    id: 'fallback-summer-1',
+    image: summer1Background,
+    title: '欢迎来到类脑Odysseia索引页',
+    description: '今天的头图先交给季节背景值班，继续往下逛逛看吧。',
+  },
+  {
+    id: 'fallback-summer-2',
+    image: summer2Background,
+    title: '欢迎来到类脑Odysseia索引页',
+    description: 'Banner 图暂时没有准备好，先用默认背景陪你巡游。',
+  },
+  {
+    id: 'fallback-summer-3',
+    image: summer3Background,
+    title: '欢迎来到类脑Odysseia索引页',
+    description: '展示位偶尔会等一张图加载，内容仍然在下面等你。',
+  },
+  {
+    id: 'fallback-spring',
+    image: springBackground,
+    title: '欢迎来到类脑Odysseia索引页',
+    description: '先用一张浅春背景垫场，等下一条 Banner 就绪。',
+  },
+  {
+    id: 'fallback-spring-2',
+    image: spring2Background,
+    title: '欢迎来到类脑Odysseia索引页',
+    description: '默认背景正在轮换，继续探索最近的帖子和书单吧。',
+  },
+];
 
 interface Banner {
   id: string;
@@ -25,25 +64,32 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const hasRealBanners = banners.length > 0;
+  const displayBanners = hasRealBanners ? banners : fallbackBanners;
 
   useEffect(() => {
-    if (isHovered || banners.length <= 1) return;
+    if (isHovered || displayBanners.length <= 1) return;
 
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
+      setCurrentIndex((prev) => (prev + 1) % displayBanners.length);
     }, autoPlayInterval);
 
     return () => clearInterval(timer);
-  }, [isHovered, banners.length, autoPlayInterval]);
+  }, [isHovered, displayBanners.length, autoPlayInterval]);
+
+  useEffect(() => {
+    if (currentIndex < displayBanners.length) return;
+    setCurrentIndex(0);
+  }, [currentIndex, displayBanners.length]);
 
   const goToPrevious = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    setCurrentIndex((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
   };
 
   const goToNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
+    setCurrentIndex((prev) => (prev + 1) % displayBanners.length);
   };
 
   const openApplyModal = (e: React.MouseEvent) => {
@@ -53,7 +99,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
 
   const renderFooter = () => (
     <div
-      className="flex flex-wrap items-center justify-between gap-3 border-t border-(--od-border) bg-(--od-card) px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-3 border-t border-(--od-border) px-4 py-3"
       onClick={(e) => e.stopPropagation()}
     >
       <p className="text-xs text-(--od-text-secondary)">
@@ -70,59 +116,25 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
     </div>
   );
 
-  if (banners.length === 0) {
-    return (
-      <div className={`group relative overflow-hidden ${fullWidth ? '' : 'mb-4 rounded-xl'}`}>
-        <div className="relative aspect-video">
-          <LazyImage
-            src={defaultBannerImage}
-            alt="欢迎来到 Odysseia"
-            className="h-full w-full"
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h2 className="mb-2 text-2xl font-bold text-white line-clamp-1">
-              欢迎来到类脑Odysseia索引页
-            </h2>
-            <p className="text-sm text-gray-200 line-clamp-2">
-              今天的头图位还空着呢，不过没关系，先往下逛逛看吧。
-            </p>
-            <div className="mt-4">
-              <a
-                href={WIKI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center rounded-full border border-white/20 bg-black/30 px-4 py-2 text-xs font-semibold tracking-[0.12em] text-white transition-colors hover:bg-black/45"
-                onClick={(e) => e.stopPropagation()}
-              >
-                类脑智识库 Wiki
-              </a>
-            </div>
-          </div>
-        </div>
-        {renderFooter()}
-        <BannerApplicationModal
-          isOpen={isApplyModalOpen}
-          onClose={() => setIsApplyModalOpen(false)}
-        />
-      </div>
-    );
-  }
-
-  const currentBanner = banners[currentIndex];
+  const currentBanner = displayBanners[currentIndex];
+  const fallbackImage = fallbackBanners[currentIndex % fallbackBanners.length].image;
 
   return (
     <div
-      className={`group relative overflow-hidden bg-[#2b2d31] cursor-pointer ${fullWidth ? '' : 'mb-4 rounded-xl'}`}
+      className={`group relative overflow-hidden ${hasRealBanners ? 'cursor-pointer' : ''} ${fullWidth ? '' : 'mb-4 rounded-xl'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onBannerClick?.(currentBanner)}
+      onClick={() => {
+        if (hasRealBanners) onBannerClick?.(currentBanner);
+      }}
     >
       {/* Banner 图片 */}
-      <div className="relative aspect-video">
+      <div className={bannerMediaClass}>
         <LazyImage
           src={currentBanner.image}
           alt={currentBanner.title}
+          fallbackSrc={fallbackImage}
+          loadTimeoutMs={BANNER_LOAD_TIMEOUT_MS}
           className="h-full w-full transition-transform duration-700"
         />
 
@@ -141,7 +153,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
       </div>
 
       {/* 导航按钮 */}
-      {banners.length > 1 && (
+      {displayBanners.length > 1 && (
         <>
           <button
             onClick={goToPrevious}
@@ -161,12 +173,15 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000, onBannerClick
       )}
 
       {/* 指示器 */}
-      {banners.length > 1 && (
+      {displayBanners.length > 1 && (
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-          {banners.map((_, index) => (
+          {displayBanners.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
               className={`h-2 rounded-full transition-all ${index === currentIndex
                 ? 'w-8 bg-white'
                 : 'w-2 bg-white/50 hover:bg-white/75'

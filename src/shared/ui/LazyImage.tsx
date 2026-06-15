@@ -8,6 +8,8 @@ interface LazyImageProps {
   alt?: string;
   className?: string;
   placeholder?: string;
+  fallbackSrc?: string;
+  loadTimeoutMs?: number;
   threadId?: string;
   channelId?: string;
   index?: number; // Used for staggered animation delay
@@ -19,6 +21,8 @@ export function LazyImage({
   alt,
   className = '',
   placeholder,
+  fallbackSrc,
+  loadTimeoutMs,
   threadId,
   channelId,
   index = 0,
@@ -59,6 +63,18 @@ export function LazyImage({
     setCurrentSrc(optimized);
     setIsLoaded(false);
   }, [src]);
+
+  useEffect(() => {
+    if (!isInView || isImageDisabled || isLoaded || !fallbackSrc || !loadTimeoutMs) return;
+    if (currentSrc === fallbackSrc) return;
+
+    const timer = window.setTimeout(() => {
+      setCurrentSrc(fallbackSrc);
+      setIsLoaded(false);
+    }, loadTimeoutMs);
+
+    return () => window.clearTimeout(timer);
+  }, [currentSrc, fallbackSrc, isImageDisabled, isInView, isLoaded, loadTimeoutMs]);
 
   useEffect(() => {
     if (!threadId) return;
@@ -112,6 +128,11 @@ export function LazyImage({
                   .catch(() => setIsLoaded(true)); // 回退
               }}
               onError={() => {
+                if (fallbackSrc && currentSrc !== fallbackSrc) {
+                  setCurrentSrc(fallbackSrc);
+                  setIsLoaded(false);
+                  return;
+                }
                 if (!threadId) return;
                 reportBrokenThreadThumbnail({ threadId, channelId });
               }}
