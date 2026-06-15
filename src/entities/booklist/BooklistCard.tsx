@@ -1,5 +1,6 @@
 import type { Booklist } from "@/entities/booklist/types";
 import { BookOpen, Eye, Globe, Lock, Pencil, Star, Trash2 } from "lucide-react";
+import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { formatAbsoluteDateTime } from "@/shared/lib/dateTime";
 
 interface BooklistCardProps {
@@ -22,6 +23,11 @@ export function BooklistCard({
   collectLoading,
 }: BooklistCardProps) {
   const updatedText = formatAbsoluteDateTime(booklist.updated_at);
+  const ownerName =
+    booklist.author?.display_name ||
+    booklist.author?.global_name ||
+    booklist.author?.name ||
+    `用户 ${booklist.owner_id}`;
 
   const ariaLabel = `书单：${booklist.title}。${booklist.description || "暂无简介"}。包含 ${booklist.item_count} 个帖子，${booklist.collection_count} 次收藏。更新于 ${updatedText}`;
 
@@ -90,8 +96,19 @@ export function BooklistCard({
           )}
         </div>
 
-        <div className="mt-3 flex min-w-0 flex-1 flex-col">
-          <div className="flex flex-wrap items-center gap-2 pr-9 text-[11px]">
+        <div className="-mt-6 flex justify-center">
+          <AuthorAvatar
+            author={booklist.author}
+            className="h-12 w-12 shadow-lg shadow-black/20"
+          />
+        </div>
+
+        <div className="mt-2 flex min-w-0 flex-1 flex-col text-center">
+          <p className="mx-auto max-w-full truncate text-xs text-(--od-text-secondary)">
+            {ownerName}
+          </p>
+
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-[11px]">
             <span className="inline-flex items-center gap-1 text-(--od-text-tertiary)">
               {booklist.is_public ? (
                 <Globe className="h-3.5 w-3.5" />
@@ -111,7 +128,7 @@ export function BooklistCard({
             {booklist.description || "暂无简介"}
           </p>
 
-          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-[12px] text-(--od-text-secondary)">
+          <div className="mt-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-4 text-[12px] text-(--od-text-secondary)">
             <span className="inline-flex items-center gap-1.5">
               <BookOpen className="h-3.5 w-3.5 text-(--od-text-tertiary)" />
               <span className="text-(--od-accent)">{booklist.item_count}</span>

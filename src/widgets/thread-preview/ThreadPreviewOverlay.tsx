@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { ImageCarousel } from "@/entities/thread/ImageCarousel";
 import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import { ThreadTournamentBadges } from "@/entities/thread/ThreadTournamentBadges";
 import type { Thread } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
@@ -315,6 +316,11 @@ export function ThreadPreviewOverlay({
           )}
 
           {/* Recommendations */}
+          <ThreadTournamentBadges
+            thread={thread}
+            variant="tags"
+            onNavigate={handleClose}
+          />
           <SimilarRecommendations currentThreadId={thread.thread_id} />
           {thread.author?.id && (
             <AuthorRecommendations

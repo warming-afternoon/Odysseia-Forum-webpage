@@ -21,6 +21,7 @@ export interface BooklistListParams {
   sortMethod?: number;
   sortOrder?: "asc" | "desc";
   isPublic?: boolean;
+  isTournament?: boolean;
 }
 
 export interface BooklistFormInput {
@@ -35,9 +36,11 @@ export interface BooklistItemAddInput {
   thread_id: string | number;
   comment?: string;
   display_order?: number;
+  tournament_participated_at?: string | null;
 }
 
 export interface BooklistItemUpdateInput {
   comment?: string;
   display_order?: number;
+  tournament_participated_at?: string | null;
 }

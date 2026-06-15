@@ -28,6 +28,7 @@ interface MyBooklistListRequest {
   sortMethod?: number;
   sortOrder?: "asc" | "desc";
   isPublic?: boolean;
+  isTournament?: boolean;
   collectByCurrentUser?: boolean;
   createByCurrentUser?: boolean;
 }
@@ -74,6 +75,7 @@ export const booklistsApi = {
           ...toPageParams(params.pageIndex, params.pageSize),
           keywords: params.keywords || undefined,
           is_public: params.isPublic,
+          is_tournament: params.isTournament,
           collect_by_current_user: params.collectByCurrentUser,
           create_by_current_user: params.createByCurrentUser,
           sort_method:

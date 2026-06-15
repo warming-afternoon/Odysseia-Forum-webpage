@@ -5,6 +5,10 @@ import type { BooklistItemAddInput } from "@/entities/booklist/types";
 interface AddThreadsToBooklistModalProps {
   isOpen: boolean;
   submitting?: boolean;
+  title?: string;
+  submitLabel?: string;
+  commentLabel?: string;
+  enableTournamentFields?: boolean;
   onClose: () => void;
   onSubmit: (items: BooklistItemAddInput[]) => void;
 }
@@ -21,12 +25,17 @@ function parseThreadIds(raw: string): string[] {
 export function AddThreadsToBooklistModal({
   isOpen,
   submitting,
+  title = "批量添加帖子",
+  submitLabel = "添加到书单",
+  commentLabel = "统一备注（可选）",
+  enableTournamentFields = false,
   onClose,
   onSubmit,
 }: AddThreadsToBooklistModalProps) {
   const [rawIds, setRawIds] = useState("");
   const [comment, setComment] = useState("");
   const [displayOrder, setDisplayOrder] = useState("");
+  const [participatedAt, setParticipatedAt] = useState("");
 
   const parsedIds = useMemo(() => parseThreadIds(rawIds), [rawIds]);
 
@@ -43,7 +52,7 @@ export function AddThreadsToBooklistModal({
       >
         <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
           <h2 className="text-base font-bold text-(--od-text-primary)">
-            批量添加帖子
+            {title}
           </h2>
           <button
             type="button"
@@ -73,7 +82,7 @@ export function AddThreadsToBooklistModal({
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">
-              统一备注（可选）
+              {commentLabel}
             </label>
             <textarea
               value={comment}
@@ -82,6 +91,20 @@ export function AddThreadsToBooklistModal({
               className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
             />
           </div>
+
+          {enableTournamentFields && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">
+                参赛时间（可选）
+              </label>
+              <input
+                type="datetime-local"
+                value={participatedAt}
+                onChange={(e) => setParticipatedAt(e.target.value)}
+                className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
+              />
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">
@@ -113,6 +136,10 @@ export function AddThreadsToBooklistModal({
                   thread_id: id,
                   comment: comment.trim() || undefined,
                   display_order: hasOrder ? orderStart + index : undefined,
+                  tournament_participated_at:
+                    enableTournamentFields && participatedAt
+                      ? participatedAt
+                      : undefined,
                 }));
                 onSubmit(items);
               }}
@@ -123,7 +150,7 @@ export function AddThreadsToBooklistModal({
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              添加到书单
+              {submitLabel}
             </button>
           </div>
         </div>

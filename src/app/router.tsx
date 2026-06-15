@@ -13,7 +13,9 @@ import { TestPage } from '@/pages/TestPage';
 import { BooklistsPage } from '@/pages/BooklistsPage';
 import { BooklistDetailPage } from '@/pages/BooklistDetailPage';
 import { TournamentDetailPage } from '@/pages/TournamentDetailPage';
+import { TournamentManagePage } from '@/pages/TournamentManagePage';
 import { TournamentsPage } from '@/pages/TournamentsPage';
+import { MyTournamentsPage } from '@/pages/MyTournamentsPage';
 import { ProtectedRoute } from '@/app/providers/ProtectedRoute';
 import { RootLayout } from '@/widgets/layout/RootLayout';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -32,6 +34,14 @@ const appChildren = [
   {
     path: 'tournaments',
     element: <TournamentsPage />,
+  },
+  {
+    path: 'tournaments/mine',
+    element: <MyTournamentsPage />,
+  },
+  {
+    path: 'tournaments/manage/:booklistId',
+    element: <TournamentManagePage />,
   },
   {
     path: 'tournaments/:booklistId',

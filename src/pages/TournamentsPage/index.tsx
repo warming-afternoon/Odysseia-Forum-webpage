@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   LayoutGrid,
   Medal,
+  Pencil,
   RefreshCw,
   Rows3,
   SlidersHorizontal,
@@ -156,34 +157,45 @@ export function TournamentsPage() {
             <Medal className="h-4 w-4 text-(--od-accent)" />
             <span>{summaryText}</span>
           </div>
-          <div className="mt-6 inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <div className="inline-flex items-center gap-1 rounded-full border border-(--od-shell-line) bg-[color-mix(in_srgb,var(--od-surface-input)_76%,transparent)] p-1">
+              <button
+                type="button"
+                onClick={() => updateSettings({ layoutMode: "list" })}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  layoutMode === "list"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+                }`}
+                aria-label="切换到列表展示"
+                title="列表展示"
+              >
+                <Rows3 className="h-3.5 w-3.5" />
+                列表
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSettings({ layoutMode: "grid" })}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  layoutMode === "grid"
+                    ? "bg-(--od-accent) text-white"
+                    : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
+                }`}
+                aria-label="切换到网格展示"
+                title="网格展示"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                网格
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() => updateSettings({ layoutMode: "list" })}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                layoutMode === "list"
-                  ? "bg-(--od-accent) text-white"
-                  : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
-              }`}
-              aria-label="切换到列表展示"
-              title="列表展示"
+              onClick={() => navigate("/tournaments/mine")}
+              className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
             >
-              <Rows3 className="h-3.5 w-3.5" />
-              列表
-            </button>
-            <button
-              type="button"
-              onClick={() => updateSettings({ layoutMode: "grid" })}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                layoutMode === "grid"
-                  ? "bg-(--od-accent) text-white"
-                  : "text-(--od-text-secondary) hover:text-(--od-text-primary)"
-              }`}
-              aria-label="切换到网格展示"
-              title="网格展示"
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              网格
+              <Pencil className="h-3.5 w-3.5" />
+              我的赛事
             </button>
           </div>
         </section>

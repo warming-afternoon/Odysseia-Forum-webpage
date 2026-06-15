@@ -13,6 +13,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import { ThreadTournamentBadges } from "@/entities/thread/ThreadTournamentBadges";
 import type { Thread } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
@@ -181,13 +182,16 @@ function ThreadCardImpl({
                 />
               </button>
               <div className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  onClick={handleAuthorClick}
-                  className="block max-w-[140px] truncate text-xs font-medium text-(--od-text-secondary) transition-colors duration-200 group-hover:text-(--od-text-primary) hover:text-(--od-text-primary)"
-                >
-                  {authorName}
-                </button>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleAuthorClick}
+                    className="block max-w-[140px] truncate text-xs font-medium text-(--od-text-secondary) transition-colors duration-200 group-hover:text-(--od-text-primary) hover:text-(--od-text-primary)"
+                  >
+                    {authorName}
+                  </button>
+                  <ThreadTournamentBadges thread={thread} variant="icon" />
+                </div>
                 <div className="mt-0.5 flex items-center gap-2 text-[10px] text-(--od-text-tertiary)">
                   <span className="inline-flex items-center gap-1 whitespace-nowrap">
                     <Calendar className="h-3 w-3 shrink-0" />

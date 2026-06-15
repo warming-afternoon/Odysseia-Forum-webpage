@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  Edit3,
   ExternalLink,
   LayoutGrid,
   Medal,
@@ -18,6 +19,7 @@ import type { Thread } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { ThreadCard } from "@/entities/thread/ThreadCard";
 import { ThreadListItem } from "@/entities/thread/ThreadListItem";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   useTournamentDetail,
   useTournamentItems,
@@ -65,6 +67,7 @@ function toTournamentThread(item: TournamentItem, tournament: Tournament): Threa
 export function TournamentDetailPage() {
   const { booklistId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { openPreview } = usePreviewThread();
   const { settings, updateSettings } = useSettings();
   const layoutMode = settings.layoutMode;
@@ -164,6 +167,7 @@ export function TournamentDetailPage() {
   });
   const hasDiscordChannel = Boolean(tournament.tournament_channel_id);
   const activeBannerSlide = bannerSlides[activeBannerIndex];
+  const isOwner = String(tournament.owner_id ?? "") === String(user?.id ?? "");
 
   const handleCopyShareText = async () => {
     if (!shareText) return;
@@ -362,6 +366,19 @@ export function TournamentDetailPage() {
                   />
                   {tournament.collected_flag ? "已收藏" : "收藏赛事"}
                 </button>
+
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(`/tournaments/manage/${normalizedBooklistId}`)
+                    }
+                    className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-semibold text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                    管理赛事
+                  </button>
+                )}
               </div>
             </section>
 

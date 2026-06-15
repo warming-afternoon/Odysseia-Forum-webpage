@@ -11,6 +11,7 @@ const schema = z.object({
     .string()
     .optional()
     .refine((value) => !value || /^-?\d+$/.test(value), '排序权重必须是整数'),
+  tournament_participated_at: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -19,14 +20,32 @@ interface BooklistItemEditorModalProps {
   isOpen: boolean;
   item: BooklistItem | null;
   submitting?: boolean;
+  title?: string;
+  commentLabel?: string;
+  enableTournamentFields?: boolean;
   onClose: () => void;
-  onSubmit: (payload: { comment?: string; display_order?: number }) => void;
+  onSubmit: (payload: {
+    comment?: string;
+    display_order?: number;
+    tournament_participated_at?: string | null;
+  }) => void;
+}
+
+function toDateTimeLocal(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value.slice(0, 16);
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
 export function BooklistItemEditorModal({
   isOpen,
   item,
   submitting,
+  title = '编辑书单项',
+  commentLabel = '备注',
+  enableTournamentFields = false,
   onClose,
   onSubmit,
 }: BooklistItemEditorModalProps) {
@@ -40,6 +59,7 @@ export function BooklistItemEditorModal({
     defaultValues: {
       comment: '',
       display_order: '',
+      tournament_participated_at: '',
     },
   });
 
@@ -48,6 +68,7 @@ export function BooklistItemEditorModal({
     reset({
       comment: item.comment ?? '',
       display_order: String(item.display_order ?? ''),
+      tournament_participated_at: toDateTimeLocal(item.tournament_participated_at),
     });
   }, [isOpen, item, reset]);
 
@@ -60,7 +81,7 @@ export function BooklistItemEditorModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
-          <h2 className="text-base font-bold text-(--od-text-primary)">编辑书单项</h2>
+          <h2 className="text-base font-bold text-(--od-text-primary)">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -76,6 +97,9 @@ export function BooklistItemEditorModal({
             onSubmit({
               comment: values.comment?.trim() || undefined,
               display_order: Number.isFinite(order) ? order : undefined,
+              tournament_participated_at: enableTournamentFields
+                ? values.tournament_participated_at || null
+                : undefined,
             });
           })}
           className="space-y-4 p-5"
@@ -86,7 +110,7 @@ export function BooklistItemEditorModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">备注</label>
+            <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">{commentLabel}</label>
             <textarea
               {...register('comment')}
               rows={5}
@@ -94,6 +118,17 @@ export function BooklistItemEditorModal({
             />
             {errors.comment && <p className="mt-1 text-xs text-(--od-error)">{errors.comment.message}</p>}
           </div>
+
+          {enableTournamentFields && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">参赛时间</label>
+              <input
+                type="datetime-local"
+                {...register('tournament_participated_at')}
+                className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
+              />
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">排序权重</label>

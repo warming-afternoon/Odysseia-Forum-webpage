@@ -24,6 +24,10 @@ interface BooklistFormModalProps {
   isOpen: boolean;
   initialValue?: Booklist | null;
   submitting?: boolean;
+  entityLabel?: string;
+  titlePlaceholder?: string;
+  descriptionPlaceholder?: string;
+  publicLabel?: string;
   onClose: () => void;
   onSubmit: (payload: BooklistFormInput) => void;
 }
@@ -32,6 +36,10 @@ export function BooklistFormModal({
   isOpen,
   initialValue,
   submitting,
+  entityLabel = '书单',
+  titlePlaceholder,
+  descriptionPlaceholder,
+  publicLabel,
   onClose,
   onSubmit,
 }: BooklistFormModalProps) {
@@ -72,7 +80,7 @@ export function BooklistFormModal({
       >
         <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
           <h2 className="text-base font-bold text-(--od-text-primary)">
-            {initialValue ? '编辑书单' : '创建书单'}
+            {initialValue ? `编辑${entityLabel}` : `创建${entityLabel}`}
           </h2>
           <button
             type="button"
@@ -89,7 +97,7 @@ export function BooklistFormModal({
             <input
               {...register('title')}
               className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
-              placeholder="输入书单标题"
+              placeholder={titlePlaceholder ?? `输入${entityLabel}标题`}
             />
             {errors.title && <p className="mt-1 text-xs text-(--od-error)">{errors.title.message}</p>}
           </div>
@@ -100,7 +108,7 @@ export function BooklistFormModal({
               {...register('description')}
               rows={4}
               className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
-              placeholder="写一段简介，说明这个书单的主题"
+              placeholder={descriptionPlaceholder ?? `写一段简介，说明这个${entityLabel}的主题`}
             />
             {errors.description && (
               <p className="mt-1 text-xs text-(--od-error)">{errors.description.message}</p>
@@ -122,7 +130,7 @@ export function BooklistFormModal({
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex items-center gap-2 rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-secondary)">
               <input type="checkbox" {...register('is_public')} />
-              公开书单
+              {publicLabel ?? `公开${entityLabel}`}
             </label>
 
             <div>
@@ -151,7 +159,7 @@ export function BooklistFormModal({
               className="inline-flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--od-accent-hover) disabled:opacity-60"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {initialValue ? '保存修改' : '创建书单'}
+              {initialValue ? '保存修改' : `创建${entityLabel}`}
             </button>
           </div>
         </form>

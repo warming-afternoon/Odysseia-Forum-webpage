@@ -23,6 +23,7 @@ import { fontSizeMap } from "@/shared/lib/settings";
 import { ThreadActions } from "@/features/threads/components/ThreadActions";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
+import { ThreadTournamentBadges } from "@/entities/thread/ThreadTournamentBadges";
 import { usePretextClampText } from "@/shared/hooks/usePretextClampText";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
 
@@ -264,6 +265,7 @@ function ThreadListItemImpl({
                 活跃 {lastActiveTime}
               </span>
             )}
+            <ThreadTournamentBadges thread={thread} variant="inline" />
           </div>
 
           <div className="mb-3 flex items-start gap-2.5">

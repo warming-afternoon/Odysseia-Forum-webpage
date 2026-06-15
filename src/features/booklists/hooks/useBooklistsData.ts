@@ -5,6 +5,7 @@ import {
   booklistKeys,
   type BooklistScope,
 } from "@/features/booklists/lib/queryKeys";
+import { tournamentKeys } from "@/features/tournaments/lib/queryKeys";
 import type {
   BooklistFormInput,
   BooklistItemAddInput,
@@ -36,6 +37,7 @@ export function useBooklistsList(params: {
         sortMethod: params.sortMethod,
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
+        isTournament: params.isTournament,
         createByCurrentUser: params.scope === "mine",
         collectByCurrentUser: params.scope === "collected",
       });
@@ -69,6 +71,25 @@ export function useCollectedBooklistsList() {
         pageSize: 18,
         sortMethod: 6,
       }),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useMyTournamentsList() {
+  return useQuery({
+    queryKey: [...booklistKeys.mineLists(), "tournaments"],
+    queryFn: () =>
+      booklistsApi.listMine({
+        createByCurrentUser: true,
+        pageIndex: 0,
+        pageSize: 48,
+        sortMethod: 5,
+        isTournament: true,
+      }),
+    select: (data) => ({
+      ...data,
+      results: (data.results || []).filter((item) => item.is_tournament),
+    }),
     staleTime: 60 * 1000,
   });
 }
@@ -108,12 +129,19 @@ function useInvalidateBooklists() {
 
   return (booklistId?: number | string) => {
     queryClient.invalidateQueries({ queryKey: booklistKeys.all });
+    queryClient.invalidateQueries({ queryKey: tournamentKeys.all });
     if (booklistId !== undefined && /^\d+$/.test(String(booklistId))) {
       queryClient.invalidateQueries({
         queryKey: booklistKeys.detail(booklistId),
       });
       queryClient.invalidateQueries({
         queryKey: booklistKeys.items(booklistId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: tournamentKeys.detail(booklistId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: tournamentKeys.items(booklistId),
       });
     }
   };
