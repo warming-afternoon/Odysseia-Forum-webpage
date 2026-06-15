@@ -175,11 +175,11 @@ function ThreadCardImpl({
                 />
               </button>
               <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-1.5">
+                <div className="flex h-4 min-w-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={handleAuthorClick}
-                    className="block max-w-[140px] truncate text-xs font-medium text-(--od-text-secondary) transition-colors duration-200 group-hover:text-(--od-text-primary) hover:text-(--od-text-primary)"
+                    className="block max-w-[140px] truncate text-xs font-medium leading-4 text-(--od-text-secondary) transition-colors duration-200 group-hover:text-(--od-text-primary) hover:text-(--od-text-primary)"
                   >
                     {authorName}
                   </button>

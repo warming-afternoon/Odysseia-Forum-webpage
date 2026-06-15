@@ -48,11 +48,11 @@ export function ThreadTournamentBadges({
 
     return (
       <span
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-(--od-accent)"
+        className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-(--od-accent)"
         aria-label="参赛帖子"
         title={firstInfo ? `参赛帖子：${firstInfo.booklist_name}` : "参赛帖子"}
       >
-        <Trophy className="h-3.5 w-3.5" />
+        <Trophy className="h-3 w-3" />
       </span>
     );
   }
