@@ -9,6 +9,7 @@ export const booklistKeys = {
     sortMethod: number;
     pageIndex: number;
     pageSize: number;
+    isTournament?: boolean;
   }) => [...booklistKeys.lists(), params] as const,
   mineLists: () => [...booklistKeys.all, "mine"] as const,
   detail: (booklistId: number | string) =>

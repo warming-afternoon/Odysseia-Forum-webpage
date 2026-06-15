@@ -22,6 +22,7 @@ export function useBooklistsList(params: {
   sortMethod: number;
   pageIndex: number;
   pageSize: number;
+  isTournament?: boolean;
 }) {
   return useQuery({
     queryKey: booklistKeys.list(params),

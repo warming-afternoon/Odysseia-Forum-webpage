@@ -430,12 +430,10 @@ export interface paths {
         put?: never;
         /**
          * 提交Banner申请
-         * @description 提交Banner展示位申请
+         * @description 提交Banner展示位申请。
          *
-         *     - 只能为自己的帖子申请
-         *     - 帖子必须已被索引
-         *     - 封面图必须是有效的URL
-         *     - 申请成功后会自动发送审核消息到指定子区
+         *     支持 Discord 跳转链接或纯数字 ID。
+         *     传入纯数字 ID 时自动使用主服务器 ID 拼接。
          */
         post: operations["apply_banner_v1_banner_apply_post"];
         delete?: never;
@@ -453,10 +451,7 @@ export interface paths {
         };
         /**
          * 获取当前活跃的Banner列表
-         * @description 获取当前活跃的Banner轮播列表
-         *
-         *     - channel_id: 可选，指定频道ID获取该频道+全频道的Banner
-         *     - 返回的 guild_id + thread_id 可用于前端构建 Discord 跳转链接
+         * @description 获取当前活跃的Banner轮播列表。
          */
         get: operations["get_active_banners_v1_banner_active_get"];
         put?: never;
@@ -1323,22 +1318,22 @@ export interface components {
         };
         /**
          * BannerApplicationRequest
-         * @description Banner申请请求模型
+         * @description Banner申请请求
          */
         BannerApplicationRequest: {
             /**
-             * Thread Id
-             * @description 帖子ID（纯数字字符串）
+             * Thread Link
+             * @description Discord 跳转链接（https://discord.com/channels/{guild_id}/{id}）或纯数字 ID
              */
-            thread_id: string;
+            thread_link: string;
             /**
              * Cover Image Url
-             * @description 封面图URL
+             * @description 封面图链接
              */
             cover_image_url: string;
             /**
              * Target Scope
-             * @description 展示范围：'global' 或频道ID
+             * @description 目标范围：'global'表示全频道，或具体频道ID
              */
             target_scope: string;
         };
@@ -1374,6 +1369,12 @@ export interface components {
              */
             guild_id: number;
             /**
+             * Target Type
+             * @description 论坛帖子 / 频道
+             * @default 1
+             */
+            target_type: number;
+            /**
              * Start Time
              * @description Banner 展示开始时间
              */
@@ -1402,6 +1403,12 @@ export interface components {
              * @description 帖子所属服务器 ID（从索引帖读取，用于前端生成 Discord 链接）
              */
             guild_id?: string;
+            /**
+             * Target Type
+             * @description 论坛帖子 / 频道
+             * @default 1
+             */
+            target_type: number;
             /**
              * Start Time
              * @description Banner 展示开始时间
@@ -2193,6 +2200,17 @@ export interface components {
              */
             collected_flag: boolean;
             /**
+             * Is Tournament
+             * @description 该帖子是否为参赛帖子
+             * @default false
+             */
+            is_tournament: boolean;
+            /**
+             * Tournament Info List
+             * @description 所属赛事书单信息列表
+             */
+            tournament_info_list?: components["schemas"]["TournamentInfo-Input"][];
+            /**
              * Latest Update At
              * @description 帖子最近一次有新消息的时间
              */
@@ -2309,6 +2327,17 @@ export interface components {
              * @default false
              */
             collected_flag: boolean;
+            /**
+             * Is Tournament
+             * @description 该帖子是否为参赛帖子
+             * @default false
+             */
+            is_tournament: boolean;
+            /**
+             * Tournament Info List
+             * @description 所属赛事书单信息列表
+             */
+            tournament_info_list?: components["schemas"]["TournamentInfo-Output"][];
             /**
              * Latest Update At
              * @description 帖子最近一次有新消息的时间
@@ -2619,6 +2648,12 @@ export interface components {
              * @default 0
              */
             offset: number;
+            /**
+             * Debug Timing
+             * @description 调试模式：为真时打印各阶段耗时日志，正常请求请勿开启以减少开销
+             * @default false
+             */
+            debug_timing: boolean;
         };
         /**
          * SearchResponse
@@ -2652,17 +2687,6 @@ export interface components {
              * @description 当前频道配置的虚拟映射标签名列表（始终置顶于 available_tags 中）
              */
             virtual_tags?: string[];
-            /**
-             * Banner Carousel
-             * @description Banner轮播列表，包含当前频道+全频道的banner（最多8个）
-             */
-            banner_carousel?: components["schemas"]["BannerItem-Output"][];
-            /**
-             * Unread Count
-             * @description 当前用户关注列表的未读更新数量
-             * @default 0
-             */
-            unread_count: number;
         };
         /**
          * SearchSuggestionResponse
@@ -2905,6 +2929,17 @@ export interface components {
              * @default false
              */
             collected_flag: boolean;
+            /**
+             * Is Tournament
+             * @description 该帖子是否为参赛帖子
+             * @default false
+             */
+            is_tournament: boolean;
+            /**
+             * Tournament Info List
+             * @description 所属赛事书单信息列表
+             */
+            tournament_info_list?: components["schemas"]["TournamentInfo-Output"][];
         };
         /**
          * ThreadSuggestion
@@ -3026,6 +3061,38 @@ export interface components {
              * @description 是否为新创建（false 表示已存在，幂等返回）
              */
             created: boolean;
+        };
+        /**
+         * TournamentInfo
+         * @description 赛事书单简要信息
+         */
+        "TournamentInfo-Input": {
+            /**
+             * Booklist Id
+             * @description 赛事书单ID
+             */
+            booklist_id: number;
+            /**
+             * Booklist Name
+             * @description 赛事书单名
+             */
+            booklist_name: string;
+        };
+        /**
+         * TournamentInfo
+         * @description 赛事书单简要信息
+         */
+        "TournamentInfo-Output": {
+            /**
+             * Booklist Id
+             * @description 赛事书单ID
+             */
+            booklist_id: string;
+            /**
+             * Booklist Name
+             * @description 赛事书单名
+             */
+            booklist_name: string;
         };
         /**
          * TournamentItemAddData

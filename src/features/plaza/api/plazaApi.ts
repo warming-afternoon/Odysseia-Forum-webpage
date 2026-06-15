@@ -173,6 +173,7 @@ export const plazaApi = {
       sortOrder: "desc",
       pageIndex: 0,
       pageSize: 6,
+      isTournament: false,
     });
     return response.results || [];
   },

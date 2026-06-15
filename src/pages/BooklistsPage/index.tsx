@@ -63,6 +63,7 @@ export function BooklistsPage() {
     sortMethod,
     pageIndex,
     pageSize: 12,
+    isTournament: false,
   });
 
   const createMutation = useCreateBooklist(() => setShowCreate(false));

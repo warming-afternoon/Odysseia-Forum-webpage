@@ -18,6 +18,7 @@ import {
     Settings,
     Tag as TagIcon,
     TestTube,
+    Trophy,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -147,6 +148,24 @@ export function AppSidebar() {
                 trigger="hover"
               />
               <span className="truncate">广场</span>
+            </Link>
+
+            <Link
+              to="/tournaments"
+              className={navItemClass(isActive('/tournaments') || location.pathname.startsWith('/tournaments/'))}
+            >
+              <span className={navIndicatorClass(isActive('/tournaments') || location.pathname.startsWith('/tournaments/'))} />
+              <AnimatedIcon
+                icon={Trophy}
+                className={`h-4 w-4 shrink-0 ${
+                  isActive('/tournaments') || location.pathname.startsWith('/tournaments/')
+                    ? 'text-(--od-accent)'
+                    : ''
+                }`}
+                animation="scale"
+                trigger="hover"
+              />
+              <span className="truncate">赛事</span>
             </Link>
 
             <Link

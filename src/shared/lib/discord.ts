@@ -40,6 +40,11 @@ interface DiscordThreadLinkOptions {
 
 export type DiscordOpenMode = 'app' | 'web';
 
+interface DiscordChannelLinkOptions {
+    guildId?: string | null;
+    channelId: string;
+}
+
 function resolveDiscordLinkSegments({ guildId, threadId }: DiscordThreadLinkOptions) {
     const normalizedGuildId = guildId || import.meta.env.VITE_GUILD_ID || '@me';
 
@@ -63,4 +68,23 @@ export function buildDiscordThreadUrl(options: DiscordThreadLinkOptions, openMod
     return openMode === 'app'
         ? buildDiscordAppThreadUrl(options)
         : buildDiscordWebThreadUrl(options);
+}
+
+function resolveDiscordChannelSegments({ guildId, channelId }: DiscordChannelLinkOptions) {
+    const normalizedGuildId = guildId || import.meta.env.VITE_GUILD_ID || '@me';
+
+    return {
+        guildId: normalizedGuildId,
+        channelId,
+    };
+}
+
+export function buildDiscordWebChannelUrl(options: DiscordChannelLinkOptions): string {
+    const { guildId, channelId } = resolveDiscordChannelSegments(options);
+    return `${DISCORD_WEB_BASE}/channels/${guildId}/${channelId}`;
+}
+
+export function buildDiscordAppChannelUrl(options: DiscordChannelLinkOptions): string {
+    const { guildId, channelId } = resolveDiscordChannelSegments(options);
+    return `discord://-/channels/${guildId}/${channelId}`;
 }

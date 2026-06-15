@@ -12,6 +12,8 @@ import { UserProfilePage } from '@/pages/UserProfilePage';
 import { TestPage } from '@/pages/TestPage';
 import { BooklistsPage } from '@/pages/BooklistsPage';
 import { BooklistDetailPage } from '@/pages/BooklistDetailPage';
+import { TournamentDetailPage } from '@/pages/TournamentDetailPage';
+import { TournamentsPage } from '@/pages/TournamentsPage';
 import { ProtectedRoute } from '@/app/providers/ProtectedRoute';
 import { RootLayout } from '@/widgets/layout/RootLayout';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -26,6 +28,14 @@ const appChildren = [
   {
     path: 'search',
     element: <SearchPage />,
+  },
+  {
+    path: 'tournaments',
+    element: <TournamentsPage />,
+  },
+  {
+    path: 'tournaments/:booklistId',
+    element: <TournamentDetailPage />,
   },
   {
     path: 'draw',

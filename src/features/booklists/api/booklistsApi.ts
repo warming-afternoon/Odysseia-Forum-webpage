@@ -18,6 +18,7 @@ interface BooklistListRequest {
   sortOrder?: "asc" | "desc";
   ownerId?: string;
   includedThreadId?: string;
+  isTournament?: boolean;
 }
 
 interface MyBooklistListRequest {
@@ -54,6 +55,7 @@ export const booklistsApi = {
           keywords: params.keywords || undefined,
           owner_id: params.ownerId,
           included_thread_id: params.includedThreadId,
+          is_tournament: params.isTournament,
           sort_method: params.sortMethod ?? 4,
           sort_order: params.sortOrder ?? "desc",
         },
