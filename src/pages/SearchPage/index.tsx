@@ -162,7 +162,14 @@ export function SearchPage() {
 
   // 同步用户偏好排序
   useEffect(() => {
-    if (preferences?.sort_method && !new URLSearchParams(window.location.search).get('sort')) {
+    const hasTextSearch = parseSearchQuery(query).some(
+      (token) => token.type === "text" && token.value.trim(),
+    );
+    if (
+      !hasTextSearch &&
+      preferences?.sort_method &&
+      !new URLSearchParams(window.location.search).get('sort')
+    ) {
       const sortMap: Record<string, typeof params.sortMethod> = {
         comprehensive: 'relevance',
         last_active: 'last_active_desc',
@@ -175,7 +182,7 @@ export function SearchPage() {
         setParams({ sortMethod: preferredSort });
       }
     }
-  }, [preferences, params.sortMethod, setParams]);
+  }, [preferences, params.sortMethod, query, setParams]);
 
   useEffect(() => {
     if (!isInfiniteMode) return;

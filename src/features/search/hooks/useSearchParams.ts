@@ -76,6 +76,10 @@ function stripChannelTokens(query: string) {
     .trim();
 }
 
+function hasTextSearch(query: string) {
+  return Boolean(tokenizeSearchPayload(normalizeQuery(query)).text.trim());
+}
+
 export function parseParams(sp: URLSearchParams): SearchParams {
   const rawQuery = normalizeQuery(sp.get("q") || "");
   const tokenized = tokenizeSearchPayload(rawQuery);
@@ -158,7 +162,18 @@ export function useSearchURLParams() {
           (updates.tagLogic !== undefined && updates.tagLogic !== current.tagLogic) ||
           (updates.timeFrom !== undefined && updates.timeFrom !== current.timeFrom) ||
           (updates.timeTo !== undefined && updates.timeTo !== current.timeTo));
-      const merged = { ...current, ...updates, page: shouldResetPage ? 1 : (updates.page ?? current.page) };
+      const nextUpdates = { ...updates };
+      if (
+        updates.query !== undefined &&
+        updates.query !== current.query &&
+        updates.sortMethod === undefined
+      ) {
+        nextUpdates.sortMethod = hasTextSearch(updates.query)
+          ? "relevance"
+          : "last_active_desc";
+      }
+
+      const merged = { ...current, ...nextUpdates, page: shouldResetPage ? 1 : (updates.page ?? current.page) };
       const newSP = serializeParams(merged);
       if (updates.sortMethod === "last_active_desc") {
         newSP.set("sort", "last_active_desc");

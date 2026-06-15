@@ -16,10 +16,11 @@ describe('useSearchParams URL 协议层', () => {
       const params = parseParams(sp);
       expect(params.query).toBe('hello');
       expect(params.channel).toBe('tech');
+      expect(params.sortMethod).toBe('relevance');
     });
 
-    it('应该能解析逗号分隔的标签', () => {
-      const sp = new URLSearchParams('tags=AI,LLM&exclude=Spam');
+    it('应该能解析查询词里的标签 Token', () => {
+      const sp = new URLSearchParams('q=$tag:AI$ $tag:LLM$ -$tag:Spam$');
       const params = parseParams(sp);
       expect(params.includeTags).toEqual(['AI', 'LLM']);
       expect(params.excludeTags).toEqual(['Spam']);
@@ -49,9 +50,9 @@ describe('useSearchParams URL 协议层', () => {
       expect(sp.toString()).toBe('');
     });
 
-    it('应该能正确序列化标签数组', () => {
+    it('标签数组不应该脱离 q token 单独序列化', () => {
       const sp = serializeParams({ includeTags: ['A', 'B'] });
-      expect(sp.get('tags')).toBe('A,B');
+      expect(sp.toString()).toBe('');
     });
 
     it('合并参数后的完整序列化', () => {
