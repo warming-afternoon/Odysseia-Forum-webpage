@@ -19,7 +19,8 @@ export type Thread = Omit<
   is_tournament?: boolean;
   tournament_info_list?: components["schemas"]["TournamentInfo-Output"][];
   id?: string;           // 兼容旧版代码使用的 id (即 thread_id)
-  is_following?: boolean; // 兼容旧版关注状态 (后端目前使用 collected_flag)
+  is_following?: boolean; // 兼容旧版关注状态 (后端目前使用 active_flag)
+  active_flag?: boolean;  // 关注状态（True=当前关注，False=过去关注），来自 FollowedThreadResponse
   has_update?: boolean;   // 兼容旧版未读更新状态
 };
 

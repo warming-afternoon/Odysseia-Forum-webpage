@@ -132,7 +132,7 @@ export function MeFollowsSection({
       ) : (
         <div className="flex flex-col space-y-od-list-gap">
           {threads.map((thread, index) => {
-            const isCurrentFollow = Boolean(thread.collected_flag);
+            const isCurrentFollow = Boolean(thread.active_flag);
             const isPending = unfollowPendingThreadId === thread.thread_id;
 
             return (
