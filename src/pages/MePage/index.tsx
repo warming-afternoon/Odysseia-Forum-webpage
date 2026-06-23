@@ -225,16 +225,7 @@ export function MePage() {
     () => getBrowseHistory(),
     [browseHistoryVersion],
   );
-  const followedThreads = useMemo(() => {
-    const threads = followsQuery.data?.results || [];
-    if (followStatus === "current") {
-      return threads.filter((thread) => Boolean(thread.collected_flag));
-    }
-    if (followStatus === "past") {
-      return threads.filter((thread) => !thread.collected_flag);
-    }
-    return threads;
-  }, [followStatus, followsQuery.data?.results]);
+  const followedThreads = followsQuery.data?.results || [];
   const totalReactions = createdThreads.reduce(
     (sum, item) => sum + (Number(item.reaction_count) || 0),
     0,
