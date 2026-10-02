@@ -24,7 +24,7 @@ describe("完整标签池契约", () => {
 
   it("候选读取同样解包 results，允许空标签池", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: { results: [], total: 0 } });
-    expect(await customTagsApi.pool(params)).toEqual([]);
+    expect(await customTagsApi.pool(params)).toEqual({ results: [], total: 0 });
   });
 
   it.each([null, [], { results: {} }, { detail: "无效响应" }])(
@@ -39,5 +39,35 @@ describe("完整标签池契约", () => {
     const failure = new Error("请求取消");
     vi.mocked(apiClient.get).mockRejectedValue(failure);
     await expect(customTagsApi.poolAll(params)).rejects.toBe(failure);
+  });
+});
+
+describe("customTagsApi.pool", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("单次读取完整标签池并保留统计包装", async () => {
+    const response = { results: [], total: 0 };
+    const signal = new AbortController().signal;
+    vi.mocked(apiClient.get).mockResolvedValue({ data: response });
+
+    const result = await customTagsApi.pool({
+      q: "",
+      source: "custom",
+      selectable: true,
+      include_deleted: false,
+    }, signal);
+
+    expect(result).toEqual(response);
+    expect(apiClient.get).toHaveBeenCalledOnce();
+    expect(apiClient.get).toHaveBeenCalledWith("/tags", {
+      params: {
+        q: "",
+        source: "custom",
+        selectable: true,
+        include_deleted: false,
+      },
+      signal,
+    });
+    expect(vi.mocked(apiClient.get).mock.calls[0][1]?.params).not.toHaveProperty("offset");
   });
 });

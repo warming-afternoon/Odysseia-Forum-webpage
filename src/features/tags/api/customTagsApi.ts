@@ -4,14 +4,13 @@ import type { components } from "@/shared/types/openapi";
 
 type Schema = components["schemas"];
 export type PoolItem = Schema["TagPoolItemResponse-Output"];
+export type TagPoolResponse = Schema["TagPoolResponse"];
 export type TagRelation = Schema["TagRelationResponse"];
 export type TargetTags = Schema["TargetTagsResponse"];
 export type CustomTagSnapshot = Schema["CustomTagSnapshotResponse-Output"];
 export type MergePreview = Schema["TagMergePreviewResponse"];
 export type TagTarget = { type: "thread" | "booklist"; id: string };
 type PoolParams = { q: string; category?: number; source?: "custom" | "discord"; selectable: boolean; include_deleted: boolean };
-// ponytail: 本地 OpenAPI 尚未同步完整标签池契约；同步后改用生成的 TagPoolResponse 类型。
-type TagPoolResponse = { results: PoolItem[]; total: number };
 const targetPath = (target: TagTarget) => `/tags/${target.type}/${encodeURIComponent(target.id)}`;
 
 export function tagError(error: unknown): { code?: string; message: string } {
@@ -28,13 +27,13 @@ export function tagError(error: unknown): { code?: string; message: string } {
 export const customTagsApi = {
   role: async () => (await apiClient.get<Schema["UserRole"]>("/meta/role")).data,
   categories: async () => (await apiClient.get<Schema["TagCategoryResponse"][]>("/tags/categories")).data,
-  pool: async (params: PoolParams, signal?: AbortSignal): Promise<PoolItem[]> => {
+  pool: async (params: PoolParams, signal?: AbortSignal): Promise<TagPoolResponse> => {
     const { data } = await apiClient.get<TagPoolResponse>("/tags", { params, signal });
     if (!Array.isArray(data?.results)) throw new Error("标签池接口返回格式错误：缺少 results 数组");
-    return data.results;
+    return data;
   },
   poolAll: async (params: PoolParams, signal?: AbortSignal): Promise<PoolItem[]> =>
-    customTagsApi.pool(params, signal),
+    (await customTagsApi.pool(params, signal)).results,
   relations: async () => (await apiClient.get<TagRelation[]>("/tags/relations")).data,
   mergePreview: async (id: string, target_tag_id: string) =>
     (await apiClient.get<MergePreview>(`/tags/${id}/merge-preview`, { params: { target_tag_id } })).data,

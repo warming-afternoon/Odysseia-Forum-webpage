@@ -7,7 +7,7 @@ import { LiveTagPool } from "./LiveTagPool";
 
 vi.mock("../api/customTagsApi", () => ({
   customTagsApi: {
-    categories: vi.fn(), relations: vi.fn(), poolAll: vi.fn(),
+    categories: vi.fn(), relations: vi.fn(), pool: vi.fn(),
     aliases: vi.fn(), update: vi.fn(), addRelation: vi.fn(), removeRelation: vi.fn(),
   },
   tagError: (error: Error) => ({ message: error.message }),
@@ -26,13 +26,13 @@ const edges = [
 const clients: QueryClient[] = [];
 
 beforeEach(() => {
-  vi.resetAllMocks();
+  vi.clearAllMocks();
   vi.mocked(customTagsApi.categories).mockResolvedValue([{ name: "背景", value: 1 }] as never);
-  vi.mocked(customTagsApi.poolAll).mockResolvedValue([
+  vi.mocked(customTagsApi.pool).mockResolvedValue({ results: [
     { id: "7", name: "测试标签", category_name: "背景", enabled: true, source: "custom", aliases: [] },
     { id: "8", name: "上级标签", category_name: "背景", enabled: true, source: "custom", aliases: [] },
     { id: "9", name: "互斥标签", category_name: "背景", enabled: true, source: "custom", aliases: [] },
-  ] as never);
+  ], total: 3 } as never);
 });
 afterEach(() => {
   clients.splice(0).forEach((client) => client.clear());

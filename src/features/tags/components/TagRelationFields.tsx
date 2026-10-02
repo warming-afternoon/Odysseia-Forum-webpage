@@ -44,7 +44,7 @@ function RelationField({ label, ids, selfId, tags, onChange }: {
     queryFn: ({ signal }) => customTagsApi.pool({ q: query, selectable: false, include_deleted: false }, signal),
     enabled: open,
   });
-  const candidates = results.data?.filter((tag) => tag.id !== selfId && !tag.deleted_at) ?? [];
+  const candidates = results.data?.results.filter((tag) => tag.id !== selfId && !tag.deleted_at) ?? [];
   return <div ref={fieldRef} className={`text-sm ${dragging ? "outline-2 outline-dashed outline-(--od-accent) outline-offset-4" : ""}`}
     onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}
     onDragOver={(event) => {

@@ -6,7 +6,7 @@ import type { PoolTag } from "./TagPoolBrowser";
 import { customTagsApi } from "../api/customTagsApi";
 
 vi.mock("../api/customTagsApi", () => ({
-  customTagsApi: { pool: vi.fn(async () => [{ id: "12", name: "幻想", category_name: "背景", source: "discord" }]) },
+  customTagsApi: { pool: vi.fn(async () => ({ results: [{ id: "12", name: "幻想", category_name: "背景", source: "discord" }], total: 1 })) },
   tagError: () => ({ message: "失败" }),
 }));
 
