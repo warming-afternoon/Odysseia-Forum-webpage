@@ -31,6 +31,7 @@ import { OmicronLoader } from '@/shared/ui/loaders/OmicronLoader';
 import { isTagsChangedError } from '@/shared/api/tagErrors';
 import { refreshTagCandidates } from '@/features/tags/lib/refreshTagCandidates';
 import { toast } from 'sonner';
+import { MotionConfig } from 'motion/react';
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -134,6 +135,7 @@ export function App() {
 
   return (
     <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           {isAuthBootstrapPending ? (
@@ -174,6 +176,7 @@ export function App() {
           )}
         </ThemeProvider>
       </QueryClientProvider>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }

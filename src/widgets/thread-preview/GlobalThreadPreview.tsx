@@ -47,6 +47,7 @@ export function GlobalThreadPreview() {
 
     return (
         <ThreadPreviewOverlay
+            key={threadToShow.thread_id}
             thread={threadToShow}
             onClose={() => setPreviewThread(null)}
             externalUrlOverride={previewOptions?.externalUrlOverride}

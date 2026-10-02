@@ -109,6 +109,7 @@ export function DrawRevealOverlay({
   results,
   drawCount: _drawCount,
   error,
+  isDrawing,
   onClose,
   onRetry,
   onPreview,
@@ -185,6 +186,7 @@ export function DrawRevealOverlay({
                 <>
                   <button
                     type="button"
+                    disabled={isDrawing}
                     onClick={() => onDrawAgain(1)}
                     className="flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
                   >
@@ -193,6 +195,7 @@ export function DrawRevealOverlay({
                   </button>
                   <button
                     type="button"
+                    disabled={isDrawing}
                     onClick={() => onDrawAgain(10)}
                     className="flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
                   >
@@ -225,6 +228,7 @@ export function DrawRevealOverlay({
                 <button
                   type="button"
                   onClick={onRetry}
+                  disabled={isDrawing}
                   className="flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
                 >
                   <Wand2 className="h-3.5 w-3.5" />
@@ -383,6 +387,7 @@ export function DrawRevealOverlay({
                               exit={{ opacity: 0 }}
                               transition={{ delay: 0.95, duration: 0.6 }}
                               onClick={() => onDrawAgain(1)}
+                              disabled={isDrawing}
                               className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10"
                             >
                               <Wand2 className="h-3.5 w-3.5" />
@@ -394,6 +399,7 @@ export function DrawRevealOverlay({
                               exit={{ opacity: 0 }}
                               transition={{ delay: 1.05, duration: 0.6 }}
                               onClick={() => onDrawAgain(10)}
+                              disabled={isDrawing}
                               className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10"
                             >
                               <Dices className="h-3.5 w-3.5" />

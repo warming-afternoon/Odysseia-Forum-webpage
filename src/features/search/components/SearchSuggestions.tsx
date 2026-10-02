@@ -18,7 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, useIsPresent } from "motion/react";
 import {
   describeSearchHistoryContext,
   type SearchHistoryItem,
@@ -87,6 +87,7 @@ export function SearchSuggestions({
   embedded = false,
   preferenceAware = false,
 }: SearchSuggestionsProps) {
+  const isPresent = useIsPresent();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
@@ -95,6 +96,7 @@ export function SearchSuggestions({
   }, [availableTags, preferredTags]);
 
   useEffect(() => {
+    if (embedded || !isPresent) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -107,7 +109,7 @@ export function SearchSuggestions({
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [inputRef, onClose]);
+  }, [embedded, isPresent, inputRef, onClose]);
 
   type SuggestionItem =
     | {
@@ -378,6 +380,7 @@ export function SearchSuggestions({
   }, [onSelect]);
 
   useEffect(() => {
+    if (!isPresent) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowDown") {
         event.preventDefault();
@@ -398,7 +401,7 @@ export function SearchSuggestions({
     const input = inputRef?.current;
     input?.addEventListener("keydown", handleKeyDown);
     return () => input?.removeEventListener("keydown", handleKeyDown);
-  }, [groups.flatItems, handleSelect, inputRef, onClose, selectedIndex]);
+  }, [isPresent, groups.flatItems, handleSelect, inputRef, onClose, selectedIndex]);
 
   useEffect(() => {
     setSelectedIndex(-1);

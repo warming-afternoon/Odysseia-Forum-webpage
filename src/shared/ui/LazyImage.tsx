@@ -154,18 +154,15 @@ export function LazyImage({
               style={{
                 transitionDelay: isLoaded ? `${(index % 24) * 60}ms` : '0ms',
               }}
-              onLoad={() => {
+              onLoad={(event) => {
+                const image = event.currentTarget;
                 rememberLoadedImage(currentSrc);
-                if (imageRef.current) {
-                  onNaturalSize?.(
-                    imageRef.current.naturalWidth,
-                    imageRef.current.naturalHeight,
-                  );
-                }
+                onNaturalSize?.(image.naturalWidth, image.naturalHeight);
+                const finishDecode = () => {
+                  if (imageRef.current === image) setIsLoaded(true);
+                };
                 // 使用 decode() 确保图片不仅加载完，且已完成解码可以立即显示
-                imageRef.current?.decode()
-                  .then(() => setIsLoaded(true))
-                  .catch(() => setIsLoaded(true)); // 回退
+                image.decode().then(finishDecode, finishDecode);
               }}
               onError={() => {
                 if (fallbackSrc && currentSrc !== fallbackSrc) {

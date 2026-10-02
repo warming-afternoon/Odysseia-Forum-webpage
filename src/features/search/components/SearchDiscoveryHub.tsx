@@ -22,6 +22,8 @@ import {
   CompactThreadCardSkeleton,
 } from "@/features/threads/components/CompactThreadCard";
 import { useChannels } from "@/shared/hooks/useChannels";
+import { Transition } from "@/shared/ui/animation/Transition";
+import { AnimatedHeight } from "@/shared/ui/animation/AnimatedHeight";
 
 interface SearchDiscoveryHubProps {
   channelId?: string | null;
@@ -219,14 +221,14 @@ export function SearchDiscoveryHub({
   };
 
   return (
-    <div className="mb-10 flex min-w-0 max-w-full flex-col gap-10 overflow-x-clip">
+    <div className="mb-10 flex min-w-0 max-w-full flex-col overflow-x-clip">
       <button
         type="button"
         onClick={() => setIsExpanded((expanded) => !expanded)}
         aria-expanded={isExpanded}
         aria-label={isExpanded ? "收起发现内容" : "展开发现内容"}
         title={isExpanded ? "收起发现内容" : "展开发现内容"}
-        className="mx-auto -mb-7 inline-flex h-7 w-7 items-center justify-center rounded-full text-(--od-text-tertiary) transition-colors hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
+        className="mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full text-(--od-text-tertiary) transition-colors hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
       >
         {isExpanded ? (
           <ChevronUp className="h-4 w-4" />
@@ -235,8 +237,9 @@ export function SearchDiscoveryHub({
         )}
       </button>
 
-      {isExpanded && (
-        <>
+      <Transition show={isExpanded}>
+        <AnimatedHeight>
+        <div className="flex min-w-0 flex-col gap-10 pt-3">
           <section className="min-w-0 max-w-full py-6 sm:py-8">
             <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 text-center">
               <div
@@ -387,8 +390,9 @@ export function SearchDiscoveryHub({
               </div>
             </section>
           )}
-        </>
-      )}
+        </div>
+        </AnimatedHeight>
+      </Transition>
     </div>
   );
 }

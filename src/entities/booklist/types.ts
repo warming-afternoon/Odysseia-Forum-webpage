@@ -34,6 +34,8 @@ export interface BooklistFormInput {
   cover_image_url?: string;
   is_public: boolean;
   display_type: number;
+  default_sort_method?: Booklist["default_sort_method"];
+  default_sort_order?: Booklist["default_sort_order"];
 }
 
 export interface BooklistItemAddInput {

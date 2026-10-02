@@ -274,12 +274,14 @@ export function DrawPage() {
   const canDraw = recipe.scopeMode !== "custom" || recipe.channelIds.length > 0;
 
   const handleDraw = useCallback(async (count: number) => {
+    if (isDrawing || !canDraw) return;
     const sequenceId = drawSequenceRef.current + 1;
     drawSequenceRef.current = sequenceId;
     skipRevealRef.current = false;
 
     try {
       setIsDrawing(true);
+      setLastDrawCount(count);
       setError(null);
       setOverlayResults([]);
       setOverlayRevealedCount(0);
@@ -299,8 +301,6 @@ export function DrawPage() {
       });
 
       if (drawSequenceRef.current !== sequenceId) return;
-
-      setLastDrawCount(count);
 
       // 持久化到历史
       if (results.length > 0) {
@@ -331,6 +331,7 @@ export function DrawPage() {
 
       setOverlayPhase("revealing");
     } catch (err) {
+      if (drawSequenceRef.current !== sequenceId) return;
       console.error("Failed to draw randomly", err);
       setError("抽卡失败了，可能是由于网络波动或当前范围内内容不足。");
       if (revealEnabled) {
@@ -338,9 +339,9 @@ export function DrawPage() {
         setOverlayOpen(true);
       }
     } finally {
-      setIsDrawing(false);
+      if (drawSequenceRef.current === sequenceId) setIsDrawing(false);
     }
-  }, [effectiveChannelIds, recipe.excludeTags, recipe.includeTags, recipe.tagLogic, revealEnabled]);
+  }, [canDraw, effectiveChannelIds, isDrawing, recipe.excludeTags, recipe.includeTags, recipe.tagLogic, revealEnabled]);
 
   const handleSkipOverlay = () => {
     skipRevealRef.current = true;
@@ -483,6 +484,7 @@ export function DrawPage() {
             </p>
             <button
               type="button"
+              disabled={isDrawing || !canDraw}
               onClick={() => handleDraw(lastDrawCount)}
               className="od-inline-action od-inline-action-primary mt-4"
             >
@@ -549,6 +551,7 @@ export function DrawPage() {
               </button>
               <button
                 type="button"
+                disabled={isDrawing || !canDraw}
                 onClick={() => handleDraw(lastDrawCount)}
                 className="od-inline-action od-inline-action-soft"
               >

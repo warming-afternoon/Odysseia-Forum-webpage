@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { motionTransitions } from "./animation/variants";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
 import {
   ChevronsLeft,
   ChevronLeft,
@@ -25,6 +27,7 @@ export function AnimatedPagination({
   sequential = false,
 }: AnimatedPaginationProps) {
   const [jumpValue, setJumpValue] = useState(String(currentPage));
+  const reduceMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     setJumpValue(String(currentPage));
@@ -93,19 +96,17 @@ export function AnimatedPagination({
 
               return (
                 <motion.button
-                  layout
-                  initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                  layout={reduceMotion ? false : "position"}
+                  initial={{ opacity: 0, x: reduceMotion ? 0 : 6 }}
                   animate={{
                     opacity: isActive ? 1 : Math.max(0.3, 0.7 - diff * 0.15),
-                    scale: isActive ? 1.25 : Math.max(0.85, 1 - diff * 0.05),
+                    scale: reduceMotion ? 1 : isActive ? 1.08 : 1,
                     x: 0,
                   }}
-                  exit={{ opacity: 0, scale: 0.8, x: -20 }}
+                  exit={{ opacity: 0, x: reduceMotion ? 0 : -6, pointerEvents: "none" }}
                   transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 30,
-                    mass: 0.8,
+                    ...motionTransitions.layout,
+                    duration: reduceMotion ? 0 : motionTransitions.layout.duration,
                   }}
                   key={page}
                   onClick={() => onChange(page)}

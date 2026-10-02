@@ -12,11 +12,10 @@ it("保留多父级祖先和后代路径，不显示兄弟分支，默认展开�
     { source_id: "2", target_id: "0" }, { source_id: "2", target_id: "1" },
     { source_id: "3", target_id: "2" }, { source_id: "4", target_id: "0" },
   ]} />);
-  expect(screen.getAllByRole("button", { name: /^当前\s*背景$/ })).toHaveLength(2);
-  expect(screen.getAllByRole("button", { name: /^后代\s*背景$/ })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: /^当前\s*背景$/ })).toHaveLength(1);
+  expect(screen.getAllByRole("button", { name: /^后代\s*背景$/ })).toHaveLength(1);
   expect(screen.queryByText("兄弟")).not.toBeInTheDocument();
   fireEvent.click(screen.getAllByRole("button", { name: /^后代\s*背景$/ })[0]);
   expect(onSelect).toHaveBeenCalledWith(tags[3]);
-  fireEvent.click(screen.getByRole("button", { name: "收起祖先甲" }));
   expect(screen.getAllByRole("button", { name: /^当前\s*背景$/ })).toHaveLength(1);
 });

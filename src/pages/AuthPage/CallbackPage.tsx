@@ -42,8 +42,6 @@ export function CallbackPage() {
       const savedRedirect = sessionStorage.getItem(LOGIN_REDIRECT_STORAGE_KEY);
       const queryRedirect = searchParams.get('redirect');
 
-      sessionStorage.removeItem(LOGIN_REDIRECT_STORAGE_KEY);
-
       const redirectPath = sanitizeInternalRedirect(savedRedirect || queryRedirect || '/');
 
       await new Promise((resolve) => setTimeout(resolve, 700));
@@ -76,6 +74,7 @@ export function CallbackPage() {
       if (cancelled) return;
 
       if (authState.loggedIn) {
+        sessionStorage.removeItem(LOGIN_REDIRECT_STORAGE_KEY);
         notifySuccess('登录成功，正在回到你刚刚的位置', { id: 'auth-callback-success' });
         navigate(redirectPath, { replace: true });
         return;

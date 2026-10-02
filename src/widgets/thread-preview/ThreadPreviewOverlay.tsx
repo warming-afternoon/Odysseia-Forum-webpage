@@ -44,6 +44,9 @@ import { AuthorRecommendations } from "@/features/threads/components/AuthorRecom
 import { SimilarRecommendations } from "@/features/threads/components/SimilarRecommendations";
 
 import { createPortal } from "react-dom";
+import { motion } from "motion/react";
+import { motionTransitions } from "@/shared/ui/animation/variants";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
 
 interface ThreadPreviewOverlayProps {
   thread: Thread;
@@ -68,6 +71,7 @@ export function ThreadPreviewOverlay({
   const fontSizes = fontSizeMap[fontSize];
   const [isVisible, setIsVisible] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const reduceMotion = usePrefersReducedMotion();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -99,10 +103,7 @@ export function ThreadPreviewOverlay({
     if (isClosingRef.current) return;
     isClosingRef.current = true;
     setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -110,7 +111,11 @@ export function ThreadPreviewOverlay({
     closeButtonRef.current?.focus({ preventScroll: true });
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.querySelector("dialog[open]")) return;
+      if (isClosingRef.current) return;
+      if (document.querySelector("dialog[open]") ||
+        Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).some((dialog) =>
+          dialog !== dialogRef.current && !dialog.closest('[inert]'),
+        )) return;
       if (e.key === "Escape") {
         e.preventDefault();
         handleClose();
@@ -271,27 +276,31 @@ export function ThreadPreviewOverlay({
   </>;
 
   return createPortal(
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+    <motion.div className="fixed inset-0 z-[2000] flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isVisible ? 1 : 0 }}
+      transition={{ ...motionTransitions.panel, duration: reduceMotion ? 0 : motionTransitions.panel.duration }}
+      inert={isClosingRef.current}
+      onAnimationComplete={() => {
+        if (isClosingRef.current && !isVisible) onClose();
+      }}>
       {/* 背景遮罩 */}
       <div
         onClick={handleClose}
-        className={`fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300 ${
-          isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs"
         aria-hidden="true"
       />
 
       {/* 弹窗主体卡片 */}
-      <div
+      <motion.div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="thread-preview-title"
-        className={`relative z-10 flex h-dvh min-h-0 w-full min-w-0 max-w-none flex-col overflow-hidden rounded-none p-0 transition-all duration-300 sm:inset-x-6 sm:inset-y-6 sm:m-auto sm:h-[calc(100vh-3rem)] sm:w-[calc(100%-3rem)] sm:max-w-2xl sm:rounded-[1.6rem] sm:supports-[height:100dvh]:h-[calc(100dvh-3rem)] ${
-          isVisible
-            ? "translate-y-0 scale-100 opacity-100"
-            : "translate-y-4 scale-95 opacity-0"
-        } od-floating-panel-solid`}
+        initial={false}
+        animate={{ y: isVisible || reduceMotion ? 0 : 8, scale: isVisible || reduceMotion ? 1 : 0.98 }}
+        transition={{ ...motionTransitions.panel, duration: reduceMotion ? 0 : motionTransitions.panel.duration }}
+        className="relative z-10 flex h-dvh min-h-0 w-full min-w-0 max-w-none flex-col overflow-hidden rounded-none p-0 sm:inset-x-6 sm:inset-y-6 sm:m-auto sm:h-[calc(100vh-3rem)] sm:w-[calc(100%-3rem)] sm:max-w-2xl sm:rounded-[1.6rem] sm:supports-[height:100dvh]:h-[calc(100dvh-3rem)] od-floating-panel-solid"
       >
         {/* Header */}
         <div className="min-w-0 border-b border-(--od-shell-line) bg-(--od-surface-floating) px-4 py-3 sm:px-6">
@@ -463,14 +472,14 @@ export function ThreadPreviewOverlay({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
       <QuickAddToBooklistModal
         isOpen={quickAddOpen}
         threadId={thread.thread_id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
       />
-    </div>,
+    </motion.div>,
     document.body,
   );
 }

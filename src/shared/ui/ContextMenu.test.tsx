@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, act } from "@testing-library/react";
+import { fireEvent, render, screen, act, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   ContextMenu,
@@ -10,7 +10,7 @@ import {
 } from "./ContextMenu";
 
 describe("ContextMenu 通用上下文菜单组件", () => {
-  it("在 PC 端右键点击时应该展示菜单，点击条目后触发回调并关闭", () => {
+  it("在 PC 端右键点击时应该展示菜单，点击条目后触发回调并关闭", async () => {
     const handleEdit = vi.fn();
 
     render(
@@ -36,7 +36,8 @@ describe("ContextMenu 通用上下文菜单组件", () => {
 
     fireEvent.click(screen.getByText("编辑书单"));
     expect(handleEdit).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText("编辑书单")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("编辑书单")).not.toBeInTheDocument());
   });
 
   it("点击显式操作按钮时应该展示同一个菜单", () => {
@@ -129,7 +130,7 @@ describe("ContextMenu 通用上下文菜单组件", () => {
     vi.useRealTimers();
   });
 
-  it("按 Escape 键应该关闭菜单", () => {
+  it("按 Escape 键应该关闭菜单", async () => {
     render(
       <ContextMenu>
         <ContextMenuTrigger>
@@ -148,6 +149,7 @@ describe("ContextMenu 通用上下文菜单组件", () => {
     expect(screen.getByText("选项")).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(screen.queryByText("选项")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("选项")).not.toBeInTheDocument());
   });
 });

@@ -35,6 +35,7 @@ export function LiveTagPool({ selectedIds, disabledIds, onToggle, busy = false }
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
+  const snapshotReady = pool.isSuccess && categories.isSuccess && relations.isSuccess;
   const items = pool.data ?? [];
   const tags: PoolTag[] = [];
   for (const item of items) {
@@ -48,6 +49,7 @@ export function LiveTagPool({ selectedIds, disabledIds, onToggle, busy = false }
   }
   const save = useMutation({
     mutationFn: async (tag: PoolTag) => {
+      if (!snapshotReady) throw new Error("标签快照尚未完整加载，请重试后再编辑");
       const categoryValue = categories.data?.find((item) => item.name === tag.category)?.value;
       if (!categoryValue && (!tag.id || tag.category !== "未分类")) throw new Error("请选择有效分类");
       return savePoolTag(tag, categoryValue, tags.find((item) => item.id === tag.id));
@@ -73,10 +75,11 @@ export function LiveTagPool({ selectedIds, disabledIds, onToggle, busy = false }
       parentEdges={relations.data?.filter((edge) => edge.kind === "implies")}
       hideHeader
       toolbar={canManage ? <Checkbox checked={includeDeleted} onChange={(e) => setIncludeDeleted(e.target.checked)} label="包含已删除标签" /> : undefined}
-      listFooter={pool.isError ? <div className="flex min-h-10 items-center justify-center pt-4">
-        <button className={action} onClick={() => void pool.refetch()}>重新加载</button>
+      listFooter={pool.isError || relations.isError ? <div className="flex min-h-10 items-center justify-center gap-2 pt-4">
+        {pool.isError && <button className={action} onClick={() => void pool.refetch()}>重新加载</button>}
+        {relations.isError && <button className={action} onClick={() => void relations.refetch()}>重试关系</button>}
       </div> : undefined}
-      canManage={canManage} onSave={(tag) => save.mutateAsync(tag)} busy={busy || save.isPending}
+      canManage={canManage && snapshotReady} onSave={(tag) => save.mutateAsync(tag)} busy={busy || save.isPending || (canManage && !snapshotReady)}
       relationEditor={(draft, onChange) => <TagRelationFields draft={draft} tags={tags} onChange={onChange} />}
       onSearch={(tag) => navigate(`/search?${new URLSearchParams({ q: customTagSearchQuery(tag) })}`)}
       selectedIds={selectedIds} disabledIds={disabledIds} onToggle={onToggle}

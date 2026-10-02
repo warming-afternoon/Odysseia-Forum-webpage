@@ -7,6 +7,7 @@ vi.mock("@/shared/api/client", () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -91,5 +92,18 @@ describe("booklistsApi", () => {
       thread_id: unknown;
     };
     expect(typeof sentPayload.thread_id).toBe("string");
+  });
+
+  it("更新书单时传递原始排序而不只传递旧展示类型", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue({ data: {} });
+    await booklistsApi.update(1, {
+      title: "新标题", display_type: 1,
+      default_sort_method: "reaction_count", default_sort_order: "asc",
+    });
+    expect(apiClient.put).toHaveBeenCalledWith("/booklist/update/1", null, expect.objectContaining({
+      params: expect.objectContaining({
+        default_sort_method: "reaction_count", default_sort_order: "asc",
+      }),
+    }));
   });
 });

@@ -252,7 +252,7 @@ export function TagPoolBrowser({ tags, parentEdges, categories, canManage, onSav
                 <div><dt className="mb-2 text-xs text-(--od-text-tertiary)">下级标签</dt><dd>{relationLinks(tags.filter((tag) => tag.parents.includes(selected.id)).map((tag) => tag.id), true)}</dd></div>
                 <div><dt className="mb-2 text-xs text-(--od-text-tertiary)">互斥标签</dt><dd>{relationLinks(selected.excludes)}</dd></div>
               </dl>
-              <TagRelationTree key={selected.id} selectedId={selected.id} tags={tags}
+              <TagRelationTree key={`relations:${selected.id}`} selectedId={selected.id} tags={tags}
                 edges={parentEdges ?? tags.flatMap((tag) => tag.parents.map((id) => ({ source_id: tag.id, target_id: id })))}
                 onSelect={selectTag} />
               <div className="mt-5 flex flex-wrap gap-2">

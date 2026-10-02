@@ -32,7 +32,8 @@ import {
   clearBrowseHistory,
   type BrowseHistoryItem,
 } from "@/features/history/lib/browseHistory";
-import { AnimatePresence, motion } from "motion/react";
+import { Transition } from "@/shared/ui/animation/Transition";
+import { AnimatedHeight } from "@/shared/ui/animation/AnimatedHeight";
 import {
   lazy,
   Suspense,
@@ -577,15 +578,12 @@ export function TopBar({
             )}
           </div>
 
-          <AnimatePresence>
-            {isPanelOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 320, damping: 26 }}
+              <Transition
+                show={isPanelOpen}
+                type="scale"
                 className={`${backgroundImageEnabled ? "od-floating-glass" : "od-floating-panel-solid"} fixed top-15 bottom-[calc(4rem+env(safe-area-inset-bottom,0px)+0.75rem)] inset-x-3 z-50 mt-1 overflow-x-hidden overflow-y-auto rounded-2xl border border-(--od-border-strong) shadow-2xl mx-auto w-auto max-w-md sm:absolute sm:top-full sm:bottom-auto sm:inset-x-auto sm:left-auto sm:right-0 sm:mx-0 sm:max-h-[calc(100dvh-5.5rem)] sm:w-[560px] sm:max-w-none`}
               >
+                <AnimatedHeight>
                 {needsFilter && (
                   <div className="flex items-center gap-2 border-b border-white/6 p-2">
                     <button
@@ -672,9 +670,8 @@ export function TopBar({
                     />
                   )}
                 </Suspense>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </AnimatedHeight>
+              </Transition>
         </div>
 
         <div

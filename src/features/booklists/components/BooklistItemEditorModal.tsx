@@ -109,7 +109,7 @@ export function BooklistItemEditorModal({
           onSubmit={handleSubmit((values) => {
             const order = values.display_order ? Number.parseInt(values.display_order, 10) : undefined;
             onSubmit({
-              comment: values.comment?.trim() || undefined,
+              comment: values.comment?.trim() ?? '',
               display_order: Number.isFinite(order) ? order : undefined,
               tournament_participated_at: enableTournamentFields
                 ? fromDateTimeLocal(values.tournament_participated_at)

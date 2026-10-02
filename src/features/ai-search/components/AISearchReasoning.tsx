@@ -6,11 +6,13 @@ import type { AISearchTraceItem } from '@/features/ai-search/lib/session';
 export function AISearchReasoning({
   content,
   trace = [],
+  traceTruncatedCount = 0,
   isStreaming = false,
   hasAnswer = false,
 }: {
   content: string;
   trace?: AISearchTraceItem[];
+  traceTruncatedCount?: number;
   isStreaming?: boolean;
   hasAnswer?: boolean;
 }) {
@@ -25,6 +27,7 @@ export function AISearchReasoning({
     <ReasoningDetails
       key={`${isStreaming}-${hasAnswer}`}
       items={items}
+      traceTruncatedCount={traceTruncatedCount}
       initiallyOpen={isStreaming && !hasAnswer}
     />
   );
@@ -32,9 +35,11 @@ export function AISearchReasoning({
 
 function ReasoningDetails({
   items,
+  traceTruncatedCount,
   initiallyOpen,
 }: {
   items: AISearchTraceItem[];
+  traceTruncatedCount: number;
   initiallyOpen: boolean;
 }) {
   const [open, setOpen] = useState(initiallyOpen);
@@ -47,9 +52,13 @@ function ReasoningDetails({
     >
       <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-medium transition-colors hover:text-(--od-text-secondary)">
         <span>查看思考过程</span>
+        {traceTruncatedCount > 0 && <span>（已省略 {traceTruncatedCount} 项）</span>}
         <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
       </summary>
       <div className="mt-3 space-y-4 border-l border-(--od-shell-line) pl-4">
+        {traceTruncatedCount > 0 && (
+          <p>已省略 {traceTruncatedCount} 项较早的执行轨迹，正文与结果完整保留。</p>
+        )}
         {items.map((item, index) => {
           if (item.type === 'reasoning') {
             return (

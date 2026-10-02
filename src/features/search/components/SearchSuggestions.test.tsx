@@ -2,8 +2,45 @@ import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SearchSuggestions } from './SearchSuggestions';
+import { Transition } from '@/shared/ui/animation/Transition';
 
 describe('搜索建议键盘操作', () => {
+  it('内嵌建议不把同容器筛选按钮当成外部点击，独立建议仍可点击外部关闭', () => {
+    const inputRef = createRef<HTMLInputElement>();
+    const onClose = vi.fn();
+    const view = (embedded: boolean) => <>
+      <input ref={inputRef} />
+      <button>高级筛选</button>
+      <SearchSuggestions currentQuery="测试" inputRef={inputRef} availableTags={['测试']}
+        embedded={embedded} onSelect={vi.fn()} onClose={onClose} />
+    </>;
+    const { rerender } = render(view(true));
+    fireEvent.mouseDown(screen.getByRole('button', { name: '高级筛选' }));
+    expect(onClose).not.toHaveBeenCalled();
+    rerender(view(false));
+    fireEvent.mouseDown(screen.getByRole('button', { name: '高级筛选' }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('建议退场后不再响应搜索框的回车或 Escape', () => {
+    const inputRef = createRef<HTMLInputElement>();
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    const view = (show: boolean) => <>
+      <input ref={inputRef} />
+      <Transition show={show}>
+        <SearchSuggestions currentQuery="测试" inputRef={inputRef} availableTags={['测试']}
+          embedded onSelect={onSelect} onClose={onClose} />
+      </Transition>
+    </>;
+    const { rerender } = render(view(true));
+    fireEvent.keyDown(inputRef.current!, { key: 'ArrowDown' });
+    rerender(view(false));
+    fireEvent.keyDown(inputRef.current!, { key: 'Enter' });
+    fireEvent.keyDown(inputRef.current!, { key: 'Escape' });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
   it('同名 DC 来源聚合为标准 ID 建议，包含与排除使用 ID token', () => {
     const onSelect = vi.fn();
     render(<SearchSuggestions currentQuery="纯" availableTags={["纯爱"]} onSelect={onSelect} onClose={vi.fn()}

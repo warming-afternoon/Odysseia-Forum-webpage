@@ -15,6 +15,7 @@ export function AISearchResponse({
   content,
   reasoning = '',
   trace = [],
+  traceTruncatedCount = 0,
   threads,
   draws = [],
   onPreview,
@@ -25,6 +26,7 @@ export function AISearchResponse({
   content: string;
   reasoning?: string;
   trace?: AISearchTraceItem[];
+  traceTruncatedCount?: number;
   threads: Thread[];
   draws?: AISearchDrawBatch[];
   onPreview: (thread: Thread) => void;
@@ -49,6 +51,7 @@ export function AISearchResponse({
       <AISearchReasoning
         content={reasoning}
         trace={trace}
+        traceTruncatedCount={traceTruncatedCount}
         isStreaming={isStreaming}
         hasAnswer={Boolean(visibleContent.trim())}
       />

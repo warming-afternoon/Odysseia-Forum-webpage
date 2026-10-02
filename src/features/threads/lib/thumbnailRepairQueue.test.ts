@@ -47,4 +47,36 @@ describe('缩略图修复缓存更新', () => {
     });
     expect(queryClient.getQueryData(['auth'])).toBe(unrelatedCache);
   });
+
+  it('同 ID 在途上报不重复派发，不同 ID 可进入后续批次', async () => {
+    let finish!: (value: { results: [] }) => void;
+    vi.mocked(fetchImagesApi.refresh).mockReturnValueOnce(new Promise((resolve) => { finish = resolve; }))
+      .mockResolvedValue({ results: [] });
+    reportBrokenThreadThumbnail({ threadId: '301' });
+    await vi.advanceTimersByTimeAsync(800);
+    reportBrokenThreadThumbnail({ threadId: '301' });
+    reportBrokenThreadThumbnail({ threadId: '302' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fetchImagesApi.refresh).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetchImagesApi.refresh).mock.calls.map(([items]) => items.map((item) => item.thread_id))).toEqual([['301'], ['302']]);
+    finish({ results: [] });
+    await vi.advanceTimersByTimeAsync(0);
+    reportBrokenThreadThumbnail({ threadId: '301' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fetchImagesApi.refresh).toHaveBeenCalledTimes(3);
+  });
+
+  it('失败后保留既有冷却期，期满仍可重新修复', async () => {
+    vi.mocked(fetchImagesApi.refresh).mockRejectedValueOnce(new Error('修复失败'))
+      .mockResolvedValue({ results: [] });
+    reportBrokenThreadThumbnail({ threadId: '401' });
+    await vi.advanceTimersByTimeAsync(800);
+    reportBrokenThreadThumbnail({ threadId: '401' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fetchImagesApi.refresh).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(30_000);
+    reportBrokenThreadThumbnail({ threadId: '401' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fetchImagesApi.refresh).toHaveBeenCalledTimes(2);
+  });
 });

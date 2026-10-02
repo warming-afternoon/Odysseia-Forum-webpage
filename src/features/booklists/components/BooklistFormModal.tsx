@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,10 @@ import { Loader2, X } from 'lucide-react';
 import { Checkbox } from '@/shared/ui/Checkbox';
 import type { Booklist, BooklistFormInput } from '@/entities/booklist/types';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
+import { Transition } from '@/shared/ui/animation/Transition';
+import { scaleVariants, motionTransitions } from '@/shared/ui/animation/variants';
+import { usePrefersReducedMotion } from '@/shared/hooks/usePrefersReducedMotion';
 
 const schema = z.object({
   title: z.string().trim().min(1, '请输入书单标题').max(80, '标题最多 80 字'),
@@ -44,9 +48,17 @@ function getDisplayTypeFromSort(booklist?: Booklist | null): 1 | 2 {
   return 1;
 }
 
-export function BooklistFormModal({
-  isOpen,
-  initialValue,
+export function BooklistFormModal(props: BooklistFormModalProps) {
+  return createPortal(
+    <Transition show={props.isOpen} className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      onClick={props.onClose}>
+      <BooklistFormContent key={props.initialValue?.id ?? 'new'} {...props} />
+    </Transition>, document.body,
+  );
+}
+
+function BooklistFormContent({
+  initialValue: initialSnapshot,
   submitting,
   entityLabel = '书单',
   titlePlaceholder,
@@ -55,43 +67,39 @@ export function BooklistFormModal({
   onClose,
   onSubmit,
 }: BooklistFormModalProps) {
+  const [initialValue] = useState(initialSnapshot);
+  const titleId = useId();
+  const reduceMotion = usePrefersReducedMotion();
   const {
     register,
     handleSubmit,
-    reset,
-    formState: { errors },
+    formState: { errors, dirtyFields },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      title: '',
-      description: '',
-      cover_image_url: '',
-      is_public: true,
-      display_type: 1,
-    },
-  });
-
-  useEffect(() => {
-    if (!isOpen) return;
-    reset({
       title: initialValue?.title ?? '',
       description: initialValue?.description ?? '',
       cover_image_url: initialValue?.cover_image_url ?? '',
       is_public: initialValue?.is_public ?? true,
       display_type: getDisplayTypeFromSort(initialValue),
-    });
-  }, [initialValue, isOpen, reset]);
-
-  if (!isOpen) return null;
+    },
+  });
 
   const content = (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        initial={reduceMotion ? false : 'hidden'}
+        animate="visible"
+        exit="hidden"
+        variants={reduceMotion ? { hidden: { opacity: 0 }, visible: { opacity: 1 } } : scaleVariants}
+        transition={{ ...motionTransitions.panel, duration: reduceMotion ? 0 : motionTransitions.panel.duration }}
         className="od-floating-panel-solid w-full max-w-xl rounded-xl border border-(--od-border) shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
-          <h2 className="text-base font-bold text-(--od-text-primary)">
+          <h2 id={titleId} className="text-base font-bold text-(--od-text-primary)">
             {initialValue ? `编辑${entityLabel}` : `创建${entityLabel}`}
           </h2>
           <button
@@ -103,7 +111,13 @@ export function BooklistFormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit((values) => onSubmit(values))} className="space-y-4 p-5">
+        <form onSubmit={handleSubmit((values) => onSubmit({
+          ...values,
+          ...(initialValue && !dirtyFields.display_type ? {
+            default_sort_method: initialValue.default_sort_method,
+            default_sort_order: initialValue.default_sort_order,
+          } : {}),
+        }))} className="space-y-4 p-5">
           <div>
             <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">标题 *</label>
             <input
@@ -178,9 +192,8 @@ export function BooklistFormModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
   );
 
-  return createPortal(content, document.body);
+  return content;
 }

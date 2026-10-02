@@ -95,6 +95,7 @@ export function BannerCarousel({
         };
       })
     : fallbackBanners;
+  const activeIndex = currentIndex < displayBanners.length ? currentIndex : 0;
 
   useEffect(() => {
     if (isHovered || isFocusWithin || prefersReducedMotion || displayBanners.length <= 1) return;
@@ -165,7 +166,7 @@ export function BannerCarousel({
                 setCurrentIndex(index);
               }}
               className={`h-2 shrink-0 rounded-full transition-all ${
-                index === currentIndex
+                index === activeIndex
                   ? "w-8 bg-white"
                   : "w-2 bg-white/50 hover:bg-white/75"
               }`}
@@ -184,7 +185,7 @@ export function BannerCarousel({
     </div>
   );
 
-  const currentBanner = displayBanners[currentIndex];
+  const currentBanner = displayBanners[activeIndex];
   const fallbackScene = getStableScene(currentBanner.id);
   const currentBannerKey = `${currentBanner.id}:${currentBanner.image}`;
   const isUsingFallback = fallbackBannerKey === currentBannerKey;

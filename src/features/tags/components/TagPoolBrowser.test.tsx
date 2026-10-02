@@ -24,12 +24,17 @@ it("切换列表和关系树节点后，详情只保留一个关系溯源区块"
   const tags: PoolTag[] = ["兽", "兽耳", "狐娘"].map((name, i) => ({
     id: String(i + 1), name, category: "背景", parents: i ? [String(i)] : [], excludes: [], aliases: [], enabled: true,
   }));
-  render(<TagPoolBrowser tags={tags} categories={["背景"]} canManage onSave={vi.fn()} />);
+  render(<TagPoolBrowser tags={tags} categories={["背景"]} canManage onSave={vi.fn()}
+    extraDetails={(tag) => <div key={tag.id}>管理标签 {tag.name}</div>} />);
   for (const name of ["狐娘", "兽耳", "兽", "狐娘", "兽耳"]) {
     fireEvent.click(within(screen.getByRole("region", { name: "背景标签" })).getByRole("button", { name }));
     expect(screen.getAllByRole("region", { name: "标签关系树" })).toHaveLength(1);
     expect(screen.getAllByRole("heading", { name: "关系溯源" })).toHaveLength(1);
   }
+  fireEvent.click(within(screen.getByRole("region", { name: "标签关系树" }))
+    .getByRole("button", { name: /^兽\s*背景$/ }));
+  expect(screen.getAllByRole("region", { name: "标签关系树" })).toHaveLength(1);
+  expect(screen.getByText("管理标签 兽")).toBeInTheDocument();
 });
 
 it("列表按分类平铺，多父级标签仍只出现一次", () => {

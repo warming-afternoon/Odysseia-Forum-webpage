@@ -24,7 +24,7 @@ export function TagMergeActions({ tag, tags }: { tag: PoolTag; tags: PoolTag[] }
     onSuccess: async () => {
       setPreview(null);
       setTargetId("");
-      await Promise.all(["custom-tags", "search", "booklists", "authors", "discovery", "notifications"]
+      await Promise.all(["custom-tags", "search", "booklists", "authors", "discovery", "notifications", "follows"]
         .map((key) => client.invalidateQueries({ queryKey: [key] })));
     },
     onError: (error) => {

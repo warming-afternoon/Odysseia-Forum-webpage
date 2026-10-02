@@ -220,6 +220,8 @@ export function useUpdateBooklist(booklistId?: number, onSuccess?: () => void) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: (variables: { id?: number; payload: Partial<BooklistFormInput> }) =>
+      ({ booklistId: variables.id ?? booklistId!, onSuccess }),
     mutationFn: ({
       id,
       payload,
@@ -227,10 +229,10 @@ export function useUpdateBooklist(booklistId?: number, onSuccess?: () => void) {
       id?: number;
       payload: Partial<BooklistFormInput>;
     }) => booklistsApi.update(id ?? booklistId!, payload),
-    onSuccess: (_, variables) => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("书单已更新");
-      invalidateBooklists(variables.id ?? booklistId);
-      onSuccess?.();
+      invalidateBooklists(submitted!.booklistId);
+      submitted!.onSuccess?.();
     },
     onError: (error) => notifyError(extractErrorMessage(error, "书单更新失败")),
   });
@@ -257,12 +259,13 @@ export function usePublishBooklist(
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: () => ({ booklistId, onSuccess }),
     mutationFn: (payload: BooklistPublishRequest) =>
       booklistsApi.publish(booklistId, payload),
-    onSuccess: () => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("讨论帖关联请求已提交");
-      invalidateBooklists(booklistId);
-      onSuccess?.();
+      invalidateBooklists(submitted!.booklistId);
+      submitted!.onSuccess?.();
     },
     onError: (error) =>
       notifyError(extractErrorMessage(error, "关联讨论帖失败")),
@@ -273,10 +276,11 @@ export function useUnpublishBooklist(booklistId: number | string) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: () => ({ booklistId }),
     mutationFn: () => booklistsApi.unpublish(booklistId),
-    onSuccess: () => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("已解除讨论帖关联");
-      invalidateBooklists(booklistId);
+      invalidateBooklists(submitted!.booklistId);
     },
     onError: (error) =>
       notifyError(extractErrorMessage(error, "解除讨论帖关联失败")),
@@ -290,12 +294,13 @@ export function useAddBooklistItems(
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: () => ({ booklistId, onSuccess }),
     mutationFn: (items: BooklistItemAddInput[]) =>
       booklistsApi.addItems(booklistId, items),
-    onSuccess: () => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("帖子已加入书单");
-      invalidateBooklists(booklistId, { includeItems: true });
-      onSuccess?.();
+      invalidateBooklists(submitted!.booklistId, { includeItems: true });
+      submitted!.onSuccess?.();
     },
     onError: (error) =>
       notifyError(extractErrorMessage(error, "添加帖子到书单失败")),
@@ -306,11 +311,12 @@ export function useRemoveBooklistItems(booklistId: number | string) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: () => ({ booklistId }),
     mutationFn: (threadId: string | number) =>
       booklistsApi.removeItems(booklistId, [String(threadId)]),
-    onSuccess: () => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("书单条目已移除");
-      invalidateBooklists(booklistId, { includeItems: true });
+      invalidateBooklists(submitted!.booklistId, { includeItems: true });
     },
     onError: (error) =>
       notifyError(extractErrorMessage(error, "移除书单条目失败")),
@@ -324,6 +330,7 @@ export function useUpdateBooklistItem(
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
+    onMutate: () => ({ booklistId, onSuccess }),
     mutationFn: ({
       threadId,
       payload,
@@ -331,10 +338,10 @@ export function useUpdateBooklistItem(
       threadId: string | number;
       payload: BooklistItemUpdateInput;
     }) => booklistsApi.updateItem(booklistId, threadId, payload),
-    onSuccess: () => {
+    onSuccess: (_, _variables, submitted) => {
       notifySuccess("书单条目已更新");
-      invalidateBooklists(booklistId, { includeItems: true });
-      onSuccess?.();
+      invalidateBooklists(submitted!.booklistId, { includeItems: true });
+      submitted!.onSuccess?.();
     },
     onError: (error) =>
       notifyError(extractErrorMessage(error, "更新书单条目失败")),

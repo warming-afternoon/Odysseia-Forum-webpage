@@ -24,14 +24,17 @@ export function TagRelationTree({ selectedId, tags, edges, onSelect }: {
     }
     return visited;
   }
-  const included = new Set([...reachable(parents), ...reachable(children)]);
   const byId = new Map(tags.map((tag) => [tag.id, tag]));
   const collator = new Intl.Collator("zh-CN-u-co-pinyin", { numeric: true });
   const sort = (ids: string[]) => ids.sort((a, b) => collator.compare(byId.get(a)?.name ?? a, byId.get(b)?.name ?? b));
-  const roots = sort([...included].filter((id) => !(parents.get(id) ?? []).some((parent) => included.has(parent))));
-  function renderNode(id: string, path: string[] = []) {
+  const ancestorIds = reachable(parents);
+  const descendantIds = reachable(children);
+  const ancestorRoots = sort([...ancestorIds].filter((id) =>
+    id !== selectedId && !(parents.get(id) ?? []).some((parent) => ancestorIds.has(parent)),
+  ));
+  function renderNode(id: string, allowed: Set<string>, path: string[] = []) {
     const tag = byId.get(id);
-    const descendants = sort((children.get(id) ?? []).filter((child) => included.has(child) && !path.includes(child)));
+    const descendants = sort((children.get(id) ?? []).filter((child) => allowed.has(child) && child !== selectedId && !path.includes(child)));
     const expanded = !collapsed.includes(id);
     return <li key={[...path, id].join("/")} className="tag-pool-node">
       <div className={`tag-pool-row flex min-h-10 items-center rounded-md ${id === selectedId ? "tag-pool-row-selected" : ""}`}>
@@ -45,11 +48,30 @@ export function TagRelationTree({ selectedId, tags, edges, onSelect }: {
           {tag.name}<span className="ml-2 text-xs text-(--od-text-tertiary)">{tag.category}</span>
         </button> : <span className="min-w-0 break-all py-2 text-xs text-(--od-text-tertiary)">标签 #{id}（未加载）</span>}
       </div>
-      {expanded && descendants.length > 0 && <ul className="tag-pool-children">{descendants.map((child) => renderNode(child, [...path, id]))}</ul>}
+      {expanded && descendants.length > 0 && <ul className="tag-pool-children">{descendants.map((child) => renderNode(child, allowed, [...path, id]))}</ul>}
     </li>;
   }
+  const selected = byId.get(selectedId);
+  const hasRelations = (parents.get(selectedId)?.length ?? 0) > 0 || (children.get(selectedId)?.length ?? 0) > 0;
   return <section className="mt-5" aria-label="标签关系树">
     <h3 className="mb-2 text-xs text-(--od-text-tertiary)">关系溯源</h3>
-    <ul>{roots.map((id) => renderNode(id))}</ul>
+    {!hasRelations && <p className="py-3 text-sm text-(--od-text-tertiary)">未找到关系</p>}
+    {hasRelations && <ul>
+      {ancestorRoots.map((id) => renderNode(id, ancestorIds))}
+      <li className="tag-pool-node">
+        <div className="tag-pool-row tag-pool-row-selected flex min-h-10 items-center rounded-md">
+          <span className="w-8 shrink-0" />
+          {selected ? <button type="button" aria-current="true" onClick={() => onSelect(selected)}
+            className="min-h-10 min-w-0 flex-1 break-words py-1 pr-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-(--od-accent)">
+            {selected.name}<span className="ml-2 text-xs text-(--od-text-tertiary)">{selected.category}</span>
+          </button> : <span className="min-w-0 break-all py-2 text-xs text-(--od-text-tertiary)">标签 #{selectedId}（未加载）</span>}
+        </div>
+        {sort((children.get(selectedId) ?? []).filter((id) => descendantIds.has(id))).length > 0 && (
+          <ul className="tag-pool-children">
+            {sort((children.get(selectedId) ?? []).filter((id) => descendantIds.has(id))).map((id) => renderNode(id, descendantIds, [selectedId]))}
+          </ul>
+        )}
+      </li>
+    </ul>}
   </section>;
 }

@@ -1,4 +1,7 @@
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
+import { Transition } from "@/shared/ui/animation/Transition";
+import { motionTransitions } from "@/shared/ui/animation/variants";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
 import { RotateCcw, Tags } from "lucide-react";
 
 interface DrawSettingsPanelProps {
@@ -16,15 +19,15 @@ interface DrawSettingsPanelProps {
 }
 
 export function DrawSettingsPanel({ isOpen, recipe, channels, tagGroups, revealEnabled, onRestorePreferences, onScopeModeChange, onTagLogicChange, onToggleChannel, onToggleTag, onRevealEnabledChange }: DrawSettingsPanelProps) {
+  const reduceMotion = usePrefersReducedMotion();
   return (
-  <AnimatePresence>
-    {isOpen && (
+  <Transition show={isOpen} className="mt-4 w-full max-w-2xl overflow-hidden">
       <motion.div
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: "auto" }}
         exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
-        className="mt-4 w-full max-w-2xl overflow-hidden"
+        transition={{ ...motionTransitions.layout, duration: reduceMotion ? 0 : motionTransitions.layout.duration }}
+        className="overflow-hidden"
       >
         <div className="space-y-4 py-4">
           {/* 抽卡范围 */}
@@ -178,7 +181,6 @@ export function DrawSettingsPanel({ isOpen, recipe, channels, tagGroups, revealE
           </div>
         </div>
       </motion.div>
-    )}
-  </AnimatePresence>
+  </Transition>
   );
 }

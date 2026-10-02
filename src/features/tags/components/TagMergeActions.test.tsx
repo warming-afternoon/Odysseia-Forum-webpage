@@ -39,6 +39,7 @@ it("只在预检并确认后写入，保留大整数 ID 与预检版本，刷新
   await waitFor(() => expect(customTagsApi.merge).toHaveBeenCalledWith("1", { target_tag_id: kept.id, version: "v1" }));
   await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ["custom-tags"] }));
   expect(invalidate).toHaveBeenCalledWith({ queryKey: ["booklists"] });
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ["follows"] });
   confirm.mockRestore();
 });
 it("预检冲突禁止执行，版本过期移除确认入口且不自动重试", async () => {

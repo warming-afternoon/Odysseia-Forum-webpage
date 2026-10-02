@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkPlus, Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -9,6 +9,10 @@ import { invalidateBooklistQueries } from "@/features/booklists/lib/invalidateBo
 import { Checkbox } from "@/shared/ui/Checkbox";
 import { notifyError, notifySuccess } from "@/features/mascot/lib/notify";
 import { extractErrorMessage } from "@/shared/lib/notify";
+import { motion, useIsPresent } from "motion/react";
+import { Transition } from "@/shared/ui/animation/Transition";
+import { scaleVariants, motionTransitions } from "@/shared/ui/animation/variants";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
 
 interface QuickAddToBooklistModalProps {
   isOpen: boolean;
@@ -37,16 +41,17 @@ export function QuickAddToBooklistModal({
     enabled: isOpen && /^\d+$/.test(threadId),
   });
 
-  if (!isOpen) return null;
-  return (
+  return createPortal(
+    <Transition show={isOpen} className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
     <QuickAddToBooklistModalContent
-      key={`${isOpen}:${threadId}:${myBooklistsQuery.dataUpdatedAt}`}
+      key={threadId}
       threadId={threadId}
       threadTitle={threadTitle}
       onClose={onClose}
       query={myBooklistsQuery}
       isOpen={isOpen}
     />
+    </Transition>, document.body,
   );
 }
 
@@ -54,21 +59,32 @@ function QuickAddToBooklistModalContent({
   isOpen, threadId, threadTitle, onClose, query: myBooklistsQuery,
 }: QuickAddBooklistContentProps) {
   const queryClient = useQueryClient();
-  const markedIds = new Set(
+  const titleId = useId();
+  const isPresent = useIsPresent();
+  const reduceMotion = usePrefersReducedMotion();
+  const markedIds = useMemo(() => new Set(
     (myBooklistsQuery.data?.results || [])
       .filter((booklist) => booklist.is_marked)
       .map((booklist) => booklist.id),
-  );
+  ), [myBooklistsQuery.data]);
   const [selectedBooklistIds, setSelectedBooklistIds] = useState<Set<number>>(
     markedIds,
   );
-  const initialBooklistIds = markedIds;
+  const [initialBooklistIds, setInitialBooklistIds] = useState<Set<number> | null>(
+    myBooklistsQuery.isSuccess ? markedIds : null,
+  );
   const [comment, setComment] = useState("");
 
   const myBooklists = myBooklistsQuery.data?.results || [];
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (initialBooklistIds || !myBooklistsQuery.isSuccess) return;
+    setInitialBooklistIds(markedIds);
+    setSelectedBooklistIds(markedIds);
+  }, [initialBooklistIds, markedIds, myBooklistsQuery.isSuccess]);
+
+  useEffect(() => {
+    if (!isOpen || !isPresent) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -79,10 +95,10 @@ function QuickAddToBooklistModalContent({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, isPresent, onClose]);
 
   const canSubmit = useMemo(() => {
-    if (!/^\d+$/.test(threadId) || !myBooklistsQuery.isSuccess) return false;
+    if (!/^\d+$/.test(threadId) || !myBooklistsQuery.isSuccess || !initialBooklistIds) return false;
     const selectionChanged =
       selectedBooklistIds.size !== initialBooklistIds.size ||
       [...selectedBooklistIds].some((id) => !initialBooklistIds.has(id));
@@ -118,6 +134,7 @@ function QuickAddToBooklistModalContent({
         booklistIds: [
           ...(result.added_to_booklist_ids || []),
           ...(result.removed_from_booklist_ids || []),
+          ...(result.unchanged_booklist_ids || []),
         ],
         includeItems: true,
       });
@@ -130,8 +147,8 @@ function QuickAddToBooklistModalContent({
 
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+  return (
+    <>
       {/* 背景遮罩 */}
       <div
         onClick={onClose}
@@ -140,15 +157,21 @@ function QuickAddToBooklistModalContent({
       />
 
       {/* 弹窗主体 */}
-      <div
+      <motion.div
+        initial={reduceMotion ? false : 'hidden'}
+        animate="visible"
+        exit="hidden"
+        variants={reduceMotion ? { hidden: { opacity: 0 }, visible: { opacity: 1 } } : scaleVariants}
+        transition={{ ...motionTransitions.panel, duration: reduceMotion ? 0 : motionTransitions.panel.duration }}
         role="dialog"
         aria-modal="true"
-        className="od-floating-panel-solid relative z-10 w-full max-w-lg rounded-xl border border-(--od-border) p-0 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        aria-labelledby={titleId}
+        className="od-floating-panel-solid relative z-10 w-full max-w-lg rounded-xl border border-(--od-border) p-0 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-(--od-border) px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-(--od-text-primary)">
+            <h2 id={titleId} className="text-base font-bold text-(--od-text-primary)">
               快捷收藏到书单
             </h2>
             {threadTitle && (
@@ -272,8 +295,7 @@ function QuickAddToBooklistModalContent({
             </button>
           </div>
         </div>
-      </div>
-    </div>,
-    document.body,
+      </motion.div>
+    </>
   );
 }

@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, useIsPresent } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
+import { usePrefersReducedMotion } from '@/shared/hooks/usePrefersReducedMotion';
+import { motionTransitions } from './animation/variants';
+import { Transition } from './animation/Transition';
 
 export interface SelectOption {
   value: string;
@@ -34,7 +37,10 @@ export function Select({
   'aria-label': ariaLabel,
   disabled = false,
 }: SelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setIsOpen] = useState(false);
+  const isPresent = useIsPresent();
+  const isOpen = open && isPresent;
+  const reduceMotion = usePrefersReducedMotion();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLUListElement>(null);
   const optionRefs = useRef<Array<HTMLLIElement | null>>([]);
@@ -152,19 +158,18 @@ export function Select({
     : 'od-ghost-input flex min-h-10 w-full items-center justify-between px-1 text-sm';
 
   const panel = (
-    <AnimatePresence>
-      {isOpen && (
+    <Transition show={isOpen} style={panelStyle} className="fixed z-[9999]">
         <motion.ul
           ref={panelRef}
           id={listboxId}
           role="listbox"
           aria-labelledby={triggerId}
-          initial={{ opacity: 0, y: -4, scaleY: 0.96 }}
-          animate={{ opacity: 1, y: 0, scaleY: 1 }}
-          exit={{ opacity: 0, y: -4, scaleY: 0.96 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          style={{ ...panelStyle, transformOrigin: 'top' }}
-          className="od-floating-panel-solid fixed z-[9999] overflow-y-auto rounded-xl py-1"
+          initial={{ opacity: 0, y: reduceMotion ? 0 : -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduceMotion ? 0 : -4, pointerEvents: 'none' }}
+          transition={{ ...motionTransitions.fast, duration: reduceMotion ? 0 : motionTransitions.fast.duration }}
+          style={{ maxHeight: panelStyle.maxHeight, transformOrigin: 'top' }}
+          className="od-floating-panel-solid overflow-y-auto rounded-xl py-1"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -222,8 +227,7 @@ export function Select({
             );
           })}
         </motion.ul>
-      )}
-    </AnimatePresence>
+    </Transition>
   );
 
   return (
@@ -262,7 +266,7 @@ export function Select({
           <span className="truncate">{selectedLabel}</span>
           <motion.span
             animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ ...motionTransitions.fast, duration: reduceMotion ? 0 : motionTransitions.fast.duration }}
             className={`shrink-0 ${isInline ? 'ml-1' : 'ml-2'} text-(--od-text-tertiary)`}
           >
             <ChevronDown className={isInline ? 'h-3.5 w-3.5' : 'h-4 w-4'} />

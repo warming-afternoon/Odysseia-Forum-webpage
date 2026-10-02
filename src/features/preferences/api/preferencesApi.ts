@@ -59,11 +59,13 @@ export const preferencesApi = {
   getByUserId: async (
     userId: string | number,
     options: PreferencesApiOptions = {},
+    signal?: AbortSignal,
   ): Promise<UserPreferencesResponse> => {
     const response = await apiClient.get<string>(
       `/preferences/users/${encodeURIComponent(String(userId))}`,
       {
         params: toGuildQuery(options.guildId),
+        signal,
         responseType: 'text',
         transformResponse: [(data) => data],
       },

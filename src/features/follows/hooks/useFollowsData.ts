@@ -73,8 +73,16 @@ export function useUnfollowThread() {
 
   return useMutation({
     mutationFn: followsApi.unfollowThread,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: followsKeys.all });
+    onSuccess: (_, threadId) => {
+      queryClient.setQueryData(followsKeys.state(threadId), false);
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: followsKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ["search"] }),
+        queryClient.invalidateQueries({ queryKey: ["discovery"] }),
+        queryClient.invalidateQueries({ queryKey: ["authors"] }),
+        queryClient.invalidateQueries({ queryKey: ["booklists"] }),
+        queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+      ]);
       notifySuccess('已取消关注这个帖子');
     },
     onError: (error) => {

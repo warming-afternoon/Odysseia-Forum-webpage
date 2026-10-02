@@ -196,12 +196,6 @@ export function useSearchURLParams() {
           : "last_active_desc";
       }
 
-      // URL 上没写过 tag_logic 时，用用户偏好作为初值显式写进 URL，
-      // 这样链接自带完整语义，换个设备打开结果也一致。
-      if (nextUpdates.tagLogic === undefined && !searchParams.has("tag_logic")) {
-        nextUpdates.tagLogic = getSearchTagLogicPreference();
-      }
-
       const merged = { ...current, ...nextUpdates, page: shouldResetPage ? 1 : (updates.page ?? current.page) };
       const newSP = serializeParams(merged);
       const preservesExplicitLastActive =

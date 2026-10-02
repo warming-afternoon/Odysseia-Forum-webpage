@@ -1,5 +1,11 @@
 import { Variants } from 'motion/react';
 
+export const motionTransitions = {
+    fast: { duration: 0.12, ease: [0.2, 0, 0, 1] },
+    panel: { duration: 0.18, ease: [0.2, 0, 0, 1] },
+    layout: { duration: 0.2, ease: [0.2, 0, 0, 1] },
+} as const;
+
 // 弹簧物理配置
 export const springs = {
     stiff: { type: "spring", stiffness: 300, damping: 20 } as const, // 硬朗，适合小元素
@@ -15,13 +21,13 @@ export const fadeVariants: Variants = {
 };
 
 export const slideUpVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 8 },
     visible: { opacity: 1, y: 0 },
 };
 
 export const scaleVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1 },
+    hidden: { opacity: 0, scale: 0.98, y: 6 },
+    visible: { opacity: 1, scale: 1, y: 0 },
 };
 
 // 列表容器变体（用于子元素交错动画）

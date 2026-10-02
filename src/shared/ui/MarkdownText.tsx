@@ -108,7 +108,7 @@ function extractMarkdownTables(html: string): { html: string; tables: string[] }
 function parseMarkdown(text: string, enableTables = false): string {
   if (!text) return '';
 
-  const codeBlocks: string[] = [];
+  const fragments: string[] = [];
   let html = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -116,8 +116,14 @@ function parseMarkdown(text: string, enableTables = false): string {
 
   html = html.replace(/```[^\n`]*\n?([\s\S]*?)```/g, (_match, code: string) => {
     if (!code.trim()) return '';
-    const token = `ODCODEBLOCK${codeBlocks.length}TOKEN`;
-    codeBlocks.push(`<pre class="code-block"><code>${code.replace(/^\n|\n$/g, '')}</code></pre>`);
+    const token = `ODMARKDOWNFRAGMENT${fragments.length}TOKEN`;
+    fragments.push(`<pre class="code-block"><code>${code.replace(/^\n|\n$/g, '')}</code></pre>`);
+    return token;
+  });
+
+  html = html.replace(/`([^`]+)`/g, (_match, code: string) => {
+    const token = `ODMARKDOWNFRAGMENT${fragments.length}TOKEN`;
+    fragments.push(`<code class="inline-code">${code}</code>`);
     return token;
   });
 
@@ -128,7 +134,6 @@ function parseMarkdown(text: string, enableTables = false): string {
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/_(.*?)_/g, '<em>$1</em>');
-  html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
 
   html = html
     .replace(/^### (.*)$/gim, '<h3 class="discord-h3">$1</h3>')
@@ -136,14 +141,16 @@ function parseMarkdown(text: string, enableTables = false): string {
     .replace(/^# (.*)$/gim, '<h1 class="discord-h1">$1</h1>');
 
   html = html.replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, (_match, label: string, url: string) => {
-    return buildSafeAnchor(label, url);
+    const token = `ODMARKDOWNFRAGMENT${fragments.length}TOKEN`;
+    fragments.push(buildSafeAnchor(label, url));
+    return token;
   });
 
   html = html.replace(/(?<!href=")(https?:\/\/[^\s<]+)/g, (rawUrl: string) => {
     return buildSafeAnchor(rawUrl, rawUrl);
   });
 
-  html = html.replace(/^> (.*)$/gim, '<blockquote class="discord-quote">$1</blockquote>');
+  html = html.replace(/^&gt; (.*)$/gim, '<blockquote class="discord-quote">$1</blockquote>');
 
   const extractedTables = enableTables
     ? extractMarkdownTables(html)
@@ -155,8 +162,9 @@ function parseMarkdown(text: string, enableTables = false): string {
     html = html.replace(new RegExp(escapeRegExp(`ODMARKDOWNTABLE${index}TOKEN`), 'g'), table);
   }
 
-  for (const [index, block] of codeBlocks.entries()) {
-    html = html.replace(new RegExp(escapeRegExp(`ODCODEBLOCK${index}TOKEN`), 'g'), block);
+  for (let index = fragments.length - 1; index >= 0; index--) {
+    const fragment = fragments[index];
+    html = html.replace(new RegExp(escapeRegExp(`ODMARKDOWNFRAGMENT${index}TOKEN`), 'g'), () => fragment);
   }
 
   return html;

@@ -131,6 +131,8 @@ export const booklistsApi = {
           cover_image_url: payload.cover_image_url || undefined,
           is_public: payload.is_public,
           display_type: payload.display_type,
+          default_sort_method: payload.default_sort_method,
+          default_sort_order: payload.default_sort_order,
         },
       },
     );
@@ -151,6 +153,8 @@ export const booklistsApi = {
           cover_image_url: payload.cover_image_url,
           is_public: payload.is_public,
           display_type: payload.display_type,
+          default_sort_method: payload.default_sort_method,
+          default_sort_order: payload.default_sort_order,
         },
       },
     );

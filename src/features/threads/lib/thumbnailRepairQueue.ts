@@ -16,6 +16,7 @@ const FAILURE_COOLDOWN_MS = 30 * 1000;
 let boundQueryClient: QueryClient | null = null;
 let flushTimer: number | null = null;
 const pending = new Map<string, FetchImageItem>();
+const inFlight = new Set<string>();
 const repaired = new Map<string, string[]>();
 const failureCooldown = new Map<string, number>();
 const listeners = new Map<string, Set<ThumbnailListener>>();
@@ -108,6 +109,7 @@ async function flushQueue() {
   const items = Array.from(pending.values()).slice(0, MAX_BATCH_SIZE);
   for (const item of items) {
     pending.delete(String(item.thread_id));
+    inFlight.add(String(item.thread_id));
   }
 
   try {
@@ -124,6 +126,8 @@ async function flushQueue() {
     for (const item of items) {
       failureCooldown.set(String(item.thread_id), cooldownUntil);
     }
+  } finally {
+    for (const item of items) inFlight.delete(String(item.thread_id));
   }
 
   if (pending.size > 0) {
@@ -149,7 +153,7 @@ export function reportBrokenThreadThumbnail(payload: BrokenThumbnailPayload) {
   const cooldownUntil = failureCooldown.get(threadId) || 0;
   if (cooldownUntil > Date.now()) return;
 
-  if (pending.has(threadId)) return;
+  if (pending.has(threadId) || inFlight.has(threadId)) return;
 
   pending.set(threadId, {
     thread_id: threadId,

@@ -6,6 +6,9 @@ import {
   tagTokenLabel,
 } from "@/shared/lib/searchTokenizer";
 import { LazyImage } from "@/shared/ui/LazyImage";
+import { AnimatePresence, motion, useIsPresent } from "motion/react";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
+import { motionTransitions } from "@/shared/ui/animation/variants";
 import { CalendarRange, Hash, MessageCircle, Tag as TagIcon, ThumbsUp, User, X } from "lucide-react";
 import {
   ChangeEvent,
@@ -40,6 +43,7 @@ export function SearchTokenInput({
   className = "",
   authorDetails = {},
 }: SearchTokenInputProps) {
+  const reduceMotion = usePrefersReducedMotion();
   const [tokens, setTokens] = useState<SearchToken[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [editingTokenIndex, setEditingTokenIndex] = useState<number | null>(
@@ -264,9 +268,10 @@ export function SearchTokenInput({
       aria-expanded={tokens.length > 0 || inputValue.length > 0}
       aria-haspopup="listbox"
       aria-controls="search-suggestions-listbox"
-      className={`flex min-h-[40px] w-full min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none rounded-lg border-none bg-(--od-bg-secondary) px-2 py-1.5 text-sm text-(--od-text-primary) transition-all duration-200 ${className}`}
+      className={`relative flex min-h-[40px] w-full min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-none rounded-lg border-none bg-(--od-bg-secondary) px-2 py-1.5 text-sm text-(--od-text-primary) transition-colors duration-150 ${className}`}
     >
       {/* 显示 token chips */}
+      <AnimatePresence initial={false} mode="popLayout">
       {tokens
         .filter((token) => token.type !== "text")
         .map((token, index) => {
@@ -274,10 +279,11 @@ export function SearchTokenInput({
           const author = token.type === "author" ? authorDetails[token.value] : null;
 
           return (
-            <div
-              key={`${token.type}-${token.value}-${index}`}
-              className={`flex max-w-[42%] shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-all duration-200 ${
-                isEditing ? "ring-2 ring-(--od-accent)" : "hover:scale-105"
+            <TokenChip
+              key={`${token.raw}-${tokens.slice(0, tokens.indexOf(token)).filter((item) => item.raw === token.raw).length}`}
+              reduceMotion={reduceMotion}
+              className={`flex max-w-[42%] shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors duration-150 ${
+                isEditing ? "ring-2 ring-(--od-accent)" : ""
               } ${getTokenColor(token)}`}
             >
               {getTokenIcon(token)}
@@ -333,12 +339,15 @@ export function SearchTokenInput({
                   <X className="h-3 w-3" />
                 </button>
               )}
-            </div>
+            </TokenChip>
           );
         })}
+      </AnimatePresence>
 
       {/* 输入框 */}
-      <input
+      <motion.input
+        layout={reduceMotion ? false : "position"}
+        transition={motionTransitions.layout}
         aria-autocomplete="list"
         aria-controls="search-suggestions-listbox"
         ref={(element) => {
@@ -362,5 +371,30 @@ export function SearchTokenInput({
         className="min-w-0 flex-1 bg-transparent text-(--od-text-primary) placeholder:text-(--od-text-tertiary) focus:outline-hidden"
       />
     </div>
+  );
+}
+
+function TokenChip({ children, reduceMotion, className, ref }: {
+  children: React.ReactNode;
+  reduceMotion: boolean;
+  className: string;
+  ref?: React.Ref<HTMLDivElement>;
+}) {
+  const isPresent = useIsPresent();
+  return (
+    <motion.div
+      ref={ref}
+      layout={reduceMotion ? false : "position"}
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+      transition={{ ...motionTransitions.layout, duration: reduceMotion ? 0 : motionTransitions.layout.duration }}
+      inert={!isPresent}
+      aria-hidden={!isPresent || undefined}
+      style={{ pointerEvents: isPresent ? undefined : 'none' }}
+      className={className}
+    >
+      {children}
+    </motion.div>
   );
 }

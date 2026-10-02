@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { expect, it, vi } from "vitest";
 import { TagRelationFields } from "./TagRelationFields";
 import type { PoolTag } from "./TagPoolBrowser";
+import { customTagsApi } from "../api/customTagsApi";
 
 vi.mock("../api/customTagsApi", () => ({
   customTagsApi: { pool: vi.fn(async () => [{ id: "12", name: "幻想", category_name: "背景", source: "discord" }]) },
@@ -13,12 +14,18 @@ it("空输入聚焦提供候选，选择与拖入只修改草稿，拒绝未知�
   const draft: PoolTag = { id: "11", name: "标签", category: "背景", parents: [], excludes: [], aliases: [], enabled: true };
   const parent = { ...draft, id: "12", name: "幻想", source: "discord" as const };
   const onChange = vi.fn();
-  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  client.setQueryData(["custom-tags", "relation-candidates", ""], { pages: [[]], pageParams: [0] });
+  render(<QueryClientProvider client={client}>
     <TagRelationFields draft={draft} tags={[parent]} onChange={onChange} />
   </QueryClientProvider>);
   const input = screen.getByRole("textbox", { name: "搜索上级标签" });
   fireEvent.focus(input);
   const checkbox = await screen.findByRole("checkbox", { name: "幻想 · 背景" });
+  expect(customTagsApi.pool).toHaveBeenCalledWith({
+    q: "", selectable: false, include_deleted: false,
+  }, expect.any(AbortSignal));
+  expect(screen.queryByRole("button", { name: "加载更多" })).not.toBeInTheDocument();
   const label = screen.getByText("幻想 · 背景");
   fireEvent.pointerDown(label);
   fireEvent.blur(input, { relatedTarget: null });

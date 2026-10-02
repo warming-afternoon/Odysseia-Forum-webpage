@@ -43,6 +43,11 @@ function toTournamentThread(item: BooklistItem): Thread {
 
 export function TournamentManagePage() {
   const { booklistId } = useParams();
+  const normalizedBooklistId = String(booklistId || "").trim();
+  return <TournamentManageContent key={normalizedBooklistId} normalizedBooklistId={normalizedBooklistId} />;
+}
+
+function TournamentManageContent({ normalizedBooklistId }: { normalizedBooklistId: string }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { openPreview } = usePreviewThread();
@@ -52,7 +57,6 @@ export function TournamentManagePage() {
   );
   const gridClass = useCardGridClass();
 
-  const normalizedBooklistId = String(booklistId || "").trim();
   const [showEdit, setShowEdit] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);

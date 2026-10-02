@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Select } from './Select';
+import { Transition } from './animation/Transition';
 
 const options = [
   { value: 'newest', label: '最新' },
@@ -9,6 +10,22 @@ const options = [
 ];
 
 describe('Select', () => {
+  it('父面板退场时立即关闭 portal 下拉框，不向隐藏触发器恢复焦点', async () => {
+    const view = (show: boolean) => <Transition show={show}>
+      <Select aria-label="排序" value="newest" options={options} onChange={vi.fn()} />
+    </Transition>;
+    const { rerender } = render(view(true));
+    const trigger = screen.getByRole('button', { name: '排序' });
+    fireEvent.click(trigger);
+    const listbox = screen.getByRole('listbox');
+    const focus = vi.spyOn(trigger, 'focus');
+    rerender(view(false));
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(listbox.closest('[inert]')).not.toBeNull();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(focus).not.toHaveBeenCalled();
+    await waitFor(() => expect(listbox).not.toBeInTheDocument());
+  });
   it('supports listbox keyboard navigation and selection', () => {
     const onChange = vi.fn();
     render(

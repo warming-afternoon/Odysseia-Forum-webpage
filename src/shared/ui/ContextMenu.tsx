@@ -15,6 +15,9 @@ import {
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { clsx } from "clsx";
+import { Transition } from "./animation/Transition";
+import { motionTransitions } from "./animation/variants";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
 
 interface ContextMenuPosition {
   x: number;
@@ -206,6 +209,7 @@ export function ContextMenuContent({
   const { isOpen, position, closeMenu, menuId } = useContextMenu();
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPos, setAdjustedPos] = useState<ContextMenuPosition>(position);
+  const reduceMotion = usePrefersReducedMotion();
 
   // 视口边缘防溢出吸附计算
   useLayoutEffect(() => {
@@ -254,10 +258,11 @@ export function ContextMenuContent({
     };
   }, [closeMenu, isOpen]);
 
-  if (typeof document === "undefined" || !isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div
+    <Transition
+      show={isOpen}
       id={menuId}
       className="fixed inset-0 z-[4000] pointer-events-auto"
       onClick={(e) => {
@@ -266,9 +271,10 @@ export function ContextMenuContent({
     >
       <motion.div
         ref={menuRef}
-        initial={{ opacity: 0, scale: 0.94, y: -2 }}
+        initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.98, y: reduceMotion ? 0 : -3 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+        exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.98, y: reduceMotion ? 0 : -3 }}
+        transition={{ ...motionTransitions.fast, duration: reduceMotion ? 0 : motionTransitions.fast.duration }}
         style={{
           position: "fixed",
           left: `${adjustedPos.x}px`,
@@ -284,7 +290,7 @@ export function ContextMenuContent({
       >
         {children}
       </motion.div>
-    </div>,
+    </Transition>,
     document.body,
   );
 }

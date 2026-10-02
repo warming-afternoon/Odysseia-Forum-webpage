@@ -1,10 +1,15 @@
 import { createElement, type ReactNode } from 'react';
 import { act, renderHook } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
-import { describe, it, expect } from 'vitest';
-import { parseParams, serializeParams, useSearchURLParams } from './useSearchParams';
+import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
+import { beforeEach, describe, it, expect } from 'vitest';
+import { parseParams, serializeParams, setSearchTagLogicPreference, useSearchURLParams } from './useSearchParams';
+import { useTopBarSearchController } from './useTopBarSearchController';
 
 describe('useSearchParams URL 协议层', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
   it('ID 条件往返保留精度，与名称条件并存', () => {
     const original = new URLSearchParams('include_tag_ids=90071992547409931&include_tag_ids=2&exclude_tag_ids=3&q=%24tag%3A同名%24');
     const parsed = parseParams(original);
@@ -105,6 +110,46 @@ describe('useSearchParams URL 协议层', () => {
   });
 
   describe('setParams', () => {
+    it.each(['/plaza', '/search'])('新搜索入口 %s 显式应用本地偏好，后续翻页保留它', (path) => {
+      setSearchTagLogicPreference('or');
+      const wrapper = ({ children }: { children: ReactNode }) =>
+        createElement(MemoryRouter, {
+          initialEntries: [path],
+          future: { v7_startTransition: true, v7_relativeSplatPath: true },
+        }, children);
+      const { result, unmount } = renderHook(() => {
+        const search = useSearchURLParams();
+        const location = useLocation();
+        const navigate = useNavigate();
+        const controller = useTopBarSearchController({
+          isSearchPage: location.pathname === '/search', navigate,
+          params: search.params, setParams: search.setParams,
+        });
+        return { search, location, controller };
+      }, { wrapper });
+      act(() => result.current.controller.executeSearch('$tag:A$ $tag:B$'));
+      expect(result.current.search.params.tagLogic).toBe('or');
+      expect(new URLSearchParams(result.current.location.search).get('tag_logic')).toBe('or');
+      act(() => result.current.search.setParams({ page: 2 }));
+      expect(result.current.search.params.tagLogic).toBe('or');
+      expect(result.current.controller.historyItems[0].tagLogic).toBe('or');
+      unmount();
+    });
+    it('本地 OR 偏好不改写无 tag_logic 分享链接的翻页和排序语义', () => {
+      setSearchTagLogicPreference('or');
+      const wrapper = ({ children }: { children: ReactNode }) =>
+        createElement(MemoryRouter, {
+          initialEntries: ['/search?q=%24tag%3AA%24+%24tag%3AB%24'],
+          future: { v7_startTransition: true, v7_relativeSplatPath: true },
+        }, children);
+      const { result } = renderHook(() => useSearchURLParams(), { wrapper });
+      expect(result.current.params.tagLogic).toBe('and');
+      act(() => result.current.setParams({ page: 2 }));
+      expect(result.current.params.tagLogic).toBe('and');
+      expect(result.current.params.page).toBe(2);
+      act(() => result.current.setParams({ sortMethod: 'created_desc' }));
+      expect(result.current.params.tagLogic).toBe('and');
+    });
     it('旧 ID 链接转成 token，删除后翻页不会恢复隐形筛选', () => {
       const wrapper = ({ children }: { children: ReactNode }) =>
         createElement(MemoryRouter, { initialEntries: ['/search?include_tag_ids=7914'] }, children);

@@ -45,6 +45,38 @@ describe('MarkdownText', () => {
     expect(openSpy).toHaveBeenCalledWith('https://example.com/post', '_blank', 'noopener,noreferrer');
   });
 
+  it('外部带标签链接保留锚点标签，点击标签仍进入外链确认', () => {
+    const { container } = render(<MarkdownText text={'[文档](https://example.com/post)'} />);
+    const link = screen.getByRole('link', { name: '文档' });
+    expect(link).toHaveAttribute('href', 'https://example.com/post');
+    expect(container.querySelectorAll('a')).toHaveLength(1);
+    expect(link.textContent).toBe('文档');
+    fireEvent.click(screen.getByText('文档'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '继续前往' }));
+    expect(openSpy).toHaveBeenCalledWith('https://example.com/post', '_blank', 'noopener,noreferrer');
+  });
+
+  it('行内代码中的 URL 和格式符号保持字面值，不产生链接', () => {
+    const { container } = render(<MarkdownText text={'`https://example.com/post **原样**`'} />);
+    expect(container.querySelector('code')?.textContent).toBe('https://example.com/post **原样**');
+    expect(container.querySelector('code a')).toBeNull();
+    expect(container.querySelector('code strong')).toBeNull();
+  });
+
+  it('带行内代码的链接标签恢复嵌套片段，不泄漏占位符', () => {
+    const { container } = render(<MarkdownText text={'[`文档`](https://example.com/post)'} />);
+    expect(screen.getByRole('link', { name: '文档' })).toHaveTextContent('文档');
+    expect(container.querySelector('a code')).toHaveTextContent('文档');
+    expect(container.textContent).not.toContain('ODMARKDOWNFRAGMENT');
+  });
+
+  it('引用在 HTML 转义后仍正确解析，引用内部保留强调', () => {
+    const { container } = render(<MarkdownText text={'> **引用**\n普通文本'} />);
+    expect(container.querySelector('blockquote strong')).toHaveTextContent('引用');
+    expect(container).toHaveTextContent('普通文本');
+  });
+
   it('分别渲染行内代码和围栏代码块', () => {
     const { container } = render(<MarkdownText text={'`xx`\n```\nxxx\n```'} />);
 

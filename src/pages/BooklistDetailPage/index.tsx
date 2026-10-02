@@ -62,6 +62,11 @@ import { openDiscordWithFallback } from "@/features/threads/lib/openDiscordWithF
 
 export function BooklistDetailPage() {
   const { id } = useParams();
+  const booklistId = String(id || "").trim();
+  return <BooklistDetailContent key={booklistId} booklistId={booklistId} />;
+}
+
+function BooklistDetailContent({ booklistId }: { booklistId: string }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { openPreview } = usePreviewThread();
@@ -73,7 +78,6 @@ export function BooklistDetailPage() {
   );
   const gridClass = useCardGridClass();
 
-  const booklistId = String(id || "").trim();
   const [showEdit, setShowEdit] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showPublish, setShowPublish] = useState(false);

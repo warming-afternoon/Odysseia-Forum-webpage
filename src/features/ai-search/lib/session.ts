@@ -54,6 +54,7 @@ export interface AISearchDisplayMessage {
   usage?: AISearchUsage;
   reasoning?: string;
   trace?: AISearchTraceItem[];
+  traceTruncatedCount?: number;
   threads?: Thread[];
   draws?: AISearchDrawBatch[];
   followups?: AISearchFollowup[];
@@ -72,7 +73,7 @@ interface AISearchConversationState {
   conversations: AISearchConversation[];
   unreadConversationIds: string[];
   runningConversationIds: string[];
-  startConversation: (userMessage: string) => string;
+  startConversation: (userMessage: string) => string | null;
   appendMessage: (conversationId: string, message: AISearchDisplayMessage) => void;
   appendMessages: (conversationId: string, messages: AISearchDisplayMessage[]) => void;
   replaceMessages: (
@@ -138,7 +139,8 @@ const messageSchema = z.object({
       parameters: z.string().max(2_000),
       result: z.string().max(500).optional(),
     }),
-  ])).max(32).optional(),
+  ])).optional(),
+  traceTruncatedCount: z.number().int().nonnegative().optional(),
   threads: z.array(threadSchema).max(36).optional(),
   draws: z.array(z.object({
     configuration: z.string().max(2_000),
@@ -155,7 +157,7 @@ const conversationSchema = z.object({
   title: z.string().min(1).max(100),
   createdAt: z.number(),
   updatedAt: z.number(),
-  messages: z.array(messageSchema).max(48),
+  messages: z.array(messageSchema),
 });
 
 const storedStateSchema = z.object({
@@ -203,10 +205,25 @@ function createConversationId() {
 }
 
 function trimConversationMessages(messages: AISearchDisplayMessage[]) {
-  if (messages.length <= 48) return messages;
-  const tail = messages.slice(-48);
-  const firstCompleteTurn = tail.findIndex((message) => message.role === 'user');
-  return firstCompleteTurn >= 0 ? tail.slice(firstCompleteTurn) : [];
+  const normalized = messages.map((message) => {
+    const omitted = Math.max(0, (message.trace?.length ?? 0) - 32);
+    return omitted ? {
+      ...message,
+      trace: message.trace!.slice(-32),
+      traceTruncatedCount: (message.traceTruncatedCount ?? 0) + omitted,
+    } : message;
+  });
+  if (normalized.length <= 48) return normalized;
+  const tailStart = normalized.length - 48;
+  const firstCompleteTurn = normalized.findIndex((message, index) =>
+    index >= tailStart && message.role === 'user',
+  );
+  if (firstCompleteTurn >= 0) return normalized.slice(firstCompleteTurn);
+  // ponytail: 48 条是软上限；单个长回合必须完整保留，后续运行预算应由 Agent 限制。
+  for (let index = tailStart - 1; index >= 0; index--) {
+    if (normalized[index].role === 'user') return normalized.slice(index);
+  }
+  return normalized;
 }
 
 export function createConversationTitle(message: string) {
@@ -230,7 +247,10 @@ export function loadAISearchConversationState(): StoredConversationState {
         .slice(0, 5)
         .flatMap((conversation) => {
           const parsed = conversationSchema.safeParse(conversation);
-          return parsed.success ? [parsed.data as AISearchConversation] : [];
+          return parsed.success ? [{
+            ...parsed.data,
+            messages: trimConversationMessages(parsed.data.messages as AISearchDisplayMessage[]),
+          } as AISearchConversation] : [];
         });
       const conversationIds = new Set(conversations.map((conversation) => conversation.id));
       const parsed: StoredConversationState = {
@@ -241,15 +261,15 @@ export function loadAISearchConversationState(): StoredConversationState {
         unreadConversationIds: envelope.unreadConversationIds.filter((id) => conversationIds.has(id)),
       };
       storedStateSchema.parse(parsed);
-      if (conversations.length !== envelope.conversations.length) {
-        window.localStorage.setItem(AI_SEARCH_CONVERSATIONS_KEY, JSON.stringify(parsed));
+      if (JSON.stringify(parsed) !== stored) {
+        saveAISearchConversationState(parsed);
       }
       return parsed;
     }
 
-    const legacyMessages = z.array(messageSchema).max(48).parse(
+    const legacyMessages = trimConversationMessages(z.array(messageSchema).parse(
       JSON.parse(window.localStorage.getItem(AI_SEARCH_SESSION_KEY) || '[]'),
-    ) as AISearchDisplayMessage[];
+    ) as AISearchDisplayMessage[]);
     if (legacyMessages.length === 0) return emptyState;
 
     const now = Date.now();
@@ -267,8 +287,9 @@ export function loadAISearchConversationState(): StoredConversationState {
       conversations: [conversation],
       unreadConversationIds: [],
     };
-    window.localStorage.setItem(AI_SEARCH_CONVERSATIONS_KEY, JSON.stringify(migrated));
-    window.localStorage.removeItem(AI_SEARCH_SESSION_KEY);
+    if (saveAISearchConversationState(migrated)) {
+      window.localStorage.removeItem(AI_SEARCH_SESSION_KEY);
+    }
     return migrated;
   } catch {
     window.localStorage.removeItem(AI_SEARCH_CONVERSATIONS_KEY);
@@ -278,11 +299,13 @@ export function loadAISearchConversationState(): StoredConversationState {
 }
 
 function saveAISearchConversationState(state: StoredConversationState) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return false;
   try {
     window.localStorage.setItem(AI_SEARCH_CONVERSATIONS_KEY, JSON.stringify(state));
+    return true;
   } catch {
     // Local Storage 配额不足时保留当前内存会话，不影响继续搜索。
+    return false;
   }
 }
 
@@ -305,6 +328,18 @@ export const useAISearchConversationStore = create<AISearchConversationState>((s
     ...initialState,
     runningConversationIds: [],
     startConversation: (userMessage) => {
+      const state = get();
+      let evictableIndex = -1;
+      for (let index = state.conversations.length - 1; index >= 0; index--) {
+        if (!state.runningConversationIds.includes(state.conversations[index].id)) {
+          evictableIndex = index;
+          break;
+        }
+      }
+      if (state.conversations.length >= 5 && evictableIndex < 0) return null;
+      const retained = state.conversations.filter((_, index) =>
+        state.conversations.length < 5 || index !== evictableIndex,
+      );
       const now = Date.now();
       const conversation: AISearchConversation = {
         id: createConversationId(),
@@ -313,7 +348,7 @@ export const useAISearchConversationStore = create<AISearchConversationState>((s
         updatedAt: now,
         messages: [{ role: 'user', content: userMessage, createdAt: now }],
       };
-      const conversations = [conversation, ...get().conversations].slice(0, 5);
+      const conversations = [conversation, ...retained];
       const conversationIds = new Set(conversations.map((item) => item.id));
       update({
         activeConversationId: conversation.id,
@@ -387,7 +422,8 @@ export const useAISearchConversationStore = create<AISearchConversationState>((s
       update({ activeConversationId: null, conversations: get().conversations });
     },
     markConversationUnread: (conversationId) => {
-      if (get().unreadConversationIds.includes(conversationId)) return;
+      if (get().unreadConversationIds.includes(conversationId) ||
+        !get().conversations.some((conversation) => conversation.id === conversationId)) return;
       update({
         activeConversationId: get().activeConversationId,
         conversations: get().conversations,

@@ -147,10 +147,12 @@ export function useTopBarSearchController({
       const trimmed = nextQuery.trim();
       setSearchInput(trimmed);
       setPersistedDraftQuery(trimmed);
+      const tagLogic = isSearchPage && params.query ? params.tagLogic : getSearchTagLogicPreference();
 
       if (!isSearchPage) {
         const nextParams = new URLSearchParams();
         const draftChannel = getPersistedDraftChannel();
+        if (tagLogic === "or") nextParams.set("tag_logic", "or");
         if (trimmed) nextParams.set("q", trimmed);
         if (params.channel) {
           nextParams.set("channel", params.channel);
@@ -162,7 +164,10 @@ export function useTopBarSearchController({
         );
       } else {
         const isSameSearch = trimmed === params.query;
-        setParams({ query: trimmed, page: 1 });
+        setParams({
+          query: trimmed, page: 1,
+          ...(params.query ? {} : { tagLogic }),
+        });
         if (isSameSearch) dispatchSearchSubmit();
       }
 
@@ -171,7 +176,7 @@ export function useTopBarSearchController({
           query: trimmed,
           channel: params.channel,
           sortMethod: params.sortMethod,
-          tagLogic: params.tagLogic,
+          tagLogic,
           includeTags: params.includeTags,
           excludeTags: params.excludeTags,
         });
@@ -206,6 +211,7 @@ export function useTopBarSearchController({
       if (!isSearchPage) {
         const nextParams = new URLSearchParams();
         const draftChannel = getPersistedDraftChannel();
+        if (getSearchTagLogicPreference() === "or") nextParams.set("tag_logic", "or");
         if (trimmed) nextParams.set("q", trimmed);
         if (params.channel) {
           nextParams.set("channel", params.channel);
@@ -216,7 +222,10 @@ export function useTopBarSearchController({
           `/search${nextParams.toString() ? `?${nextParams.toString()}` : ""}`,
         );
       } else {
-        setParams({ query: trimmed, page: 1 });
+        setParams({
+          query: trimmed, page: 1,
+          ...(params.query ? {} : { tagLogic: getSearchTagLogicPreference() }),
+        });
       }
     },
     [isSearchPage, navigate, params.channel, params.query, setParams],

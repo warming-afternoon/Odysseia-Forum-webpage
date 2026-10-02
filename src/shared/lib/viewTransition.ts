@@ -1,6 +1,7 @@
 import { flushSync } from 'react-dom';
 
 export type ViewTransitionAnim = 'circle' | 'wipe-right' | 'wipe-down';
+let activeTransition: ReturnType<Document['startViewTransition']> | null = null;
 
 /**
  * 通用 View Transition 触发器。
@@ -16,12 +17,16 @@ export function withViewTransition(
   anim: ViewTransitionAnim,
   e?: React.MouseEvent | { clientX: number; clientY: number },
 ) {
-  if (!document.startViewTransition) {
+  if (!document.startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    activeTransition?.skipTransition();
+    activeTransition = null;
+    document.documentElement.removeAttribute('data-theme-transition');
     callback();
     return;
   }
 
   const root = document.documentElement;
+  activeTransition?.skipTransition();
   root.setAttribute('data-theme-transition', anim);
 
   if (e && anim === 'circle') {
@@ -32,8 +37,12 @@ export function withViewTransition(
   const transition = document.startViewTransition(() => {
     flushSync(callback);
   });
+  activeTransition = transition;
 
-  transition.finished.then(() => {
+  const cleanup = () => {
+    if (activeTransition !== transition) return;
     root.removeAttribute('data-theme-transition');
-  });
+    activeTransition = null;
+  };
+  transition.finished.then(cleanup, cleanup);
 }

@@ -9,6 +9,9 @@ export type TargetTags = Schema["TargetTagsResponse"];
 export type CustomTagSnapshot = Schema["CustomTagSnapshotResponse-Output"];
 export type MergePreview = Schema["TagMergePreviewResponse"];
 export type TagTarget = { type: "thread" | "booklist"; id: string };
+type PoolParams = { q: string; category?: number; source?: "custom" | "discord"; selectable: boolean; include_deleted: boolean };
+// ponytail: 本地 OpenAPI 尚未同步完整标签池契约；同步后改用生成的 TagPoolResponse 类型。
+type TagPoolResponse = { results: PoolItem[]; total: number };
 const targetPath = (target: TagTarget) => `/tags/${target.type}/${encodeURIComponent(target.id)}`;
 
 export function tagError(error: unknown): { code?: string; message: string } {
@@ -25,19 +28,13 @@ export function tagError(error: unknown): { code?: string; message: string } {
 export const customTagsApi = {
   role: async () => (await apiClient.get<Schema["UserRole"]>("/meta/role")).data,
   categories: async () => (await apiClient.get<Schema["TagCategoryResponse"][]>("/tags/categories")).data,
-  pool: async (params: { q: string; category?: number; source?: "custom" | "discord"; selectable: boolean; include_deleted: boolean; offset: number }, signal?: AbortSignal) =>
-    (await apiClient.get<PoolItem[]>("/tags", { params, signal })).data,
-  poolAll: async (params: { q: string; category?: number; source?: "custom" | "discord"; selectable: boolean; include_deleted: boolean }, signal?: AbortSignal) => {
-    let offset = 0;
-    const all: PoolItem[] = [];
-    while (true) {
-      const page = (await apiClient.get<PoolItem[]>("/tags", { params: { ...params, offset }, signal })).data;
-      all.push(...page);
-      if (page.length < 100) break;
-      offset += page.length;
-    }
-    return all;
+  pool: async (params: PoolParams, signal?: AbortSignal): Promise<PoolItem[]> => {
+    const { data } = await apiClient.get<TagPoolResponse>("/tags", { params, signal });
+    if (!Array.isArray(data?.results)) throw new Error("标签池接口返回格式错误：缺少 results 数组");
+    return data.results;
   },
+  poolAll: async (params: PoolParams, signal?: AbortSignal): Promise<PoolItem[]> =>
+    customTagsApi.pool(params, signal),
   relations: async () => (await apiClient.get<TagRelation[]>("/tags/relations")).data,
   mergePreview: async (id: string, target_tag_id: string) =>
     (await apiClient.get<MergePreview>(`/tags/${id}/merge-preview`, { params: { target_tag_id } })).data,

@@ -67,6 +67,18 @@ describe('应用壳导航', () => {
     unmount();
   });
 
+  it('筛选与页码变化不重建主滚动区或页面输入', async () => {
+    const { router, unmount } = setup();
+    const main = screen.getByRole('main');
+    const input = screen.getByRole('textbox', { name: '页面输入' });
+    fireEvent.change(input, { target: { value: '尚未提交的输入' } });
+    await act(async () => { await router.navigate('/search?q=新筛选&page=4#results'); });
+    expect(screen.getByRole('main')).toBe(main);
+    expect(screen.getByRole('textbox', { name: '页面输入' })).toBe(input);
+    expect(input).toHaveValue('尚未提交的输入');
+    unmount();
+  });
+
   it('用户主动选择的新焦点不被延迟导航任务覆盖，卸载取消任务', async () => {
     const { router, unmount } = setup();
     act(() => vi.advanceTimersByTime(50));

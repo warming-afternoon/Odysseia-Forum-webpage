@@ -429,6 +429,10 @@ export function AISearchPage() {
       // 如果已配置模型，则立即新建会话并开始执行
       if (settings.baseUrl && settings.model) {
         const conversationId = startConversation(userMessage);
+        if (!conversationId) {
+          toast.info('已有五个会话正在运行，请等待完成或停止一个会话后再新建');
+          return;
+        }
         setSearchParams({ conversation: conversationId }, { replace: true });
         setInput('');
         void executeTurn(conversationId, userMessage, []);
@@ -475,6 +479,10 @@ export function AISearchPage() {
 
     const history = messages;
     const conversationId = activeConversationId || startConversation(userMessage);
+    if (!conversationId) {
+      toast.info('已有五个会话正在运行，请等待完成或停止一个会话后再新建');
+      return;
+    }
     if (activeConversationId) {
       appendMessage(conversationId, { role: 'user', content: userMessage });
     } else {
@@ -700,6 +708,7 @@ export function AISearchPage() {
                         content={message.content}
                         reasoning={message.reasoning}
                         trace={message.trace}
+                        traceTruncatedCount={message.traceTruncatedCount}
                         threads={message.threads || []}
                         draws={message.draws || []}
                         onPreview={openPreview}

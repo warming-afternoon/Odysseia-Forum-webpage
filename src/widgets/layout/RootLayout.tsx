@@ -19,6 +19,9 @@ import { OnboardingManager } from "@/features/onboarding/components/OnboardingMa
 import { ImageViewer } from "@/shared/ui/ImageViewer";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { motion, useAnimationControls } from "motion/react";
+import { usePrefersReducedMotion } from "@/shared/hooks/usePrefersReducedMotion";
+import { motionTransitions } from "@/shared/ui/animation/variants";
 
 /**
  * AppShell — 全站布局骨架
@@ -41,6 +44,9 @@ export function RootLayout() {
   const sidebarCollapsed = useSidebarCollapsedSetting();
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const location = useLocation();
+  const pageAnimation = useAnimationControls();
+  const reduceMotion = usePrefersReducedMotion();
+  const animatedPathRef = useRef(location.pathname);
   const navigate = useNavigate();
   const hasShownResumePromptRef = useRef(false);
   const initialPathnameRef = useRef(location.pathname);
@@ -48,6 +54,16 @@ export function RootLayout() {
   const restoreTargetUrlRef = useRef<string | null>(null);
   const currentUrl = `${location.pathname}${location.search}${location.hash}`;
   const isMobileOpen = mobileOpenUrl === currentUrl;
+  useEffect(() => {
+    const pathChanged = animatedPathRef.current !== location.pathname;
+    animatedPathRef.current = location.pathname;
+    if (reduceMotion) {
+      pageAnimation.set({ opacity: 1 });
+    } else if (pathChanged) {
+      void pageAnimation.start({ opacity: [0.92, 1], transition: motionTransitions.panel });
+    }
+    return () => pageAnimation.stop();
+  }, [location.pathname, pageAnimation, reduceMotion]);
   if (mobileOpenUrl !== null && mobileOpenUrl !== currentUrl) {
     setMobileOpenUrl(null);
   }
@@ -207,7 +223,9 @@ export function RootLayout() {
               sidebarCollapsed ? "" : "rounded-tl-[2.5rem]"
             }`}
           />
-          <main
+          <motion.main
+            initial={false}
+            animate={pageAnimation}
             id="main-scroll-container"
             tabIndex={-1}
             className="relative z-10 h-full overflow-y-auto scroll-smooth pb-20 md:pb-0 focus:outline-hidden flex flex-col [--od-scrollbar-track:var(--od-bg-tertiary)]"
@@ -274,7 +292,7 @@ export function RootLayout() {
             >
               已到达列表底部，正在加载更多内容...
             </div>
-          </main>
+          </motion.main>
         </div>
       </div>
 

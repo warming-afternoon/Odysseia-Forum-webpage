@@ -110,7 +110,9 @@ function TagSelectionDialog({ target, targetLabel, initial, canEdit, onClose, on
   const [conflictPending, setConflictPending] = useState(false);
   const [failures, setFailures] = useState<string[]>([]);
   const existingIds = baseline.tags.map((tag) => tag.id);
-  const readonlyIds = baseline.tags.filter((tag) => !isEditableBinding(tag)).map((tag) => tag.id);
+  const readonlyIds = baseline.tags.filter((tag) =>
+    !isEditableBinding(tag) || (target.type === "thread" && tag.readonly),
+  ).map((tag) => tag.id);
   useEffect(() => {
     const dialog = ref.current!;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { followsApi } from "@/features/follows/api/followsApi";
-import { useFollowedThreads, useFollowsFeed, useToggleThreadFollow } from "@/features/follows/hooks/useFollowsData";
+import { useFollowedThreads, useFollowsFeed, useToggleThreadFollow, useUnfollowThread } from "@/features/follows/hooks/useFollowsData";
 import { followsKeys } from "@/features/follows/lib/queryKeys";
 
 vi.mock("@/features/follows/api/followsApi", () => ({
@@ -64,6 +64,31 @@ describe("useToggleThreadFollow", () => {
     expect(queryClient.getQueryData(followsKeys.state("123456789012345678"))).toBe(
       false,
     );
+  });
+
+  it("菜单关注后从我的关注取消，状态允许再次关注且刷新其他消费者", async () => {
+    vi.mocked(followsApi.followThread).mockResolvedValue();
+    vi.mocked(followsApi.unfollowThread).mockResolvedValue();
+    const { queryClient, wrapper } = createHarness();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result, unmount } = renderHook(() => ({
+      toggle: useToggleThreadFollow(), unfollow: useUnfollowThread(),
+    }), { wrapper });
+    await act(async () => {
+      await result.current.toggle.mutateAsync({ threadId: "101", followed: false });
+      await result.current.unfollow.mutateAsync("101");
+    });
+    expect(queryClient.getQueryData(followsKeys.state("101"))).toBe(false);
+    for (const key of ["search", "discovery", "authors", "booklists", "notifications"]) {
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: [key] });
+    }
+    await act(async () => result.current.toggle.mutateAsync({
+      threadId: "101", followed: queryClient.getQueryData<boolean>(followsKeys.state("101"))!,
+    }));
+    expect(followsApi.followThread).toHaveBeenCalledTimes(2);
+    expect(followsApi.unfollowThread).toHaveBeenCalledTimes(1);
+    unmount();
+    queryClient.clear();
   });
 });
 

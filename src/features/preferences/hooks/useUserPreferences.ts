@@ -18,18 +18,19 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id;
+  const queryKey = ['user-preferences', userId] as const;
 
   const query = useQuery({
-    queryKey: ['user-preferences', userId, options.guildId || 0],
+    queryKey,
     enabled: Boolean(userId),
     retry: (failureCount, error) => {
       if (isNotFoundError(error)) return false;
       return failureCount < 2;
     },
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userId) return null;
       try {
-        const data = await preferencesApi.getByUserId(userId, options);
+        const data = await preferencesApi.getByUserId(userId, options, signal);
         return data;
       } catch (error) {
         if (isNotFoundError(error)) return null;
@@ -40,14 +41,19 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
   });
 
   const saveMutation = useMutation({
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey, exact: true });
+      return { queryKey };
+    },
     mutationFn: async (payload: UserPreferencesUpdateRequest): Promise<UserPreferencesResponse> => {
       if (!userId) {
         throw new Error('User not authenticated');
       }
       return preferencesApi.updateByUserId(userId, payload, options);
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['user-preferences', userId, options.guildId || 0], data);
+    onSuccess: async (data, _variables, submitted) => {
+      await queryClient.cancelQueries({ queryKey: submitted!.queryKey, exact: true });
+      queryClient.setQueryData(submitted!.queryKey, data);
     },
   });
 
