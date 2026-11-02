@@ -10,6 +10,10 @@ import { nativeMessagesApi, type NativeMessage } from './nativeApi';
 import { uploadWorkAttachments } from './attachmentUpload';
 import { WorkImageEditor, type WorkImageEntry } from './WorkImageEditor';
 
+export function workUpdateInput(work: Pick<Work, 'source_platform'>, input: WorkInput): Partial<WorkInput> {
+  return work.source_platform === 'discord' ? { is_nsfw: input.is_nsfw } : input;
+}
+
 function WorkFields({ work, starter, save, pending }: { work?: Work; starter?: NativeMessage; save: (input: WorkInput) => void; pending: boolean }) {
   const [title, setTitle] = useState(work?.title || '');
   const initialDescription = starter?.content ?? work?.description ?? '';
@@ -34,8 +38,9 @@ function WorkFields({ work, starter, save, pending }: { work?: Work; starter?: N
     finally { setUploading(false); }
   }
   return <form onSubmit={submit} className="grid max-w-3xl gap-4">
-    <label className="grid gap-1">作品标题<input required maxLength={100} value={title} onChange={event => setTitle(event.target.value)} className="rounded border bg-transparent p-2" /></label>
-    <label className="grid gap-1">正文<textarea maxLength={4000} rows={10} value={description} onChange={event => setDescription(event.target.value)} className="rounded border bg-transparent p-2" /></label>
+    <label className="grid gap-1">作品标题<input required maxLength={100} readOnly={work?.source_platform === 'discord'} value={title} onChange={event => setTitle(event.target.value)} className="rounded border bg-transparent p-2" /></label>
+    <label className="grid gap-1">正文<textarea maxLength={4000} rows={10} readOnly={work?.source_platform === 'discord'} value={description} onChange={event => setDescription(event.target.value)} className="rounded border bg-transparent p-2" /></label>
+    {work?.source_platform === 'discord' && <p className="text-sm text-(--od-text-secondary)">Discord 来源的标题、正文和图片只从主讨论帖同步；本站仅可调整 NSFW 分类。</p>}
     {work?.source_platform !== 'discord' && <WorkImageEditor entries={entries} change={setEntries} disabled={pending || uploading} />}
 
     <div className="flex gap-5"><label><input type="checkbox" checked={nsfw} onChange={event => setNsfw(event.target.checked)} /> NSFW</label><label><input type="checkbox" checked={abyss} disabled={work?.source_platform === 'discord'} onChange={event => setAbyss(event.target.checked)} /> 深渊</label></div>
@@ -57,7 +62,10 @@ export function WorkEditPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const query = useQuery({ queryKey: [...workKeys.all, 'detail', workId], queryFn: ({ signal }) => worksApi.get(workId, signal), retry: false, refetchInterval: query => { const work = query.state.data; return work && (work.sync_status === 'pending' || (work.source_platform === 'fluxer' && !work.source_thread_id)) ? 3000 : false; } });
-  const mutation = useMutation({ mutationFn: (body: WorkInput) => worksApi.update(workId, body), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: workKeys.all }); navigate(`/works/${encodeURIComponent(workId)}`); } });
+  const mutation = useMutation({ mutationFn: (body: WorkInput) => {
+    if (!query.data || query.error) throw new Error('作品不存在或当前不可见');
+    return worksApi.update(workId, workUpdateInput(query.data, body));
+  }, onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: workKeys.all }); navigate(`/works/${encodeURIComponent(workId)}`); } });
   return <><h2 className="mb-4 text-xl">编辑作品</h2><WorkStatus pending={query.isPending} error={query.error} />{query.data && !query.error && <WorkForm key={query.data.id} work={query.data} save={input => mutation.mutate(input)} pending={mutation.isPending} />}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
 }
 
