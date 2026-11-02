@@ -7,6 +7,8 @@ import { useWorkMember } from './member';
 import { WorkBooklistPicker } from './booklists';
 import { WorkAnnouncements } from './announcements';
 import { WorkThreads } from './threads';
+import { WorkModerationPanel } from './moderation';
+import { WorkTagGovernance } from './tagGovernance';
 import { worksApi } from './api';
 import { workKeys } from './layout';
 import { workError, WorkStatus, WorkReactions } from './components';
@@ -40,8 +42,9 @@ export function WorkDetailPage() {
       <div className="mb-5 flex gap-3"><button disabled={collection.isPending} className="rounded border px-3 py-2" onClick={() => collection.mutate(true)}>加入默认收藏书单</button><button disabled={collection.isPending} className="rounded border px-3 py-2" onClick={() => collection.mutate(false)}>取消收藏</button></div>
       {collection.error && <p role="alert">{workError(collection.error)}</p>}
       <WorkFollowActions workId={workId} /><WorkBooklistPicker workId={workId} /><WorkTasks workId={workId} />
+      <WorkTagGovernance workId={workId} canManage={isAuthor} />
       {!awaitingSource && <><WorkThreads workId={workId} authorId={work.author_id} /><WorkAnnouncements workId={workId} authorId={work.author_id} /></>}
-      {isAuthor && <><button className="my-5 rounded border px-4 py-2" disabled={remove.isPending} onClick={() => { if (window.confirm('隐藏这个作品及其主帖展示？管理员可恢复尚未从来源平台删除的作品。')) remove.mutate(); }}>隐藏作品</button></>}
+      {isAuthor && <>{!awaitingSource && <WorkModerationPanel workId={workId} sourcePlatform={work.source_platform} />}<button className="my-5 rounded border px-4 py-2" disabled={remove.isPending} onClick={() => { if (window.confirm('隐藏这个作品及其主帖展示？管理员可恢复尚未从来源平台删除的作品。')) remove.mutate(); }}>隐藏作品</button></>}
       {remove.error && <p role="alert">{workError(remove.error)}</p>}
     </article>}
   </>;

@@ -2,9 +2,11 @@ import { getForumAuthConfig } from '@/features/auth/api/fluxerAuthApi';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet } from 'react-router-dom';
 import { worksApi } from './api';
+import { useWorkMember } from './member';
 
 export const workKeys = { all: ['works-v2'] as const };
 export function WorksLayout() {
+  const member = useWorkMember();
   return <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
     <header className="mb-6 border-b border-(--od-border) pb-4">
       <h1 className="mb-3 text-2xl font-semibold">作品</h1>
@@ -13,6 +15,7 @@ export function WorksLayout() {
         <Link to="/works/collection">收藏</Link><Link to="/works/booklists">书单</Link>
         <Link to="/works/follows">关注</Link><Link to="/works/notifications">通知</Link>
         <Link to="/works/me">个人页</Link><Link to="/works/new">发布作品</Link>
+        {member.data?.is_admin && <Link to="/works/admin/deleted">管理已隐藏作品</Link>}
         <Link to="/">旧版首页</Link>
       </nav>
     </header>

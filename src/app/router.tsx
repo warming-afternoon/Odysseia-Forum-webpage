@@ -91,6 +91,7 @@ const WorksLayout = lazyPage(() => import("@/features/works/layout"), "WorksLayo
 const WorksSearchPage = lazyPage(() => import("@/features/works/browse"), "WorksSearchPage");
 const WorksDiscoverPage = lazyPage(() => import("@/features/works/browse"), "WorksDiscoverPage");
 const WorksCollectionPage = lazyPage(() => import("@/features/works/browse"), "WorksCollectionPage");
+const DeletedWorksAdminPage = lazyPage(() => import("@/features/works/moderation"), "DeletedWorksAdminPage");
 const WorkDetailPage = lazyPage(() => import("@/features/works/detail"), "WorkDetailPage");
 const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
 
@@ -122,6 +123,7 @@ const appChildren = [
     children: [
       { index: true, element: withSuspense(<WorksSearchPage />) },
       { path: "discover", element: withSuspense(<WorksDiscoverPage />) },
+      { path: "admin/deleted", element: withSuspense(<DeletedWorksAdminPage />) },
       { path: "collection", element: withSuspense(<WorksCollectionPage />) },
       { path: "me", element: withSuspense(<WorkMePage />) },
       { path: "new", element: withSuspense(<WorkCreatePage />) },
