@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { worksApi } from './api';
 import { WorkAuthorFollows } from './authors';
+import { WorkBannerApplications } from './bannerApplications';
 import { workKeys } from './layout';
 import { workError, WorkStatus } from './components';
 
@@ -22,6 +23,6 @@ export function WorkMePage() {
     <label><input type="checkbox" checked={member.data.show_nsfw} disabled={preference.isPending} onChange={event => preference.mutate(event.target.checked)} /> 显示 NSFW 作品</label>
     {preference.isPending && <p role="status">正在更新可见内容…</p>}
     {preference.error && <p role="alert">{workError(preference.error)}</p>}
-    <WorkAuthorFollows />
+    <WorkAuthorFollows /><WorkBannerApplications />
   </section>}</>;
 }

@@ -1,4 +1,5 @@
 import { WorkTasks } from './tasks';
+import { WorkBannerApply } from './bannerApplications';
 import { WorkFollowActions } from './social';
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +44,7 @@ export function WorkDetailPage() {
       {collection.error && <p role="alert">{workError(collection.error)}</p>}
       <WorkFollowActions workId={workId} /><WorkBooklistPicker workId={workId} /><WorkTasks workId={workId} />
       <WorkTagGovernance workId={workId} canManage={isAuthor} />
+      {!awaitingSource && member.data?.id === work.author_id && <WorkBannerApply workId={workId} />}
       {!awaitingSource && <><WorkThreads workId={workId} authorId={work.author_id} /><WorkAnnouncements workId={workId} authorId={work.author_id} /></>}
       {isAuthor && <>{!awaitingSource && <WorkModerationPanel workId={workId} sourcePlatform={work.source_platform} />}<button className="my-5 rounded border px-4 py-2" disabled={remove.isPending} onClick={() => { if (window.confirm('隐藏这个作品及其主帖展示？管理员可恢复尚未从来源平台删除的作品。')) remove.mutate(); }}>隐藏作品</button></>}
       {remove.error && <p role="alert">{workError(remove.error)}</p>}
