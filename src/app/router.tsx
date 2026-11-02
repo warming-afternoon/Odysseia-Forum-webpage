@@ -1,3 +1,4 @@
+import { worksV2Enabled } from "@/shared/config/works";
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { ProtectedRoute } from "@/app/providers/ProtectedRoute";
@@ -86,6 +87,17 @@ const NotFoundPage = lazyPage(
 // 调试页只在 DEV / mock 模式下注册路由；作为独立 chunk 存在，生产环境永远不会被下载
 const TestPage = lazyPage(() => import("@/pages/TestPage"), "TestPage");
 
+const WorksLayout = lazyPage(() => import("@/features/works/layout"), "WorksLayout");
+const WorksSearchPage = lazyPage(() => import("@/features/works/browse"), "WorksSearchPage");
+const WorksDiscoverPage = lazyPage(() => import("@/features/works/browse"), "WorksDiscoverPage");
+const WorksCollectionPage = lazyPage(() => import("@/features/works/browse"), "WorksCollectionPage");
+const WorkDetailPage = lazyPage(() => import("@/features/works/detail"), "WorkDetailPage");
+const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
+
+const WorkMePage = lazyPage(() => import("@/features/works/member"), "WorkMePage");
+
+const WorkCreatePage = lazyPage(() => import("@/features/works/editor"), "WorkCreatePage");
+
 const isDevToolsEnabled =
   import.meta.env.DEV || import.meta.env.VITE_API_MOCKING === "true";
 
@@ -100,6 +112,20 @@ const withSuspense = (node: ReactNode) => (
 );
 
 const appChildren = [
+  ...(worksV2Enabled ? [{
+    path: "works",
+    element: withSuspense(<WorksLayout />),
+    children: [
+      { index: true, element: withSuspense(<WorksSearchPage />) },
+      { path: "discover", element: withSuspense(<WorksDiscoverPage />) },
+      { path: "collection", element: withSuspense(<WorksCollectionPage />) },
+      { path: "me", element: withSuspense(<WorkMePage />) },
+      { path: "new", element: withSuspense(<WorkCreatePage />) },
+      { path: "users/:userId", element: withSuspense(<WorksSearchPage />) },
+      { path: ":workId/edit", element: withSuspense(<WorkEditPage />) },
+      { path: ":workId", element: withSuspense(<WorkDetailPage />) },
+    ],
+  }] : []),
   {
     index: true,
     element: withSuspense(<PlazaPage />),

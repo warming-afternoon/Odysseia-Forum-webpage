@@ -1,3 +1,4 @@
+import { worksV2Enabled } from "@/shared/config/works";
 import { useEffect } from 'react';
 import ServerIcon from '@/assets/images/icon/forum-icon-256.png';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -178,6 +179,7 @@ export function AppSidebar() {
             </h2>
           </div>
           <div className="space-y-0.5">
+            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
             <Link
               to="/"
               className={navItemClass(isActive('/'))}
@@ -339,6 +341,7 @@ export function AppSidebar() {
           </div>
 
           <div className="space-y-0.5">
+            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
             <button
               onClick={clearChannelSelection}
               title={
@@ -363,6 +366,7 @@ export function AppSidebar() {
                   {category.groupName}
                 </div>
                 <div className="space-y-0.5">
+            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
                   {category.channels.map((channel) => {
                     const active = activeChannelId === channel.id;
                     return (
