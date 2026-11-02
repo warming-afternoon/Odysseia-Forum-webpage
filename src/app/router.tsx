@@ -95,8 +95,12 @@ const WorkDetailPage = lazyPage(() => import("@/features/works/detail"), "WorkDe
 const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
 
 const WorkMePage = lazyPage(() => import("@/features/works/member"), "WorkMePage");
+const WorkBooklistsPage = lazyPage(() => import("@/features/works/booklists"), "WorkBooklistsPage");
+const WorkBooklistPage = lazyPage(() => import("@/features/works/booklists"), "WorkBooklistPage");
 
 const WorkCreatePage = lazyPage(() => import("@/features/works/editor"), "WorkCreatePage");
+const WorkFollowsPage = lazyPage(() => import("@/features/works/social"), "WorkFollowsPage");
+const WorkNotificationsPage = lazyPage(() => import("@/features/works/social"), "WorkNotificationsPage");
 
 const isDevToolsEnabled =
   import.meta.env.DEV || import.meta.env.VITE_API_MOCKING === "true";
@@ -121,6 +125,10 @@ const appChildren = [
       { path: "collection", element: withSuspense(<WorksCollectionPage />) },
       { path: "me", element: withSuspense(<WorkMePage />) },
       { path: "new", element: withSuspense(<WorkCreatePage />) },
+      { path: "follows", element: withSuspense(<WorkFollowsPage />) },
+      { path: "notifications", element: withSuspense(<WorkNotificationsPage />) },
+      { path: "booklists", element: withSuspense(<WorkBooklistsPage />) },
+      { path: "booklists/:booklistId", element: withSuspense(<WorkBooklistPage />) },
       { path: "users/:userId", element: withSuspense(<WorksSearchPage />) },
       { path: ":workId/edit", element: withSuspense(<WorkEditPage />) },
       { path: ":workId", element: withSuspense(<WorkDetailPage />) },

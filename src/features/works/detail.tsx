@@ -1,8 +1,11 @@
 import { WorkTasks } from './tasks';
+import { WorkFollowActions } from './social';
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useWorkMember } from './member';
+import { WorkBooklistPicker } from './booklists';
+import { WorkAnnouncements } from './announcements';
 import { WorkThreads } from './threads';
 import { worksApi } from './api';
 import { workKeys } from './layout';
@@ -36,8 +39,8 @@ export function WorkDetailPage() {
       <p className="mb-4 text-sm">浏览 {work.statistics.view_count} · 收藏 {work.statistics.collection_count} · 回复 {work.statistics.reply_count}</p>
       <div className="mb-5 flex gap-3"><button disabled={collection.isPending} className="rounded border px-3 py-2" onClick={() => collection.mutate(true)}>加入默认收藏书单</button><button disabled={collection.isPending} className="rounded border px-3 py-2" onClick={() => collection.mutate(false)}>取消收藏</button></div>
       {collection.error && <p role="alert">{workError(collection.error)}</p>}
-      <WorkTasks workId={workId} />
-      {!awaitingSource && <><WorkThreads workId={workId} authorId={work.author_id} /></>}
+      <WorkFollowActions workId={workId} /><WorkBooklistPicker workId={workId} /><WorkTasks workId={workId} />
+      {!awaitingSource && <><WorkThreads workId={workId} authorId={work.author_id} /><WorkAnnouncements workId={workId} authorId={work.author_id} /></>}
       {isAuthor && <><button className="my-5 rounded border px-4 py-2" disabled={remove.isPending} onClick={() => { if (window.confirm('隐藏这个作品及其主帖展示？管理员可恢复尚未从来源平台删除的作品。')) remove.mutate(); }}>隐藏作品</button></>}
       {remove.error && <p role="alert">{workError(remove.error)}</p>}
     </article>}
