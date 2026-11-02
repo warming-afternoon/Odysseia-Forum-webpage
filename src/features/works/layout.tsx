@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet } from 'react-router-dom';
 import { worksApi } from './api';
 import { useWorkMember } from './member';
+import { WorkStatus } from './components';
 
 export const workKeys = { all: ['works-v2'] as const };
 export function WorksLayout() {
   const member = useWorkMember();
+  if (member.error) return <WorkStatus pending={member.isPending} error={member.error} />;
   return <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
     <header className="mb-6 border-b border-(--od-border) pb-4">
       <h1 className="mb-3 text-2xl font-semibold">作品</h1>

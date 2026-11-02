@@ -30,10 +30,10 @@ export function WorkAnnouncements({ workId, authorId }: { workId: string; author
     : action.announcementId ? worksApi.updateAnnouncement(workId, action.announcementId, action.body!) : worksApi.publishAnnouncement(workId, action.body!),
     onSuccess: async () => { setEditing(null); setCompose(false); await queryClient.invalidateQueries({ queryKey: workKeys.all }); },
   });
-  const own = !!member.data && (member.data.id === authorId || member.data.is_admin);
+  const own = !query.error && !!member.data && (member.data.id === authorId || member.data.is_admin);
   return <section className="my-6 border-t pt-5"><h3 className="text-xl">更新公告</h3>
     {own && <><p className="my-2 text-sm text-(--od-text-secondary)">手动发布会发送一条独立通知。编辑不再通知；历史公告不会向新关注者补发。</p><button disabled={!member.data?.can_speak} onClick={() => setCompose(!compose)} className="rounded border px-4 py-2">撰写公告</button></>}
-    {compose && <AnnouncementForm save={body => mutation.mutate({ body })} pending={mutation.isPending} cancel={() => setCompose(false)} />}
+    {compose && own && <AnnouncementForm save={body => mutation.mutate({ body })} pending={mutation.isPending} cancel={() => setCompose(false)} />}
     <WorkStatus pending={query.isPending} error={query.error} />
     {!query.error && query.data?.items.map(item => <article className="my-4 rounded border p-4" key={item.id}>
       <p className="text-xs text-(--od-text-secondary)">{new Date(item.created_at).toLocaleString()}</p>

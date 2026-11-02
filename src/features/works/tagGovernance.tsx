@@ -27,7 +27,7 @@ export function WorkTagGovernance({ workId, canManage }: { workId: string; canMa
         {tag.binding_id && <div className="mt-2 flex gap-3 text-sm"><button aria-pressed={tag.my_vote === 1} disabled={mutation.isPending} onClick={() => mutation.mutate({ bindingId: tag.binding_id, vote: tag.my_vote === 1 ? 0 : 1 })}>赞同 {tag.upvotes || 0}</button><button aria-pressed={tag.my_vote === -1} disabled={mutation.isPending} onClick={() => mutation.mutate({ bindingId: tag.binding_id, vote: tag.my_vote === -1 ? 0 : -1 })}>反对 {tag.downvotes || 0}</button></div>}
       </>}
     </div>)}</div>{snapshot.data.over_limit && <p className="mt-2 text-sm">当前标签超过数量上限，请先调整后再添加。</p>}{!!snapshot.data.conflicting_pairs?.length && <p className="mt-2 text-sm">当前标签存在互斥冲突，可先移除冲突标签。</p>}</>}
-    <WorkTagPicker label={canManage ? '添加标签' : '申请添加标签'} add={tagId => mutation.mutate({ tagId })} pending={mutation.isPending} />
+    {!snapshot.error && !proposals.error && <WorkTagPicker label={canManage ? '添加标签' : '申请添加标签'} add={tagId => mutation.mutate({ tagId })} pending={mutation.isPending} />}
     {!canManage && <p className="my-2 text-sm text-(--od-text-secondary)">申请由作者或管理审核，可在下方查看处理状态和期限。</p>}
     <h4 className="mt-4 font-semibold">{canManage ? '待审核标签申请' : '我的标签申请'}</h4>
     <WorkStatus pending={proposals.isPending} error={proposals.error} />

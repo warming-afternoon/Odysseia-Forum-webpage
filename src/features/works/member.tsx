@@ -7,7 +7,8 @@ import { workKeys } from './layout';
 import { workError, WorkStatus } from './components';
 
 export function useWorkMember() {
-  return useQuery({ queryKey: [...workKeys.all, 'me'], queryFn: ({ signal }) => worksApi.me(signal), retry: false, staleTime: 0 });
+  const query = useQuery({ queryKey: [...workKeys.all, 'me'], queryFn: ({ signal }) => worksApi.me(signal), retry: false, staleTime: 0 });
+  return { ...query, data: query.error ? undefined : query.data };
 }
 export function WorkMePage() {
   const member = useWorkMember();
@@ -16,7 +17,7 @@ export function WorkMePage() {
     await queryClient.cancelQueries({ queryKey: workKeys.all });
     await queryClient.resetQueries({ queryKey: workKeys.all });
   } });
-  return <><WorkStatus pending={member.isPending} error={member.error} />{member.data && <section className="grid gap-4">
+  return <><WorkStatus pending={member.isPending} error={member.error} />{member.data && !member.error && <section className="grid gap-4">
     <h2 className="text-xl">{member.data.display_name || member.data.username}</h2>
     <Link className="underline" to={`/works/users/${encodeURIComponent(member.data.id)}`}>我的作品</Link>
     <p>当前 Discord 正式成员 · {member.data.can_view_abyss ? '可访问深渊' : '普通区域'}</p>

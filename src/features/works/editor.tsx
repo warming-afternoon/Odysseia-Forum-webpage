@@ -49,7 +49,7 @@ export function WorkForm(props: { work?: Work; save: (input: WorkInput) => void;
   const native = !awaitingSource && props.work?.source_platform === 'fluxer' && !!props.work.source_thread_id;
   const starter = useQuery({ queryKey: [...workKeys.all, 'starter-edit', props.work?.source_thread_id], queryFn: ({ signal }) => nativeMessagesApi.get(props.work!.source_thread_id!, props.work!.source_thread_id!, signal), enabled: native, retry: false });
   if (awaitingSource) return <p role="status">原生主帖正在创建，暂时不能编辑或上传图片。请等待同步完成。</p>;
-  if (native && !starter.data) return <WorkStatus pending={starter.isPending} error={starter.error} />;
+  if (native && (!starter.data || starter.error)) return <WorkStatus pending={starter.isPending} error={starter.error} />;
   return <WorkFields {...props} starter={starter.data} />;
 }
 export function WorkEditPage() {
@@ -58,7 +58,7 @@ export function WorkEditPage() {
   const navigate = useNavigate();
   const query = useQuery({ queryKey: [...workKeys.all, 'detail', workId], queryFn: ({ signal }) => worksApi.get(workId, signal), retry: false, refetchInterval: query => { const work = query.state.data; return work && (work.sync_status === 'pending' || (work.source_platform === 'fluxer' && !work.source_thread_id)) ? 3000 : false; } });
   const mutation = useMutation({ mutationFn: (body: WorkInput) => worksApi.update(workId, body), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: workKeys.all }); navigate(`/works/${encodeURIComponent(workId)}`); } });
-  return <><h2 className="mb-4 text-xl">编辑作品</h2><WorkStatus pending={query.isPending} error={query.error} />{query.data && <WorkForm key={query.data.id} work={query.data} save={input => mutation.mutate(input)} pending={mutation.isPending} />}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
+  return <><h2 className="mb-4 text-xl">编辑作品</h2><WorkStatus pending={query.isPending} error={query.error} />{query.data && !query.error && <WorkForm key={query.data.id} work={query.data} save={input => mutation.mutate(input)} pending={mutation.isPending} />}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
 }
 
 
@@ -70,5 +70,5 @@ export function WorkCreatePage() {
     await queryClient.invalidateQueries({ queryKey: workKeys.all });
     navigate(`/works/${encodeURIComponent(result.work.id)}`);
   } });
-  return <><h2 className="mb-4 text-xl">发布作品</h2><WorkStatus pending={member.isPending} error={member.error} />{member.data && (member.data.can_create_work && member.data.can_speak ? <WorkForm save={input => mutation.mutate(input)} pending={mutation.isPending} /> : <p>发布作品需要当前 Discord 正式成员身份及发言权限。</p>)}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
+  return <><h2 className="mb-4 text-xl">发布作品</h2><WorkStatus pending={member.isPending} error={member.error} />{member.data && !member.error && (member.data.can_create_work && member.data.can_speak ? <WorkForm save={input => mutation.mutate(input)} pending={mutation.isPending} /> : <p>发布作品需要当前 Discord 正式成员身份及发言权限。</p>)}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
 }

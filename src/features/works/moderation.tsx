@@ -42,12 +42,12 @@ export function WorkModerationPanel({ workId, sourcePlatform }: { workId: string
   } });
   function submit(event: FormEvent) { event.preventDefault(); mutation.mutate(undefined); }
   return <section className="my-6 rounded border p-4"><h3 className="mb-3 text-lg">作品管理</h3>
-    {sourcePlatform === 'discord' && <p className="mb-3 text-sm">处罚仅作用于本站与 Fluxer 子卡帖，不改变 Discord 主帖权限。</p>}<form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+    {sourcePlatform === 'discord' && <p className="mb-3 text-sm">处罚仅作用于本站与 Fluxer 子卡帖，不改变 Discord 主帖权限。</p>}{!query.error && <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
       <label className="grid gap-1">用户编号<input required pattern="[0-9]+" value={userId} onChange={event => setUserId(event.target.value)} className="rounded border bg-transparent p-2" /></label>
       <label className="grid gap-1">到期时间（留空为长期）<input type="datetime-local" value={deadline} onChange={event => setDeadline(event.target.value)} className="rounded border bg-transparent p-2" /></label>
       <label className="grid gap-1 sm:col-span-2">原因<input required maxLength={512} value={reason} onChange={event => setReason(event.target.value)} className="rounded border bg-transparent p-2" /></label>
       <button className="w-fit rounded border px-3 py-2" disabled={mutation.isPending || !reason.trim() || !userId.trim()}>禁止在此作品发言与新建子帖</button>
-    </form>
+    </form>}
     <WorkStatus pending={query.isPending} error={query.error} />
     {!query.error && <ul className="my-4 space-y-3">{query.data?.items.map(mute => {
       const expired = !!mute.expires_at && workTime(mute.expires_at).getTime() <= Date.now();
@@ -59,8 +59,8 @@ export function WorkModerationPanel({ workId, sourcePlatform }: { workId: string
     })}</ul>}
     {mutation.isSuccess && <p role="status" className="my-2">操作已提交，帖子权限正在同步。</p>}
     {mutation.error && <p role="alert">{workError(mutation.error)}</p>}
-    <button className="underline" onClick={() => setAuditOpen(!auditOpen)}>{auditOpen ? '收起操作记录' : '查看操作记录'}</button>
-    {auditOpen && <WorkAuditLog workId={workId} />}
+    {!query.error && <button className="underline" onClick={() => setAuditOpen(!auditOpen)}>{auditOpen ? '收起操作记录' : '查看操作记录'}</button>}
+    {auditOpen && !query.error && <WorkAuditLog workId={workId} />}
   </section>;
 }
 

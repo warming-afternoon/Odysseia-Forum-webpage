@@ -53,7 +53,7 @@ export function WorkThreads({ workId, authorId }: { workId: string; authorId: st
     return worksApi.createThread(workId, action.body as { title: string; body: string });
   }, onSuccess: async () => { setEditing(null); setCompose(false); await queryClient.invalidateQueries({ queryKey: workKeys.all }); } });
   const main = query.data?.items.find(thread => thread.role === 'main');
-  const canCreate = member.data?.can_speak && main && !main.locked && !main.archived && !main.initializing;
+  const canCreate = !query.error && member.data?.can_speak && main && !main.locked && !main.archived && !main.initializing;
   return <section className="my-6 border-t pt-5"><h3 className="text-xl">主帖与子卡贴</h3>
     <WorkStatus pending={query.isPending} error={query.error} />
     {!query.error && query.data?.items.map(thread => {
