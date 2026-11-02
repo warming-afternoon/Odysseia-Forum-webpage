@@ -16,3 +16,22 @@ describe('work advanced search contract', () => {
     expect(workTime('2026-11-02T20:30:00+08:00').toISOString()).toBe('2026-11-02T12:30:00.000Z');
   });
 });
+
+describe('Work search keeps negative canonical tag IDs', () => {
+  it('retains a token-only negative ID without Number conversion', () => {
+    expect(buildAdvancedWorkSearch(new URLSearchParams({ q: '-$tagid:9007199254740993123|隐藏$' })).exclude_tag_ids)
+      .toEqual(['9007199254740993123']);
+  });
+  it('merges distinct URL IDs and tokens, preserving both as strings', () => {
+    expect(buildAdvancedWorkSearch(new URLSearchParams({ q: '-$tagid:9007199254740993123|隐藏$', exclude_tag_ids: '22' })).exclude_tag_ids)
+      .toEqual(['9007199254740993123', '22']);
+  });
+  it('deduplicates the same negative ID across a token and the URL', () => {
+    expect(buildAdvancedWorkSearch(new URLSearchParams({ q: '-$tagid:22|标签$', exclude_tag_ids: '22' })).exclude_tag_ids).toEqual(['22']);
+  });
+  it('does not rewrite positive/negative conflict semantics', () => {
+    expect(buildAdvancedWorkSearch(new URLSearchParams({ q: '$tagid:22|标签$ -$tagid:22|标签$' })))
+      .toMatchObject({ include_tag_ids: ['22'], exclude_tag_ids: ['22'] });
+  });
+});
+

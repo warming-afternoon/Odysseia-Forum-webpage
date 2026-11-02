@@ -16,7 +16,7 @@ export function buildAdvancedWorkSearch(params: URLSearchParams, authorId?: stri
     include_tags: merged(tokens.includeTags, params.get('include_tags')),
     exclude_tags: merged(tokens.excludeTags, params.get('exclude_tags')),
     include_tag_ids: merged(tokens.includeTagIds, params.get('tag_id')),
-    exclude_tag_ids: split(params.get('exclude_tag_ids')),
+    exclude_tag_ids: merged(tokens.excludeTagIds, params.get('exclude_tag_ids')),
     include_authors: authorId ? [authorId] : merged(tokens.includeAuthors.filter(value => /^\d+$/.test(value)), params.get('include_authors')),
     exclude_authors: merged(tokens.excludeAuthors.filter(value => /^\d+$/.test(value)), params.get('exclude_authors')),
     channel_ids: tokens.channels,
