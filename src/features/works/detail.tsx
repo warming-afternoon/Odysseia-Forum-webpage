@@ -26,7 +26,13 @@ export function WorkDetailPage() {
   const work = result.data;
   const awaitingSource = !!work && (work.sync_status === 'pending' || (work.source_platform === 'fluxer' && !work.source_thread_id));
   const visibleWorkId = result.error ? undefined : work?.id;
-  useEffect(() => { if (visibleWorkId) void worksApi.view(visibleWorkId).catch(() => undefined); }, [visibleWorkId]);
+  useEffect(() => {
+    if (!visibleWorkId) return;
+    const timer = window.setTimeout(() => {
+      void worksApi.view(visibleWorkId).catch(() => undefined);
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [visibleWorkId]);
   const isAuthor = !!member.data && (member.data.id === work?.author_id || member.data.is_admin);
 
   return <>
