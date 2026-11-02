@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;
+  readonly VITE_WORKS_V2?: string;
+  readonly VITE_WORKS_API_URL?: string;
   readonly VITE_GUILD_ID: string;
   readonly VITE_CLIENT_ID: string;
   readonly VITE_BACKEND_URL: string;

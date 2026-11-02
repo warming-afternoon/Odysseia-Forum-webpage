@@ -1,5 +1,19 @@
 const AUTH_TOKEN_STORAGE_KEY = 'auth_token';
 const authInvalidationListeners = new Set<() => void>();
+let authGeneration = 0;
+
+export interface AuthSessionSnapshot {
+  token: string | null;
+  generation: number;
+}
+
+export function captureAuthSession(): AuthSessionSnapshot {
+  return { token: getStoredAuthToken(), generation: authGeneration };
+}
+
+export function isAuthSessionCurrent(snapshot: AuthSessionSnapshot): boolean {
+  return snapshot.generation === authGeneration && snapshot.token === getStoredAuthToken();
+}
 
 function getLocationHash(): string {
   if (typeof window === 'undefined') return '';
@@ -86,6 +100,7 @@ export function setUseAuthHeader(use: boolean): void {
 }
 
 export function invalidateAuthSession(): void {
+  authGeneration += 1;
   clearStoredAuthToken();
   setUseAuthHeader(false);
   authInvalidationListeners.forEach((listener) => listener());
@@ -93,5 +108,16 @@ export function invalidateAuthSession(): void {
 
 export function subscribeAuthInvalidation(listener: () => void): () => void {
   authInvalidationListeners.add(listener);
-  return () => authInvalidationListeners.delete(listener);
+  // 其他标签页切换账号或退出时，清理本页缓存但保留新的共享凭证。
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === null || (event.key === AUTH_TOKEN_STORAGE_KEY && event.oldValue !== event.newValue)) {
+      authGeneration += 1;
+      listener();
+    }
+  };
+  if (typeof window !== 'undefined') window.addEventListener('storage', onStorage);
+  return () => {
+    authInvalidationListeners.delete(listener);
+    if (typeof window !== 'undefined') window.removeEventListener('storage', onStorage);
+  };
 }

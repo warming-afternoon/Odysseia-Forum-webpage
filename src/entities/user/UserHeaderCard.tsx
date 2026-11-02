@@ -9,9 +9,11 @@ interface UserHeaderCardProps {
 }
 
 export function UserHeaderCard({ user, subtitle, avatarUrl }: UserHeaderCardProps) {
-  const avatar = avatarUrl || (user?.avatar
-    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-    : 'https://cdn.discordapp.com/embed/avatars/0.png');
+  const avatar = avatarUrl || user?.avatar_url || (
+    user?.avatar
+      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+      : 'https://cdn.discordapp.com/embed/avatars/0.png'
+  );
 
   return (
     <div className="px-1">
@@ -25,7 +27,7 @@ export function UserHeaderCard({ user, subtitle, avatarUrl }: UserHeaderCardProp
             Personal Hub
           </p>
           <p className="mt-2 truncate text-[1.5rem] font-semibold tracking-tight text-(--od-text-primary)">
-            {user?.global_name || user?.username || '未登录'}
+            {user?.display_name || user?.global_name || user?.username || '未登录'}
           </p>
           <p className="mt-1 truncate text-sm text-(--od-text-secondary)">@{user?.username || '-'}</p>
           {subtitle && <p className="mt-3 max-w-2xl text-sm leading-6 text-(--od-text-secondary)">{subtitle}</p>}

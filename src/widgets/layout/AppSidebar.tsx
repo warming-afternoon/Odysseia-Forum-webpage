@@ -501,15 +501,17 @@ export function AppSidebar() {
           <div className="flex items-center gap-1">
             <Link
               to="/me"
-              aria-label={`进入 ${user?.global_name || user?.username || 'Guest'} 的个人主页`}
+              aria-label={`进入 ${user?.display_name || user?.global_name || user?.username || 'Guest'} 的个人主页`}
               className="group flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-lg p-2 transition-colors hover:bg-(--od-bg-secondary) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-(--od-accent)"
             >
               <div aria-hidden="true" className="relative h-8 w-8 shrink-0">
                 <img
                   src={
-                    user?.avatar
-                      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-                      : 'https://cdn.discordapp.com/embed/avatars/0.png'
+                    user?.avatar_url || (
+                      user?.avatar
+                        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                        : 'https://cdn.discordapp.com/embed/avatars/0.png'
+                    )
                   }
                   alt=""
                   className="h-full w-full rounded-full object-cover ring-2 ring-white/8"
@@ -518,7 +520,7 @@ export function AppSidebar() {
               </div>
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 <span className="truncate text-xs font-bold text-(--od-text-primary)">
-                  {user?.global_name || user?.username || 'Guest'}
+                  {user?.display_name || user?.global_name || user?.username || 'Guest'}
                 </span>
                 <span className="truncate text-[10px] text-(--od-text-tertiary)">@{user?.username}</span>
               </div>

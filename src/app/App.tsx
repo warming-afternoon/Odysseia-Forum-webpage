@@ -1,11 +1,13 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
+import { InitialPasswordPrompt } from '@/features/auth/components/InitialPasswordPrompt';
+import { useAuthBootstrap } from '@/features/auth/hooks/useAuthBootstrap';
 import { showMascotErrorToast } from '@/features/mascot/lib/mascotToast';
 import { ThemeProvider } from '@/app/themes/ThemeProvider';
 import {
@@ -13,11 +15,7 @@ import {
   reportBrokenThreadThumbnail,
   subscribeThreadThumbnailRepair,
 } from '@/features/threads/lib/thumbnailRepairQueue';
-import {
-  consumeAuthTokenFromHash,
-  hasAuthTokenInHash,
-  subscribeAuthInvalidation,
-} from '@/shared/lib/authSession';
+import { subscribeAuthInvalidation } from '@/shared/lib/authSession';
 import {
   getRateLimitInfo,
   isSilentPreloadRateLimit,
@@ -93,7 +91,7 @@ if (import.meta.env.DEV) {
 }
 
 export function App() {
-  const [isAuthBootstrapPending, setIsAuthBootstrapPending] = useState(() => hasAuthTokenInHash());
+  const isAuthBootstrapPending = useAuthBootstrap(queryClient);
 
   useEffect(() => {
     bindThumbnailRepairQueryClient(queryClient);
@@ -105,11 +103,12 @@ export function App() {
 
   useEffect(() => {
     return subscribeAuthInvalidation(() => {
-      void queryClient.cancelQueries({ queryKey: ['auth'] });
+      // 账号切换时所有用户数据均可能变化，取消旧请求并移除其缓存。
+      void queryClient.cancelQueries();
+      queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' });
       queryClient.setQueryData(['auth'], { loggedIn: false });
-      void queryClient.cancelQueries({ queryKey: ['custom-tags'] }).then(() => {
-        queryClient.removeQueries({ queryKey: ['custom-tags'] });
-      });
+      // 本标签页稍后写入新 token；其他标签页的 storage 事件则已更新 token。
+      queueMicrotask(() => void queryClient.invalidateQueries({ queryKey: ['auth'] }));
     });
   }, []);
 
@@ -122,15 +121,6 @@ export function App() {
 
   }, []);
 
-  useEffect(() => {
-    if (!isAuthBootstrapPending) return;
-
-    const token = consumeAuthTokenFromHash();
-    const refresh = token
-      ? queryClient.invalidateQueries({ queryKey: ['auth'] })
-      : Promise.resolve();
-    void refresh.finally(() => setIsAuthBootstrapPending(false));
-  }, [isAuthBootstrapPending]);
 
   return (
     <ErrorBoundary>
@@ -144,7 +134,10 @@ export function App() {
               </div>
             </div>
           ) : (
-            <RouterProvider router={router} />
+            <>
+              <RouterProvider router={router} />
+              <InitialPasswordPrompt />
+            </>
           )}
           {createPortal(
             <Toaster

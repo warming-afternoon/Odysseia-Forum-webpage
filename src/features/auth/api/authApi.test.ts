@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getForumAuthConfig } from "./fluxerAuthApi";
+
 import { authApi } from "./authApi";
 import { apiClient } from "@/shared/api/client";
 import {
@@ -9,7 +11,7 @@ import {
 } from "@/shared/lib/authSession";
 
 vi.mock("@/shared/api/client", () => ({
-  apiClient: { get: vi.fn() },
+  apiClient: { get: vi.fn(), post: vi.fn() },
 }));
 
 vi.mock("@/shared/lib/authSession", () => ({
@@ -18,11 +20,14 @@ vi.mock("@/shared/lib/authSession", () => ({
   setUseAuthHeader: vi.fn(),
 }));
 
+vi.mock("./fluxerAuthApi", () => ({ getForumAuthConfig: vi.fn() }));
+
 const mockedGet = vi.mocked(apiClient.get);
 const mockedGetToken = vi.mocked(getStoredAuthToken);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "legacy", fluxer_api_url: null });
 });
 
 describe("authApi.checkAuth", () => {
@@ -118,5 +123,64 @@ describe("authApi.logout", () => {
     await expect(authApi.logout()).rejects.toThrow("network down");
 
     expect(invalidateAuthSession).toHaveBeenCalledTimes(1);
+  });
+});
+
+
+describe("Fluxer 统一鉴权", () => {
+  it("直接使用 Bearer，不先尝试旧 cookie", async () => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({
+      mode: "fluxer",
+      fluxer_api_url: "https://fluxer.example/api/v1",
+    });
+    mockedGetToken.mockReturnValue("flx_" + "a".repeat(36));
+    mockedGet.mockResolvedValueOnce({ data: { loggedIn: true, user: { id: "123" } } });
+    expect((await authApi.checkAuth()).loggedIn).toBe(true);
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(mockedGet).toHaveBeenCalledWith("/auth/checkauth", {
+      headers: { Authorization: "Bearer flx_" + "a".repeat(36) },
+      skipAuthHeader: true,
+    });
+  });
+
+  it("撤销请求失败仍清理浏览器会话", async () => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({
+      mode: "fluxer",
+      fluxer_api_url: "https://fluxer.example/api/v1",
+    });
+    mockedGetToken.mockReturnValue("flx_" + "b".repeat(36));
+    vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("unavailable"));
+    await expect(authApi.logout()).rejects.toThrow("unavailable");
+    expect(invalidateAuthSession).toHaveBeenCalled();
+    expect(apiClient.post).toHaveBeenCalledWith(
+      "/auth/logout",
+      {},
+      expect.objectContaining({
+        headers: { Authorization: "Bearer flx_" + "b".repeat(36) },
+      }),
+    );
+  });
+
+  it("旧账号登出完成后不清除刚切换的新账号", async () => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({
+      mode: "fluxer",
+      fluxer_api_url: "https://fluxer.example/api/v1",
+    });
+    let finish!: () => void;
+    mockedGetToken.mockReturnValue("old-token");
+    vi.mocked(apiClient.post).mockImplementationOnce(() => new Promise((resolve) => {
+      finish = () => resolve({ data: {} });
+    }));
+    const pending = authApi.logout();
+    await Promise.resolve();
+    mockedGetToken.mockReturnValue("new-token");
+    finish();
+    await pending;
+    expect(invalidateAuthSession).not.toHaveBeenCalled();
+    expect(apiClient.post).toHaveBeenCalledWith(
+      "/auth/logout",
+      {},
+      expect.objectContaining({ headers: { Authorization: "Bearer old-token" } }),
+    );
   });
 });

@@ -1,3 +1,4 @@
+import { worksV2Enabled } from '@/shared/config/works';
 import axios from 'axios';
 import { getStoredAuthToken, invalidateAuthSession, isUsingAuthHeader } from '@/shared/lib/authSession';
 
@@ -37,6 +38,10 @@ export const parseWithSafeSnowflakeIds = (data: unknown) => {
   }
 };
 
+export function forumAuthBaseUrl(v1Url: string, useV2: boolean): string {
+  return useV2 ? v1Url.replace(/\/v1\/?$/, '/v2') : v1Url;
+}
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 10000,
@@ -46,6 +51,7 @@ export const apiClient = axios.create({
 
 // 请求拦截器：当检测到跨域 cookie 被拦截时，回退到 Authorization header
 apiClient.interceptors.request.use((config) => {
+  if (config.url?.startsWith('/auth/')) config.baseURL = forumAuthBaseUrl(API_URL, worksV2Enabled);
   if (isUsingAuthHeader() && !config.skipAuthHeader) {
     const token = getStoredAuthToken();
     if (token) {
@@ -62,7 +68,12 @@ apiClient.interceptors.response.use(
     // 只在非认证检查的请求中处理401
     // 认证检查接口应该由组件自己处理
     if (error.response?.status === 401 && !error.config.url?.includes('/auth/checkauth')) {
-      invalidateAuthSession();
+      const currentToken = getStoredAuthToken();
+      const requestAuthorization = error.config?.headers?.Authorization;
+      // 旧账号的迟到响应不能注销已经切换到的新账号。
+      if (!currentToken || requestAuthorization === `Bearer ${currentToken}`) {
+        invalidateAuthSession();
+      }
     }
     return Promise.reject(error);
   }

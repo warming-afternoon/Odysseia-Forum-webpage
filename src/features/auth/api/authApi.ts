@@ -1,3 +1,4 @@
+import { getForumAuthConfig } from './fluxerAuthApi';
 import { apiClient } from '@/shared/api/client';
 import type { User } from '@/entities/user/types';
 import {
@@ -15,6 +16,11 @@ export interface AuthResponse {
 
 export const authApi = {
   checkAuth: async (): Promise<AuthResponse> => {
+    const config = await getForumAuthConfig();
+    if (config.mode === 'fluxer') {
+      setUseAuthHeader(true);
+      return await tryFallbackToAuthHeader();
+    }
     try {
       const response = await apiClient.get<AuthResponse>('/auth/checkauth', {
         skipAuthHeader: true,
@@ -34,13 +40,21 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
+    const logoutToken = getStoredAuthToken();
     try {
+      if ((await getForumAuthConfig()).mode === 'fluxer') {
+        await apiClient.post('/auth/logout', {}, {
+          headers: logoutToken ? { Authorization: `Bearer ${logoutToken}` } : {},
+          skipAuthHeader: true,
+        });
+        return;
+      }
       await apiClient.get('/auth/logout', {
         // 当前后端会 302 到前端 HTML；登出已成功，不能再交给全局 JSON 解析器。
         transformResponse: (data) => data,
       });
     } finally {
-      invalidateAuthSession();
+      if (getStoredAuthToken() === logoutToken) invalidateAuthSession();
     }
   },
 };

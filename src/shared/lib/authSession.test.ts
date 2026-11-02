@@ -29,6 +29,22 @@ describe('authSession 失效入口', () => {
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
+
+  it('其他标签页更换凭据时通知本页，不删除新凭据', () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeAuthInvalidation(listener);
+    localStorage.setItem('auth_token', 'new-token');
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'auth_token',
+      oldValue: 'old-token',
+      newValue: 'new-token',
+    }));
+    expect(listener).toHaveBeenCalledOnce();
+    expect(getStoredAuthToken()).toBe('new-token');
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+  });
 });
 
 describe('extractAuthTokenFromHash', () => {

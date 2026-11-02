@@ -1,8 +1,11 @@
+import { worksV2Enabled } from '@/shared/config/works';
 import { useEffect, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { DiscordIcon } from "@/shared/ui/icons/DiscordIcon";
+import { FluxerLoginForm } from "@/features/auth/components/FluxerLoginForm";
+import { getForumAuthConfig } from "@/features/auth/api/fluxerAuthApi";
 import { useAuth, useRefreshAuth } from "@/features/auth/hooks/useAuth";
 import { apiClient } from "@/shared/api/client";
 import forumIcon from "@/assets/images/icon/forum-icon-256.png";
@@ -26,6 +29,14 @@ export function LoginPage({ preview = false }: LoginPageProps) {
   const { isAuthenticated } = useAuth();
   const refreshAuth = useRefreshAuth();
   const openImageViewer = useImageViewerStore((state) => state.open);
+  const [fluxerEnabled, setFluxerEnabled] = useState(false);
+  useEffect(() => {
+    if (!preview) {
+      void getForumAuthConfig()
+        .then((config) => setFluxerEnabled(config.mode === "fluxer"))
+        .catch(() => {});
+    }
+  }, [preview]);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(true);
   const [isSharpening, setIsSharpening] = useState(true);
@@ -155,10 +166,10 @@ export function LoginPage({ preview = false }: LoginPageProps) {
     }
 
     // 真实环境：跳转到后端 OAuth 登录接口
-    const loginPath = import.meta.env.DEV ? "/auth/login-dev" : "/auth/login";
+    const loginPath = import.meta.env.DEV && !fluxerEnabled ? "/auth/login-dev" : "/auth/login";
     const backendUrl =
       import.meta.env.VITE_BACKEND_URL || "https://forum.shimmerday.top";
-    const finalUrl = `${backendUrl}/v1${loginPath}`;
+    const finalUrl = `${backendUrl}/${worksV2Enabled ? "v2" : "v1"}${loginPath}`;
 
     setTimeout(() => {
       window.location.href = finalUrl;
@@ -262,7 +273,7 @@ export function LoginPage({ preview = false }: LoginPageProps) {
               </div>
 
               <p className="mb-10 text-(--od-text-secondary)">
-                使用 Discord 登录以继续
+                {fluxerEnabled ? "使用社区账号登录以继续" : "使用 Discord 登录以继续"}
               </p>
 
               <label className="mb-5 flex items-start gap-3 rounded-2xl border border-(--od-border) bg-[color-mix(in_srgb,var(--od-bg-secondary)_64%,transparent)] px-4 py-3 text-left text-sm text-(--od-text-secondary)">
@@ -298,6 +309,16 @@ export function LoginPage({ preview = false }: LoginPageProps) {
                   <span className="text-lg">使用 Discord 登录</span>
                 </div>
               </button>
+
+              {fluxerEnabled && (
+                <FluxerLoginForm
+                  enabled={hasAcceptedRules && !preview}
+                  onSuccess={async () => {
+                    await refreshAuth();
+                    navigate("/", { replace: true });
+                  }}
+                />
+              )}
 
               {/* 说明文字 */}
               <p className="mt-8 text-sm text-(--od-text-tertiary)">

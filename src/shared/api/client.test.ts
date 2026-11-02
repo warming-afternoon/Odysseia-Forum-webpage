@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseWithSafeSnowflakeIds } from './client';
+import { apiClient, forumAuthBaseUrl, parseWithSafeSnowflakeIds } from './client';
+import { getStoredAuthToken, setStoredAuthToken, setUseAuthHeader } from '@/shared/lib/authSession';
 
 describe('parseWithSafeSnowflakeIds', () => {
   it('把超出 Number 精度的 ID 字段转成字符串', () => {
@@ -60,5 +61,34 @@ describe('parseWithSafeSnowflakeIds', () => {
     expect(parseWithSafeSnowflakeIds(response)).toBe(response);
     expect(spy).toHaveBeenCalledOnce();
     spy.mockRestore();
+  });
+});
+
+describe('迟到的认证错误', () => {
+  it('旧账号请求返回 401 时不会清除新账号的令牌', async () => {
+    let rejectRequest!: (error: unknown) => void;
+    const originalAdapter = apiClient.defaults.adapter;
+    apiClient.defaults.adapter = (config) => new Promise((_resolve, reject) => {
+      rejectRequest = () => reject({ response: { status: 401 }, config });
+    });
+    setStoredAuthToken('old-token');
+    setUseAuthHeader(true);
+    const request = apiClient.get('/private').catch((error) => error);
+    await Promise.resolve();
+    await Promise.resolve();
+    setStoredAuthToken('new-token');
+    rejectRequest({});
+    await request;
+    expect(getStoredAuthToken()).toBe('new-token');
+    apiClient.defaults.adapter = originalAdapter;
+    localStorage.clear();
+  });
+});
+
+describe('feature-gated auth protocol', () => {
+  it('selects V2 auth without changing V1 business API URLs', () => {
+    expect(forumAuthBaseUrl('/api/v1', true)).toBe('/api/v2');
+    expect(forumAuthBaseUrl('https://forum.example/v1/', true)).toBe('https://forum.example/v2');
+    expect(forumAuthBaseUrl('/api/v1', false)).toBe('/api/v1');
   });
 });
