@@ -14,11 +14,16 @@ vi.mock("@/shared/api/client", () => ({
   apiClient: { get: vi.fn(), post: vi.fn() },
 }));
 
-vi.mock("@/shared/lib/authSession", () => ({
-  getStoredAuthToken: vi.fn(),
-  invalidateAuthSession: vi.fn(),
-  setUseAuthHeader: vi.fn(),
-}));
+vi.mock("@/shared/lib/authSession", () => {
+  const read = vi.fn();
+  return {
+    getStoredAuthToken: read,
+    captureAuthSession: vi.fn(() => ({ token: read(), generation: 0 })),
+    isAuthSessionCurrent: vi.fn((session: { token: string | null }) => session.token === read()),
+    invalidateAuthSession: vi.fn(),
+    setUseAuthHeader: vi.fn(),
+  };
+});
 
 vi.mock("./fluxerAuthApi", () => ({ getForumAuthConfig: vi.fn() }));
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { apiClient, forumAuthBaseUrl, parseWithSafeSnowflakeIds } from './client';
-import { getStoredAuthToken, setStoredAuthToken, setUseAuthHeader } from '@/shared/lib/authSession';
+import { getStoredAuthToken, invalidateAuthSession, setStoredAuthToken, setUseAuthHeader } from '@/shared/lib/authSession';
 
 describe('parseWithSafeSnowflakeIds', () => {
   it('把超出 Number 精度的 ID 字段转成字符串', () => {
@@ -90,5 +90,36 @@ describe('feature-gated auth protocol', () => {
     expect(forumAuthBaseUrl('/api/v1', true)).toBe('/api/v2');
     expect(forumAuthBaseUrl('https://forum.example/v1/', true)).toBe('https://forum.example/v2');
     expect(forumAuthBaseUrl('/api/v1', false)).toBe('/api/v1');
+  });
+});
+
+
+describe('共享client的401代际边界', () => {
+  it('旧logout401不能清除同token的新generation，当前401仍清理', async () => {
+    for (const replaceGeneration of [true, false]) {
+      invalidateAuthSession(); setStoredAuthToken('same-token'); setUseAuthHeader(true);
+      let rejectRequest!: () => void;
+      const request = apiClient.post('/auth/logout', {}, {
+        skipAuthHeader: true, headers: { Authorization: 'Bearer same-token' },
+        adapter: config => new Promise((_resolve, reject) => {
+          rejectRequest = () => reject({ response: { status: 401 }, config });
+        }),
+      }).catch(error => error);
+      await vi.waitFor(() => expect(rejectRequest).toBeTypeOf('function'));
+      if (replaceGeneration) { invalidateAuthSession(); setStoredAuthToken('same-token'); setUseAuthHeader(true); }
+      rejectRequest(); await request;
+      expect(getStoredAuthToken()).toBe(replaceGeneration ? 'same-token' : null);
+    }
+    invalidateAuthSession();
+  });
+  it('保留auth/checkauth排除与无凭据公共请求条件，不误退出当前用户', async () => {
+    for (const path of ['/auth/checkauth', '/public']) {
+      invalidateAuthSession(); setStoredAuthToken('current-token'); setUseAuthHeader(false);
+      await apiClient.get(path, { skipAuthHeader: true, adapter: async config => {
+        throw Object.assign(new Error('fake unauthorized'), { response: { status: 401 }, config });
+      } }).catch(() => undefined);
+      expect(getStoredAuthToken()).toBe('current-token');
+    }
+    invalidateAuthSession();
   });
 });

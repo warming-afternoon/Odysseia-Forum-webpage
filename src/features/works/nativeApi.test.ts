@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { nativeClient, nativeMessagesApi } from './nativeApi';
 import { getForumAuthConfig } from '@/features/auth/api/fluxerAuthApi';
-import { getStoredAuthToken } from '@/shared/lib/authSession';
+import { invalidateAuthSession, setStoredAuthToken } from '@/shared/lib/authSession';
 vi.mock('@/features/auth/api/fluxerAuthApi', () => ({ getForumAuthConfig: vi.fn() }));
-vi.mock('@/shared/lib/authSession', () => ({ getStoredAuthToken: vi.fn(), invalidateAuthSession: vi.fn(), isUsingAuthHeader: vi.fn() }));
 
 describe('direct Fluxer message transport', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.mocked(getStoredAuthToken).mockReturnValue('flx_native');
+    invalidateAuthSession();
+    setStoredAuthToken('flx_native');
     vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: 'fluxer', fluxer_api_url: 'https://chat.example/api/v1/' });
   });
   it('uses the configured native prefix and raw Fluxer token without Forum cookies', async () => {

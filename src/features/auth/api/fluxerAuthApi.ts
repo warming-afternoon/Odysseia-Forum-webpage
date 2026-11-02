@@ -148,6 +148,8 @@ export function getPasswordSetupProof(): string | null {
 
 /** 只向后端指定的 Fluxer API 发送原生登录或账号请求。 */
 export async function fluxerRequest<T>(path: string, body?: unknown, token?: string): Promise<T> {
+  const initialSession = captureAuthSession();
+  const authenticatedSession = token && token === initialSession.token ? initialSession : undefined;
   const config = await getForumAuthConfig();
   if (
     config.mode !== 'fluxer' ||
@@ -158,18 +160,27 @@ export async function fluxerRequest<T>(path: string, body?: unknown, token?: str
     throw new Error('Fluxer 登录尚未启用');
   }
   const url = `${config.fluxer_api_url.replace(/\/$/, '')}${path}`;
-  const send = (captcha?: string) => fetch(url, {
-    method: body === undefined ? 'GET' : 'POST',
-    credentials: 'omit',
-    redirect: 'error',
-    signal: AbortSignal.timeout(20000),
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(captcha ? { 'X-Captcha-Token': captcha } : {}),
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+  const send = async (captcha?: string) => {
+    if (authenticatedSession && !isAuthSessionCurrent(authenticatedSession)) {
+      throw Object.assign(new Error('账号已切换，请重新操作'), { code: 'AUTH_SESSION_CHANGED' });
+    }
+    const response = await fetch(url, {
+      method: body === undefined ? 'GET' : 'POST',
+      credentials: 'omit',
+      redirect: 'error',
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(captcha ? { 'X-Captcha-Token': captcha } : {}),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    if (response.status === 401 && authenticatedSession && isAuthSessionCurrent(authenticatedSession)) {
+      invalidateAuthSession();
+    }
+    return response;
+  };
   let response = await send();
   let data = await response.json();
   if (!response.ok && data.captcha_provider === 'altcha' && data.altcha_challenge) {

@@ -151,3 +151,71 @@ describe('Fluxer 登录凭证', () => {
     expect(api.getPasswordSetupProof()).toBeNull();
   });
 });
+
+describe('受保护原生 fetch 的会话失效边界', () => {
+  const token = (letter: string) => 'flx_' + letter.repeat(36);
+  const configuration = { data: { mode: 'fluxer', fluxer_api_url: 'https://native.invalid/api/v1' } };
+  it.each([false, true])('当前带token请求401清理会话，非JSON=%s也不遗漏', async (invalidJson) => {
+    client.get.mockResolvedValue(configuration);
+    const session = await import('@/shared/lib/authSession');
+    session.setStoredAuthToken(token('A'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 401, ok: false, json: async () => {
+      if (invalidJson) throw new SyntaxError('fake non-JSON');
+      return { message: 'fake unauthorized' };
+    } }));
+    const api = await import('./fluxerAuthApi');
+    await expect(api.fluxerRequest('/users/@me/discord-password', {}, token('A'))).rejects.toThrow();
+    expect(session.getStoredAuthToken()).toBeNull();
+  });
+  it('无token密码/MFA或显式其它token的401不能清掉B', async () => {
+    client.get.mockResolvedValue(configuration);
+    const session = await import('@/shared/lib/authSession');
+    session.setStoredAuthToken(token('B'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 401, ok: false, json: async () => ({ message: 'fake unauthorized' }) }));
+    const api = await import('./fluxerAuthApi');
+    for (const [path, credential] of [['/auth/login', undefined], ['/auth/login/mfa/totp', undefined], ['/users/@me/sudo/webauthn/authentication-options', token('X')]] as const) {
+      await expect(api.fluxerRequest(path, {}, credential)).rejects.toThrow();
+      expect(session.getStoredAuthToken()).toBe(token('B'));
+    }
+  });
+  it('旧A的401不会清掉B或同token的新generation', async () => {
+    client.get.mockResolvedValue(configuration);
+    const session = await import('@/shared/lib/authSession');
+    const api = await import('./fluxerAuthApi');
+    for (const replacement of ['B', 'A']) {
+      session.invalidateAuthSession(); session.setStoredAuthToken(token('A'));
+      let complete!: (value: unknown) => void;
+      const fetcher = vi.fn().mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+      vi.stubGlobal('fetch', fetcher);
+      const pending = api.fluxerRequest('/users/@me/discord-password', {}, token('A'));
+      await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+      session.invalidateAuthSession(); session.setStoredAuthToken(token(replacement));
+      complete({ status: 401, ok: false, json: async () => ({ message: 'fake unauthorized' }) });
+      await expect(pending).rejects.toThrow();
+      expect(session.getStoredAuthToken()).toBe(token(replacement));
+    }
+  });
+  it('等待配置期间切换账号则不发受保护请求', async () => {
+    let complete!: (value: unknown) => void;
+    client.get.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+    const session = await import('@/shared/lib/authSession');
+    session.setStoredAuthToken(token('A'));
+    const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+    const api = await import('./fluxerAuthApi');
+    const pending = api.fluxerRequest('/users/@me/discord-password', {}, token('A'));
+    session.invalidateAuthSession(); session.setStoredAuthToken(token('B')); complete(configuration);
+    await expect(pending).rejects.toMatchObject({ code: 'AUTH_SESSION_CHANGED' });
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(session.getStoredAuthToken()).toBe(token('B'));
+  });
+  it('403或服务故障不误清当前会话', async () => {
+    client.get.mockResolvedValue(configuration);
+    const session = await import('@/shared/lib/authSession'); session.setStoredAuthToken(token('A'));
+    const api = await import('./fluxerAuthApi');
+    for (const status of [403, 500]) {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status, ok: false, json: async () => ({ message: 'fake error' }) }));
+      await expect(api.fluxerRequest('/users/@me/discord-password', {}, token('A'))).rejects.toThrow();
+      expect(session.getStoredAuthToken()).toBe(token('A'));
+    }
+  });
+});

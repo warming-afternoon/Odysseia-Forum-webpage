@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { parseWithSafeSnowflakeIds } from '@/shared/api/client';
-import { getStoredAuthToken } from '@/shared/lib/authSession';
+import { captureAuthSession, invalidateAuthSession, isAuthSessionCurrent, type AuthSessionSnapshot } from '@/shared/lib/authSession';
 import type { AnnouncementInput, Page, ThreadRef, Work, WorkAnnouncement, WorkBanner, WorkNotification, WorkTask, WorkBooklist, WorkBooklistDetail, WorkInput, WorkMember, WorkQuery } from './types';
 
 export function workApiBaseUrl(v1Url: string): string {
@@ -11,10 +11,19 @@ export const worksClient = axios.create({
   timeout: 15000,
   transformResponse: [parseWithSafeSnowflakeIds],
 });
+const requestSessions = new WeakMap<object, AuthSessionSnapshot>();
 worksClient.interceptors.request.use((config) => {
-  const token = getStoredAuthToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const session = captureAuthSession();
+  requestSessions.set(config, session);
+  if (session.token) config.headers.Authorization = `Bearer ${session.token}`;
   return config;
+});
+worksClient.interceptors.response.use(response => response, error => {
+  const session = error.config && requestSessions.get(error.config);
+  if (error.response?.status === 401 && session?.token && isAuthSessionCurrent(session)) {
+    invalidateAuthSession();
+  }
+  return Promise.reject(error);
 });
 const id = encodeURIComponent;
 export const worksApi = {

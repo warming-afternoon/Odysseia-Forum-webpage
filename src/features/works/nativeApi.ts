@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getForumAuthConfig } from '@/features/auth/api/fluxerAuthApi';
-import { getStoredAuthToken } from '@/shared/lib/authSession';
+import { captureAuthSession, invalidateAuthSession, isAuthSessionCurrent, type AuthSessionSnapshot } from '@/shared/lib/authSession';
 import { parseWithSafeSnowflakeIds } from '@/shared/api/client';
 
 export interface NativeMessage {
@@ -10,14 +10,24 @@ export interface NativeMessage {
   reactions?: { emoji: { id?: string | null; name?: string | null }; count: number }[];
 }
 export const nativeClient = axios.create({ timeout: 20000, withCredentials: false, transformResponse: [parseWithSafeSnowflakeIds] });
+const requestSessions = new WeakMap<object, AuthSessionSnapshot>();
 nativeClient.interceptors.request.use(async config => {
+  const session = captureAuthSession();
   const auth = await getForumAuthConfig();
+  if (!isAuthSessionCurrent(session)) throw new axios.CanceledError('登录会话已变化');
   if (auth.mode !== 'fluxer' || !auth.fluxer_api_url) throw new Error('Fluxer 原生内容服务未启用');
-  const token = getStoredAuthToken();
-  if (!token) throw new Error('需要 Fluxer 登录');
+  if (!session.token) throw new Error('需要 Fluxer 登录');
+  requestSessions.set(config, session);
   config.baseURL = auth.fluxer_api_url.replace(/\/$/, '');
-  config.headers.Authorization = token;
+  config.headers.Authorization = session.token;
   return config;
+});
+nativeClient.interceptors.response.use(response => response, error => {
+  const session = error.config && requestSessions.get(error.config);
+  if (error.response?.status === 401 && session?.token && isAuthSessionCurrent(session)) {
+    invalidateAuthSession();
+  }
+  return Promise.reject(error);
 });
 export const nativeMessagesApi = {
   get: async (channelId: string, messageId: string, signal?: AbortSignal) => (await nativeClient.get<NativeMessage>(`/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(messageId)}`, { signal })).data,

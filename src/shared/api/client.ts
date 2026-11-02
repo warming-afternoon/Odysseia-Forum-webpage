@@ -1,6 +1,6 @@
 import { worksV2Enabled } from '@/shared/config/works';
 import axios from 'axios';
-import { getStoredAuthToken, invalidateAuthSession, isUsingAuthHeader } from '@/shared/lib/authSession';
+import { captureAuthSession, getStoredAuthToken, invalidateAuthSession, isAuthSessionCurrent, isUsingAuthHeader, type AuthSessionSnapshot } from '@/shared/lib/authSession';
 
 const DEFAULT_API_URL = 'http://localhost:10810/v1';
 const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
@@ -50,10 +50,13 @@ export const apiClient = axios.create({
 });
 
 // 请求拦截器：当检测到跨域 cookie 被拦截时，回退到 Authorization header
+const requestSessions = new WeakMap<object, AuthSessionSnapshot>();
 apiClient.interceptors.request.use((config) => {
+  const session = captureAuthSession();
+  requestSessions.set(config, session);
   if (config.url?.startsWith('/auth/')) config.baseURL = forumAuthBaseUrl(API_URL, worksV2Enabled);
   if (isUsingAuthHeader() && !config.skipAuthHeader) {
-    const token = getStoredAuthToken();
+    const token = session.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -67,7 +70,8 @@ apiClient.interceptors.response.use(
   (error) => {
     // 只在非认证检查的请求中处理401
     // 认证检查接口应该由组件自己处理
-    if (error.response?.status === 401 && !error.config.url?.includes('/auth/checkauth')) {
+    const session = error.config && requestSessions.get(error.config);
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/checkauth') && session && isAuthSessionCurrent(session)) {
       const currentToken = getStoredAuthToken();
       const requestAuthorization = error.config?.headers?.Authorization;
       // 旧账号的迟到响应不能注销已经切换到的新账号。

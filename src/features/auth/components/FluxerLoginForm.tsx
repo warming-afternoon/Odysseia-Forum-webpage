@@ -1,5 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { acceptFluxerToken, fluxerRequest, type FluxerLoginResult } from '../api/fluxerAuthApi';
+import { captureAuthSession, isAuthSessionCurrent, type AuthSessionSnapshot } from '@/shared/lib/authSession';
+
+interface LoginAttempt {
+  session: AuthSessionSnapshot;
+}
 
 interface FluxerLoginFormProps {
   enabled: boolean;
@@ -15,10 +20,24 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [ipTicket, setIpTicket] = useState<string | null>(null);
+  const attemptRef = useRef<LoginAttempt | null>(null);
+  useEffect(() => () => { attemptRef.current = null; }, []);
 
-  const finish = async (result: FluxerLoginResult) => {
+  const isCurrentAttempt = (attempt: LoginAttempt) =>
+    attemptRef.current === attempt && isAuthSessionCurrent(attempt.session);
+
+  const resetAttempt = () => {
+    attemptRef.current = null;
+    setChallenge(null);
+    setIpTicket(null);
+    setCode('');
+  };
+
+  const finish = async (result: FluxerLoginResult, attempt: LoginAttempt) => {
+    if (!isCurrentAttempt(attempt)) return;
     if (result.token) {
-      acceptFluxerToken(result.token);
+      acceptFluxerToken(result.token, attempt.session);
+      resetAttempt();
       setPassword('');
       await onSuccess();
     } else if (result.mfa && result.ticket) {
@@ -32,14 +51,22 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!enabled || busy) return;
+    const attempt = challenge ? attemptRef.current : { session: captureAuthSession() };
+    if (!attempt || (challenge && !isCurrentAttempt(attempt))) {
+      resetAttempt();
+      setError('登录状态已变化，请重新登录');
+      return;
+    }
+    attemptRef.current = attempt;
     setBusy(true);
     setError('');
     try {
       await finish(await fluxerRequest<FluxerLoginResult>(
         challenge ? '/auth/login/mfa/totp' : '/auth/login',
         challenge ? { ticket: challenge.ticket, code } : { login, password },
-      ));
+      ), attempt);
     } catch (reason) {
+      if (!isCurrentAttempt(attempt)) return;
       const data = (reason as {
         data?: { ip_authorization_required?: boolean; ticket?: string };
       })?.data;
@@ -57,18 +84,26 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
 
   const pollIp = async () => {
     if (!ipTicket || busy) return;
+    const attempt = attemptRef.current;
+    if (!attempt || !isCurrentAttempt(attempt)) {
+      resetAttempt();
+      setError('登录状态已变化，请重新登录');
+      return;
+    }
     setBusy(true);
     try {
       const result = await fluxerRequest<FluxerLoginResult & { completed: boolean }>(
         `/auth/ip-authorization/poll?ticket=${encodeURIComponent(ipTicket)}`,
       );
+      if (!isCurrentAttempt(attempt)) return;
       if (result.completed) {
-        await finish(result);
+        await finish(result, attempt);
         setIpTicket(null);
       } else {
         setError('尚未收到邮件确认，请完成验证后重试。');
       }
     } catch (reason) {
+      if (!isCurrentAttempt(attempt)) return;
       setError(reason instanceof Error ? reason.message : '验证失败');
     } finally {
       setBusy(false);
@@ -77,6 +112,12 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
 
   const passkey = async () => {
     if (!challenge?.ticket || busy) return;
+    const attempt = attemptRef.current;
+    if (!attempt || !isCurrentAttempt(attempt)) {
+      resetAttempt();
+      setError('登录状态已变化，请重新登录');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -84,19 +125,22 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
         '/auth/login/mfa/webauthn/authentication-options',
         { ticket: challenge.ticket },
       );
+      if (!isCurrentAttempt(attempt)) return;
       if (!PublicKeyCredential.parseRequestOptionsFromJSON) {
         throw new Error('当前浏览器不支持此安全密钥流程，请使用验证器或更新浏览器');
       }
       const credential = await navigator.credentials.get({
         publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(options),
       }) as PublicKeyCredential | null;
+      if (!isCurrentAttempt(attempt)) return;
       if (!credential) throw new Error('安全密钥验证已取消');
       await finish(await fluxerRequest<FluxerLoginResult>('/auth/login/mfa/webauthn', {
         ticket: challenge.ticket,
         challenge: options.challenge,
         response: credential.toJSON(),
-      }));
+      }), attempt);
     } catch (reason) {
+      if (!isCurrentAttempt(attempt)) return;
       setError(reason instanceof Error ? reason.message : '验证失败');
     } finally {
       setBusy(false);
@@ -172,8 +216,7 @@ export function FluxerLoginForm({ enabled, onSuccess }: FluxerLoginFormProps) {
         <button
           type="button"
           onClick={() => {
-            setChallenge(null);
-            setCode('');
+            resetAttempt();
           }}
           className="text-sm"
         >

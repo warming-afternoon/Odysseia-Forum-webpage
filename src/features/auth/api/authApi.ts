@@ -3,6 +3,8 @@ import { apiClient } from '@/shared/api/client';
 import type { User } from '@/entities/user/types';
 import {
   getStoredAuthToken,
+  captureAuthSession,
+  isAuthSessionCurrent,
   invalidateAuthSession,
   setUseAuthHeader,
 } from '@/shared/lib/authSession';
@@ -40,9 +42,12 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    const logoutToken = getStoredAuthToken();
+    const session = captureAuthSession();
+    const logoutToken = session.token;
     try {
-      if ((await getForumAuthConfig()).mode === 'fluxer') {
+      const config = await getForumAuthConfig();
+      if (!isAuthSessionCurrent(session)) return;
+      if (config.mode === 'fluxer') {
         await apiClient.post('/auth/logout', {}, {
           headers: logoutToken ? { Authorization: `Bearer ${logoutToken}` } : {},
           skipAuthHeader: true,
@@ -52,9 +57,11 @@ export const authApi = {
       await apiClient.get('/auth/logout', {
         // 当前后端会 302 到前端 HTML；登出已成功，不能再交给全局 JSON 解析器。
         transformResponse: (data) => data,
+        headers: logoutToken ? { Authorization: `Bearer ${logoutToken}` } : {},
+        skipAuthHeader: true,
       });
     } finally {
-      if (getStoredAuthToken() === logoutToken) invalidateAuthSession();
+      if (isAuthSessionCurrent(session)) invalidateAuthSession();
     }
   },
 };

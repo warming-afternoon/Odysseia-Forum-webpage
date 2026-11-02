@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { worksApi, worksClient, workApiBaseUrl } from './api';
-import { getStoredAuthToken } from '@/shared/lib/authSession';
+import { invalidateAuthSession, setStoredAuthToken } from '@/shared/lib/authSession';
 
-vi.mock('@/shared/lib/authSession', () => ({ getStoredAuthToken: vi.fn(), invalidateAuthSession: vi.fn(), isUsingAuthHeader: vi.fn() }));
 
 describe('V2 work transport', () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => { vi.restoreAllMocks(); invalidateAuthSession(); });
   it('keeps V2 URLs alongside relative and absolute V1 deployment URLs', () => {
     expect(workApiBaseUrl('/api/v1')).toBe('/api/v2');
     expect(workApiBaseUrl('https://forum.example/v1/')).toBe('https://forum.example/v2');
   });
   it('always attaches the current Fluxer bearer, independent of legacy cookie fallback', async () => {
-    vi.mocked(getStoredAuthToken).mockReturnValue('flx_current');
+    setStoredAuthToken('flx_current');
     let authorization: unknown;
     await worksClient.get('/works', { adapter: async config => {
       authorization = config.headers.Authorization;
