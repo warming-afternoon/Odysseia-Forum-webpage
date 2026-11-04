@@ -4,10 +4,10 @@ This Compose target builds the Forum SPA as a static image. It is intended for t
 
 ## Build inputs
 
-- Build image: `node:24.11.1-alpine3.22`
+- Build image: `public.ecr.aws/docker/library/node:24.14.0-alpine3.22` (pinned manifest digest).
 - Package manager: `pnpm 9.15.9`
-- Runtime image: `nginx:1.28.0-alpine3.22`
-- The dependency lockfile is installed with `--frozen-lockfile`.
+- Runtime image: `public.ecr.aws/docker/library/nginx:1.29.3-alpine` (pinned manifest digest; Alpine 3.22).
+- The dependency lockfile is installed with `--frozen-lockfile`. The base images are the Docker Official Images mirrored in Amazon ECR Public and are pinned by manifest digest, so Docker Hub is not needed for the base layers.
 - Vite builds in `test` mode. The Docker context excludes `.env*`, `.git`, `node_modules`, and local build output, so developer or production env files are not baked into the image.
 
 Compose supplies same-origin API paths (`/v1`, `/v2`), enables Works V2, and disables mock/devtools flags. `VITE_BACKEND_URL` selects the test Forum origin used by the login redirect. These are public build-time values; never pass credentials as Vite variables because Vite embeds them in browser assets.
@@ -23,7 +23,7 @@ docker compose up -d --no-build
 docker compose ps
 ```
 
-The default image tag is `odysseia-forum-webpage:2.3.13-test`. The only published port is `127.0.0.1:8081` on the VPS. Change `WEB_PORT` only if that loopback port is already occupied. Set `VITE_BACKEND_URL` at build time if the test Forum origin differs; rebuild after changing it. The container runs as UID/GID 101, drops Linux capabilities, has a read-only root filesystem, and writes only to `/tmp` tmpfs.
+The default image tag is `odysseia-forum-webpage:2.3.13-test`. The service uses Docker's existing default `bridge` network to avoid allocating a new subnet. Its only published port is `127.0.0.1:8081` on the VPS. Before using it on a host, check that the default bridge has no untrusted workload endpoints; this static service does not need to reach the Forum API directly. Change `WEB_PORT` only if that loopback port is already occupied. Set `VITE_BACKEND_URL` at build time if the test Forum origin differs; rebuild after changing it. The container runs as UID/GID 101, drops Linux capabilities, has a read-only root filesystem, and writes only to `/tmp` tmpfs.
 
 Check the service locally on the VPS:
 
