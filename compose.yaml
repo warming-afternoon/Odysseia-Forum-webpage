@@ -14,6 +14,7 @@ services:
         VITE_USE_MOCK: "false"
         VITE_API_MOCKING: "false"
         VITE_SHOW_DEVTOOLS: "false"
+    network_mode: bridge
     ports:
       - "127.0.0.1:${WEB_PORT:-8081}:8080"
     restart: unless-stopped

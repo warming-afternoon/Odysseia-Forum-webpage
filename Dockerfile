@@ -1,5 +1,5 @@
 # Build-time-only configuration. Keep base images and the package manager version pinned.
-FROM node:24.11.1-alpine3.22 AS build
+FROM public.ecr.aws/docker/library/node:24.14.0-alpine3.22@sha256:76db75ca7e7da9148ae42c92d9be12d12a8d7b03e171f18339355d8078d644a0 AS build
 
 ARG PNPM_VERSION=9.15.9
 ARG VITE_API_URL=/v1
@@ -27,7 +27,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm exec tsc -b && pnpm exec vite build --mode test
 
-FROM nginx:1.28.0-alpine3.22 AS runtime
+FROM public.ecr.aws/docker/library/nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14 AS runtime
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
