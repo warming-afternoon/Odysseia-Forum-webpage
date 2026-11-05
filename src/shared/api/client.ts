@@ -1,13 +1,26 @@
 import { worksV2Enabled } from '@/shared/config/works';
-import axios from 'axios';
-import { captureAuthSession, getStoredAuthToken, invalidateAuthSession, isAuthSessionCurrent, isUsingAuthHeader, type AuthSessionSnapshot } from '@/shared/lib/authSession';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
+import { AuthVerificationUnavailableError, FeatureNotMigratedError } from './featureMigration';
+import { showFeatureMigrationNotice } from '@/shared/lib/featureMigrationNotice';
+import {
+  captureAuthSession,
+  getStoredAuthToken,
+  invalidateAuthSession,
+  isAuthSessionCurrent,
+  isUsingAuthHeader,
+  subscribeAuthInvalidation,
+  type AuthSessionSnapshot,
+} from '@/shared/lib/authSession';
 
 const DEFAULT_API_URL = 'http://localhost:10810/v1';
 const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 // 在生产环境下如果未配置 VITE_API_URL，则给出警告，避免悄悄回退到本地地址
 if (!import.meta.env.VITE_API_URL && import.meta.env.MODE === 'production') {
-  console.warn('[API] VITE_API_URL is not set in production; falling back to default URL:', DEFAULT_API_URL);
+  console.warn(
+    '[API] VITE_API_URL is not set in production; falling back to default URL:',
+    DEFAULT_API_URL,
+  );
 }
 
 // 【状态更新：2026-04-21】后端已开始逐步将 Snowflake ID 转换为原生字符串（如 thread_id, guild_id）。
@@ -51,9 +64,11 @@ export const apiClient = axios.create({
 
 // 请求拦截器：当检测到跨域 cookie 被拦截时，回退到 Authorization header
 const requestSessions = new WeakMap<object, AuthSessionSnapshot>();
+const requestHeaderPreferences = new WeakMap<object, boolean>();
 apiClient.interceptors.request.use((config) => {
   const session = captureAuthSession();
   requestSessions.set(config, session);
+  requestHeaderPreferences.set(config, isUsingAuthHeader());
   if (config.url?.startsWith('/auth/')) config.baseURL = forumAuthBaseUrl(API_URL, worksV2Enabled);
   if (isUsingAuthHeader() && !config.skipAuthHeader) {
     const token = session.token;
@@ -64,21 +79,180 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+type Verification = 'valid' | 'invalid' | 'unavailable';
+type CredentialMode = 'bearer' | 'cookie';
+const VERIFIED_SESSION_TTL_MS = 3 * 60 * 1000;
+let verifiedSession:
+  | {
+      session: AuthSessionSnapshot;
+      mode: CredentialMode;
+      headerPreference: boolean;
+      expiresAt: number;
+    }
+  | undefined;
+subscribeAuthInvalidation(() => {
+  verifiedSession = undefined;
+});
+const sameSession = (a: AuthSessionSnapshot, b: AuthSessionSnapshot) =>
+  a.generation === b.generation && a.token === b.token;
+const isAuthCheckRequest = (config: InternalAxiosRequestConfig) =>
+  config.url?.split(/[?#]/, 1)[0] === '/auth/checkauth';
+const credentialMode = (
+  config: InternalAxiosRequestConfig,
+  session: AuthSessionSnapshot,
+): CredentialMode | null => {
+  if (config.headers.Authorization)
+    return session.token && config.headers.Authorization === `Bearer ${session.token}`
+      ? 'bearer'
+      : null;
+  return config.withCredentials !== false ? 'cookie' : null;
+};
+const isRequestAuthCurrent = (config: InternalAxiosRequestConfig, session: AuthSessionSnapshot) =>
+  isAuthSessionCurrent(session) && requestHeaderPreferences.get(config) === isUsingAuthHeader();
+let pendingVerification:
+  | {
+      session: AuthSessionSnapshot;
+      mode: CredentialMode;
+      headerPreference: boolean;
+      promise: Promise<Verification>;
+    }
+  | undefined;
+
+function legacyBusinessPath(config: InternalAxiosRequestConfig): string | null {
+  if (!worksV2Enabled) return null;
+  try {
+    const base = new URL(API_URL, window.location.href);
+    const prefix = base.pathname.replace(/\/$/, '');
+    const target = new URL(apiClient.getUri(config), window.location.href);
+    if (
+      !prefix.endsWith('/v1') ||
+      target.origin !== base.origin ||
+      !target.pathname.startsWith(`${prefix}/`)
+    )
+      return null;
+    const path = target.pathname.slice(prefix.length);
+    return /^\/(?:preferences|meta|search|authors|author-follows|follows|notifications|banner|collection|booklist|tags|discovery|fetch-images)(?:\/|$)/.test(
+      path,
+    )
+      ? path
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function verifyCurrentSession(
+  session: AuthSessionSnapshot,
+  mode: CredentialMode,
+  headerPreference: boolean,
+): Promise<Verification> {
+  if (
+    verifiedSession &&
+    sameSession(verifiedSession.session, session) &&
+    verifiedSession.mode === mode &&
+    verifiedSession.headerPreference === headerPreference &&
+    performance.now() < verifiedSession.expiresAt
+  ) {
+    return Promise.resolve('valid');
+  }
+  if (
+    pendingVerification &&
+    sameSession(pendingVerification.session, session) &&
+    pendingVerification.mode === mode &&
+    pendingVerification.headerPreference === headerPreference
+  ) {
+    return pendingVerification.promise;
+  }
+  // This auth route is excluded from the business branch, preventing recursion.
+  const promise: Promise<Verification> = apiClient
+    .get('/auth/checkauth', {
+      skipAuthHeader: true,
+      headers:
+        mode === 'bearer' && session.token ? { Authorization: `Bearer ${session.token}` } : {},
+    })
+    .then(
+      ({ data }) =>
+        data?.loggedIn === true ? 'valid' : data?.loggedIn === false ? 'invalid' : 'unavailable',
+      (error) => (error.response?.status === 401 ? 'invalid' : 'unavailable'),
+    );
+  const pending = { session, mode, headerPreference, promise };
+  pendingVerification = pending;
+  void promise.finally(() => {
+    if (pendingVerification === pending) pendingVerification = undefined;
+  });
+  return promise;
+}
+
 // 响应拦截器
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    const session = requestSessions.get(response.config);
+    const mode = session && credentialMode(response.config, session);
+    if (
+      isAuthCheckRequest(response.config) &&
+      session &&
+      mode &&
+      isRequestAuthCurrent(response.config, session)
+    ) {
+      if (response.data?.loggedIn === true) {
+        verifiedSession = {
+          session,
+          mode,
+          headerPreference: isUsingAuthHeader(),
+          expiresAt: performance.now() + VERIFIED_SESSION_TTL_MS,
+        };
+      } else {
+        verifiedSession = undefined;
+      }
+    }
+    return response;
+  },
+  async (error) => {
     // 只在非认证检查的请求中处理401
     // 认证检查接口应该由组件自己处理
     const session = error.config && requestSessions.get(error.config);
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/checkauth') && session && isAuthSessionCurrent(session)) {
+    if (
+      error.config &&
+      isAuthCheckRequest(error.config) &&
+      session &&
+      isRequestAuthCurrent(error.config, session) &&
+      credentialMode(error.config, session)
+    )
+      verifiedSession = undefined;
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes('/auth/checkauth') &&
+      session &&
+      isRequestAuthCurrent(error.config, session)
+    ) {
       const currentToken = getStoredAuthToken();
       const requestAuthorization = error.config?.headers?.Authorization;
-      // 旧账号的迟到响应不能注销已经切换到的新账号。
-      if (!currentToken || requestAuthorization === `Bearer ${currentToken}`) {
+      // A cookie request can coexist with a stored token; it still needs V2 verification.
+      const currentBearer = currentToken && requestAuthorization === `Bearer ${currentToken}`;
+      const cookieRequest =
+        !requestAuthorization &&
+        !error.config.skipAuthHeader &&
+        error.config.withCredentials !== false;
+      const path = legacyBusinessPath(error.config);
+      if (path && (currentBearer || cookieRequest)) {
+        const verification = await verifyCurrentSession(
+          session,
+          currentBearer ? 'bearer' : 'cookie',
+          isUsingAuthHeader(),
+        );
+        if (!isRequestAuthCurrent(error.config, session)) return Promise.reject(error);
+        if (verification === 'valid') {
+          showFeatureMigrationNotice(session, path);
+          return Promise.reject(new FeatureNotMigratedError());
+        }
+        if (verification === 'unavailable')
+          return Promise.reject(new AuthVerificationUnavailableError());
+        invalidateAuthSession();
+      } else if (!currentToken || currentBearer) {
+        // 旧账号的迟到响应不能注销已经切换到的新账号。
         invalidateAuthSession();
       }
     }
     return Promise.reject(error);
-  }
+  },
 );

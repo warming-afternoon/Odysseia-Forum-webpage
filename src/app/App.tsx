@@ -1,3 +1,8 @@
+import {
+  isFeatureNotMigratedError,
+  isAuthVerificationUnavailableError,
+} from '@/shared/api/featureMigration';
+import { FeatureMigrationNotice } from '@/shared/ui/FeatureMigrationNotice';
 import axios from 'axios';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -42,6 +47,8 @@ const queryClient = new QueryClient({
         return;
       }
 
+      if (isFeatureNotMigratedError(error) || isAuthVerificationUnavailableError(error)) return;
+
       const rateLimit = getRateLimitInfo(error);
       if (rateLimit) {
         if (!isSilentPreloadRateLimit(error)) notifyRateLimit(rateLimit);
@@ -51,12 +58,15 @@ const queryClient = new QueryClient({
       if (isTagsChangedError(error)) {
         toast.error('标签已发生变化，请刷新候选后重新选择。', {
           id: 'tags-changed',
-          action: { label: '刷新候选', onClick: () => {
-            void refreshTagCandidates(queryClient).then(
-              () => toast.success('候选已刷新，请移除失效条件后重新选择。'),
-              () => toast.error('候选刷新失败，请稍后重试。'),
-            );
-          } },
+          action: {
+            label: '刷新候选',
+            onClick: () => {
+              void refreshTagCandidates(queryClient).then(
+                () => toast.success('候选已刷新，请移除失效条件后重新选择。'),
+                () => toast.error('候选刷新失败，请稍后重试。'),
+              );
+            },
+          },
         });
         return;
       }
@@ -118,9 +128,7 @@ export function App() {
       mascotStore.reset();
       mascotStore.markWelcomed();
     }
-
   }, []);
-
 
   return (
     <ErrorBoundary>
@@ -137,6 +145,7 @@ export function App() {
             <>
               <RouterProvider router={router} />
               <InitialPasswordPrompt />
+              <FeatureMigrationNotice />
             </>
           )}
           {createPortal(

@@ -1,3 +1,7 @@
+import {
+  isFeatureNotMigratedError,
+  isAuthVerificationUnavailableError,
+} from '@/shared/api/featureMigration';
 import axios from 'axios';
 import {
   getRateLimitInfo,
@@ -14,13 +18,13 @@ export function formatRateLimitMessage(info: RateLimitInfo, now = Date.now()) {
 }
 
 export function extractErrorMessage(error: unknown, fallback = '操作未完成，请稍后再试') {
+  if (isFeatureNotMigratedError(error) || isAuthVerificationUnavailableError(error))
+    return error.message;
   if (axios.isAxiosError(error)) {
     const rateLimit = getRateLimitInfo(error);
     if (rateLimit) return formatRateLimitMessage(rateLimit);
     const responseMessage =
-      error.response?.data?.message ||
-      error.response?.data?.detail ||
-      error.response?.data?.error;
+      error.response?.data?.message || error.response?.data?.detail || error.response?.data?.error;
 
     if (typeof responseMessage === 'string' && responseMessage.trim()) {
       return responseMessage.trim();

@@ -32,6 +32,9 @@ const mockedGetToken = vi.mocked(getStoredAuthToken);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedGet.mockReset();
+  mockedGetToken.mockReset();
+  mockedGetToken.mockReturnValue(null);
   vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "legacy", fluxer_api_url: null });
 });
 
@@ -51,7 +54,7 @@ describe("authApi.checkAuth", () => {
 
   it("cookie 无效且本地无 token 时返回未登录", async () => {
     mockedGet.mockResolvedValueOnce({ data: { loggedIn: false } });
-    mockedGetToken.mockReturnValueOnce(null);
+    mockedGetToken.mockReturnValue(null);
 
     const result = await authApi.checkAuth();
 
@@ -65,7 +68,7 @@ describe("authApi.checkAuth", () => {
       .mockResolvedValueOnce({
         data: { loggedIn: true, user: { id: "2", username: "fallback" } },
       });
-    mockedGetToken.mockReturnValueOnce("stored-token");
+    mockedGetToken.mockReturnValue("stored-token");
 
     const result = await authApi.checkAuth();
 
@@ -83,7 +86,7 @@ describe("authApi.checkAuth", () => {
       .mockResolvedValueOnce({
         data: { loggedIn: true, user: { id: "3", username: "recovered" } },
       });
-    mockedGetToken.mockReturnValueOnce("stored-token");
+    mockedGetToken.mockReturnValue("stored-token");
 
     const result = await authApi.checkAuth();
 
@@ -93,7 +96,7 @@ describe("authApi.checkAuth", () => {
 
   it("cookie 请求失败且没有本地 token 时保留网络错误", async () => {
     mockedGet.mockRejectedValueOnce(new Error("network down"));
-    mockedGetToken.mockReturnValueOnce(null);
+    mockedGetToken.mockReturnValue(null);
 
     await expect(authApi.checkAuth()).rejects.toThrow("network down");
   });
@@ -102,7 +105,7 @@ describe("authApi.checkAuth", () => {
     mockedGet
       .mockRejectedValueOnce(new Error("network down"))
       .mockRejectedValueOnce(new Error("token expired"));
-    mockedGetToken.mockReturnValueOnce("stale-token");
+    mockedGetToken.mockReturnValue("stale-token");
 
     await expect(authApi.checkAuth()).rejects.toThrow("token expired");
     expect(setUseAuthHeader).not.toHaveBeenCalled();
@@ -187,5 +190,50 @@ describe("Fluxer 统一鉴权", () => {
       {},
       expect.objectContaining({ headers: { Authorization: "Bearer old-token" } }),
     );
+  });
+});
+
+
+describe("真实认证失败与业务迁移错误分流", () => {
+  it.each(["401", "false"])("真实认证 %s 清理当前 token", async kind => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "fluxer", fluxer_api_url: "https://fluxer.example/api/v1" });
+    mockedGetToken.mockReturnValue("expired-token");
+    if (kind === "401") mockedGet.mockRejectedValueOnce({ response: { status: 401 } });
+    else mockedGet.mockResolvedValueOnce({ data: { loggedIn: false } });
+    await authApi.checkAuth().catch(() => undefined);
+    expect(invalidateAuthSession).toHaveBeenCalledOnce();
+  });
+  it.each([403, 500, 503, "network"])("认证检查 %s 不误清会话", async status => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "fluxer", fluxer_api_url: "https://fluxer.example/api/v1" });
+    mockedGetToken.mockReturnValue("current-token");
+    mockedGet.mockRejectedValueOnce(status === "network" ? new Error("offline") : { response: { status } });
+    await authApi.checkAuth().catch(() => undefined);
+    expect(invalidateAuthSession).not.toHaveBeenCalled();
+  });
+  it("旧账号的认证拒绝不会清除新账号", async () => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "fluxer", fluxer_api_url: "https://fluxer.example/api/v1" });
+    let reject!: (error: unknown) => void;
+    mockedGetToken.mockReturnValue("old-token");
+    mockedGet.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail; }));
+    const request = authApi.checkAuth().catch(() => undefined);
+    await vi.waitFor(() => expect(reject).toBeTypeOf("function"));
+    mockedGetToken.mockReturnValue("new-token"); reject({ response: { status: 401 } });
+    await request; expect(invalidateAuthSession).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("异常 200 认证响应不等于明确退出", () => {
+  it.each([undefined, null, {}, "html", { loggedIn: null }, { loggedIn: "false" }])("原生鉴权异常响应 %j 保留 token", async data => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: "fluxer", fluxer_api_url: "https://fluxer.example/api/v1" });
+    mockedGetToken.mockReturnValue("current-token");
+    mockedGet.mockResolvedValueOnce({ data });
+    await expect(authApi.checkAuth()).rejects.toThrow("登录状态响应无效");
+    expect(invalidateAuthSession).not.toHaveBeenCalled();
+  });
+  it("cookie 鉴权异常响应不回退成未登录", async () => {
+    mockedGetToken.mockReturnValue("current-token"); mockedGet.mockResolvedValueOnce({ data: {} });
+    await expect(authApi.checkAuth()).rejects.toThrow("登录状态响应无效");
+    expect(mockedGet).toHaveBeenCalledOnce(); expect(invalidateAuthSession).not.toHaveBeenCalled();
   });
 });

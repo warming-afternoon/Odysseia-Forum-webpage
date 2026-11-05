@@ -1,3 +1,4 @@
+import { isFeatureNotMigratedError } from '@/shared/api/featureMigration';
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -23,7 +24,7 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
     queryKey: ['user-preferences', userId, options.guildId || 0],
     enabled: Boolean(userId),
     retry: (failureCount, error) => {
-      if (isNotFoundError(error)) return false;
+      if (isNotFoundError(error) || isFeatureNotMigratedError(error)) return false;
       return failureCount < 2;
     },
     queryFn: async () => {
@@ -51,10 +52,7 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
     },
   });
 
-  const isFirstTime = useMemo(
-    () => query.isSuccess && !query.data,
-    [query.isSuccess, query.data],
-  );
+  const isFirstTime = useMemo(() => query.isSuccess && !query.data, [query.isSuccess, query.data]);
 
   return {
     user,

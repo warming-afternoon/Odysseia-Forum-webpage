@@ -18,26 +18,20 @@ export interface AuthResponse {
 
 export const authApi = {
   checkAuth: async (): Promise<AuthResponse> => {
-    const config = await getForumAuthConfig();
-    if (config.mode === 'fluxer') {
-      setUseAuthHeader(true);
-      return await tryFallbackToAuthHeader();
-    }
+    const session = captureAuthSession();
     try {
-      const response = await apiClient.get<AuthResponse>('/auth/checkauth', {
-        skipAuthHeader: true,
-      });
-
-      if (response.data.loggedIn) {
-        setUseAuthHeader(false);
-        return response.data;
-      }
-
-      return await tryFallbackToAuthHeader();
-    } catch (cookieError) {
-      const token = getStoredAuthToken();
-      if (!token) throw cookieError;
-      return await tryFallbackToAuthHeader(token);
+      const result = await checkAuthWithFallback();
+      if (result.loggedIn === false && session.token && isAuthSessionCurrent(session))
+        invalidateAuthSession();
+      return result;
+    } catch (error) {
+      if (
+        (error as { response?: { status?: number } })?.response?.status === 401 &&
+        session.token &&
+        isAuthSessionCurrent(session)
+      )
+        invalidateAuthSession();
+      throw error;
     }
   },
 
@@ -48,10 +42,14 @@ export const authApi = {
       const config = await getForumAuthConfig();
       if (!isAuthSessionCurrent(session)) return;
       if (config.mode === 'fluxer') {
-        await apiClient.post('/auth/logout', {}, {
-          headers: logoutToken ? { Authorization: `Bearer ${logoutToken}` } : {},
-          skipAuthHeader: true,
-        });
+        await apiClient.post(
+          '/auth/logout',
+          {},
+          {
+            headers: logoutToken ? { Authorization: `Bearer ${logoutToken}` } : {},
+            skipAuthHeader: true,
+          },
+        );
         return;
       }
       await apiClient.get('/auth/logout', {
@@ -74,10 +72,49 @@ async function tryFallbackToAuthHeader(storedToken?: string): Promise<AuthRespon
     headers: { Authorization: `Bearer ${token}` },
     skipAuthHeader: true,
   });
-  if (response.data.loggedIn) {
+  const result = checkedAuthResponse(response.data);
+  if (result.loggedIn) {
     setUseAuthHeader(true);
-    return response.data;
+    return result;
   }
 
   return { loggedIn: false };
+}
+
+async function checkAuthWithFallback(): Promise<AuthResponse> {
+  const config = await getForumAuthConfig();
+  if (config.mode === 'fluxer') {
+    setUseAuthHeader(true);
+    return await tryFallbackToAuthHeader();
+  }
+  try {
+    const response = await apiClient.get<AuthResponse>('/auth/checkauth', {
+      skipAuthHeader: true,
+    });
+
+    const result = checkedAuthResponse(response.data);
+    if (result.loggedIn) {
+      setUseAuthHeader(false);
+      return result;
+    }
+
+    return await tryFallbackToAuthHeader();
+  } catch (cookieError) {
+    if (cookieError instanceof InvalidAuthResponseError) throw cookieError;
+    const token = getStoredAuthToken();
+    if (!token) throw cookieError;
+    return await tryFallbackToAuthHeader(token);
+  }
+}
+
+class InvalidAuthResponseError extends Error {
+  constructor() {
+    super('登录状态响应无效，请稍后重试');
+    this.name = 'InvalidAuthResponseError';
+  }
+}
+function checkedAuthResponse(data: unknown): AuthResponse {
+  if (!data || typeof data !== 'object' || typeof (data as AuthResponse).loggedIn !== 'boolean')
+    throw new InvalidAuthResponseError();
+  return data as AuthResponse;
 }

@@ -1,7 +1,8 @@
-import axios from "axios";
+import { isFeatureNotMigratedError } from './featureMigration';
+import axios from 'axios';
 
-export type RateLimitScope = "search" | "global";
-export type RateLimitOrigin = "foreground" | "preload";
+export type RateLimitScope = 'search' | 'global';
+export type RateLimitOrigin = 'foreground' | 'preload';
 
 export interface RateLimitInfo {
   scope: RateLimitScope;
@@ -17,22 +18,19 @@ export class RateLimitError extends Error {
   readonly originalError: unknown;
 
   constructor(rateLimit: RateLimitInfo, originalError?: unknown) {
-    super("Request rate limited");
-    this.name = "RateLimitError";
+    super('Request rate limited');
+    this.name = 'RateLimitError';
     this.rateLimit = rateLimit;
     this.originalError = originalError;
   }
 }
 
-export function parseRetryAfter(
-  value: unknown,
-  now = Date.now(),
-): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
+export function parseRetryAfter(value: unknown, now = Date.now()): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return Math.max(0, Math.ceil(value));
   }
 
-  if (typeof value !== "string" || !value.trim()) return null;
+  if (typeof value !== 'string' || !value.trim()) return null;
 
   const normalized = value.trim();
   const seconds = Number(normalized);
@@ -45,7 +43,7 @@ export function parseRetryAfter(
 
 export function getRateLimitInfo(
   error: unknown,
-  defaults: Partial<Pick<RateLimitInfo, "scope" | "origin">> = {},
+  defaults: Partial<Pick<RateLimitInfo, 'scope' | 'origin'>> = {},
   now = Date.now(),
 ): RateLimitInfo | null {
   if (error instanceof RateLimitError) {
@@ -58,15 +56,14 @@ export function getRateLimitInfo(
   if (!axios.isAxiosError(error) || error.response?.status !== 429) return null;
 
   const headers = error.response.headers;
-  const retryAfter = headers?.["retry-after"] ?? headers?.["Retry-After"];
+  const retryAfter = headers?.['retry-after'] ?? headers?.['Retry-After'];
   const retryAfterSeconds = parseRetryAfter(retryAfter, now);
-  const requestUrl = String(error.config?.url || "");
-  const scope =
-    defaults.scope || (requestUrl.includes("/search") ? "search" : "global");
+  const requestUrl = String(error.config?.url || '');
+  const scope = defaults.scope || (requestUrl.includes('/search') ? 'search' : 'global');
 
   return {
     scope,
-    origin: defaults.origin || "foreground",
+    origin: defaults.origin || 'foreground',
     retryAfterSeconds,
     retryAt: retryAfterSeconds === null ? null : now + retryAfterSeconds * 1000,
   };
@@ -82,7 +79,7 @@ export function rememberRateLimit(info: RateLimitInfo): RateLimitInfo {
 
 export function getActiveRateLimit(
   scope: RateLimitScope,
-  origin: RateLimitOrigin = "foreground",
+  origin: RateLimitOrigin = 'foreground',
   now = Date.now(),
 ): RateLimitInfo | null {
   const retryAt = cooldowns.get(scope);
@@ -101,7 +98,7 @@ export function getActiveRateLimit(
 }
 
 export function getRemainingRateLimitSeconds(
-  info: Pick<RateLimitInfo, "retryAt" | "retryAfterSeconds">,
+  info: Pick<RateLimitInfo, 'retryAt' | 'retryAfterSeconds'>,
   now = Date.now(),
 ): number | null {
   if (info.retryAt === null) return info.retryAfterSeconds;
@@ -109,18 +106,16 @@ export function getRemainingRateLimitSeconds(
 }
 
 export function isSilentPreloadRateLimit(error: unknown): boolean {
-  return getRateLimitInfo(error)?.origin === "preload";
+  return getRateLimitInfo(error)?.origin === 'preload';
 }
 
-export function shouldRetryQuery(
-  failureCount: number,
-  error: unknown,
-): boolean {
-  if (getRateLimitInfo(error) || isTagsChangedError(error)) return false;
+export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
+  if (getRateLimitInfo(error) || isTagsChangedError(error) || isFeatureNotMigratedError(error))
+    return false;
   return failureCount < 1;
 }
 
 export function resetRateLimitStateForTests() {
   cooldowns.clear();
 }
-import { isTagsChangedError } from "./tagErrors";
+import { isTagsChangedError } from './tagErrors';
