@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { UserHeaderCard } from '@/entities/user/UserHeaderCard';
 import type { User } from '@/entities/user/types';
+import { FluxerLoginIdentity } from '@/features/auth/components/FluxerLoginIdentity';
 
 export interface MePageTabOption {
   key: string;
@@ -41,6 +42,7 @@ export function MePageHeader({
         )}
 
         <UserHeaderCard user={user} />
+        {user && <FluxerLoginIdentity />}
 
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="flex flex-wrap items-center justify-center gap-2">
