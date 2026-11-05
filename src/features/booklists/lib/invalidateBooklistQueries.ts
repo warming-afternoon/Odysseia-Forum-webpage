@@ -11,6 +11,7 @@ export function invalidateBooklistQueries(
 ) {
   const booklistIds = [...new Set(options.booklistIds?.map(String) ?? [])];
   const queryKeys: QueryKey[] = [
+    ["works-v2"],
     booklistKeys.lists(),
     booklistKeys.mineLists(),
   ];

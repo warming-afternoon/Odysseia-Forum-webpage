@@ -60,14 +60,16 @@ describe("ThreadMoreMenuContent", () => {
   });
 });
 
-it("作品菜单使用逻辑详情链接且不触发旧关注或书单", () => {
+it("作品菜单使用逻辑详情链接并支持书单但不触发旧关注", () => {
   const open = vi.spyOn(window, "open").mockImplementation(() => null);
   const add = vi.fn();
   render(<ContextMenu><ThreadMoreMenuContent thread={{...thread, work: {id: "9007199254740993123"}} as Thread} onAddToBooklist={add} onApplyBanner={vi.fn()} /></ContextMenu>);
   fireEvent.click(screen.getByRole("menuitem", {name: "在新标签页打开"}));
   expect(open).toHaveBeenCalledWith("/works/9007199254740993123", "_blank", "noopener,noreferrer");
-  expect(screen.queryByRole("menuitem", {name: /关注作品|加入书单|申请 Banner/})).not.toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", {name: /关注作品|申请 Banner/})).not.toBeInTheDocument();
   expect(mocks.mutate).not.toHaveBeenCalled();
-  expect(add).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("menuitem", {name: "加入书单"}));
+  expect(add).toHaveBeenCalledTimes(1);
+  expect(mocks.mutate).not.toHaveBeenCalled();
   open.mockRestore();
 });

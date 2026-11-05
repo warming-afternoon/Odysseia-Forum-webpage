@@ -107,6 +107,7 @@ export function BooklistCard({
             <div className="-mt-6 flex justify-center">
               <AuthorIdentityLink
                 author={booklist.author}
+                canonical={booklist.canonical}
                 fallbackName={`用户 ${booklist.owner_id}`}
                 showName={false}
                 avatarClassName="h-12 w-12 shadow-lg shadow-black/20"
@@ -116,6 +117,7 @@ export function BooklistCard({
             <div className="mt-2 flex min-w-0 flex-1 flex-col text-center">
               <AuthorIdentityLink
                 author={booklist.author}
+                canonical={booklist.canonical}
                 fallbackName={`用户 ${booklist.owner_id}`}
                 showAvatar={false}
                 nameClassName="max-w-full text-xs text-(--od-text-secondary)"

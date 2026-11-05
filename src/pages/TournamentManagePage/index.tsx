@@ -57,8 +57,8 @@ export function TournamentManagePage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);
 
-  const detailQuery = useBooklistDetail(normalizedBooklistId);
-  const itemsQuery = useBooklistItems(normalizedBooklistId);
+  const detailQuery = useBooklistDetail(normalizedBooklistId, false);
+  const itemsQuery = useBooklistItems(normalizedBooklistId, false);
   const loadMoreRef = useInfiniteScrollTrigger(itemsQuery);
   const animateIn = useListEntranceAnimation(
     detailQuery.isLoading || itemsQuery.isLoading,
@@ -73,15 +73,15 @@ export function TournamentManagePage() {
   );
 
   const updateMutation = useUpdateBooklist(Number(normalizedBooklistId), () =>
-    setShowEdit(false),
+    setShowEdit(false), false,
   );
-  const deleteMutation = useDeleteBooklist(() => navigate("/tournaments/mine"));
+  const deleteMutation = useDeleteBooklist(() => navigate("/tournaments/mine"), false);
   const addItemsMutation = useAddBooklistItems(normalizedBooklistId, () =>
-    setShowAdd(false),
+    setShowAdd(false), false,
   );
-  const removeItemMutation = useRemoveBooklistItems(normalizedBooklistId);
+  const removeItemMutation = useRemoveBooklistItems(normalizedBooklistId, false);
   const updateItemMutation = useUpdateBooklistItem(normalizedBooklistId, () =>
-    setEditingItem(null),
+    setEditingItem(null), false,
   );
 
   if (!normalizedBooklistId) {

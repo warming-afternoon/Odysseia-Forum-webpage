@@ -169,7 +169,7 @@ export function ThreadMoreMenuContent(props: ThreadMoreMenuContentProps) {
   return props.thread.work ? <WorkMoreMenuContent {...props} /> : <LegacyThreadMoreMenuContent {...props} />;
 }
 
-function WorkMoreMenuContent({ thread, onFindSimilar, onAISimilar }: ThreadMoreMenuContentProps) {
+function WorkMoreMenuContent({ thread, onAddToBooklist, onFindSimilar, onAISimilar }: ThreadMoreMenuContentProps) {
   const navigate = useNavigate();
   const path = `/works/${encodeURIComponent(thread.work!.id)}`;
   const copy = async () => {
@@ -177,6 +177,7 @@ function WorkMoreMenuContent({ thread, onFindSimilar, onAISimilar }: ThreadMoreM
     else toast.error("复制作品链接失败");
   };
   return <>
+    <ContextMenuItem icon={<BookOpen className="h-4 w-4" />} onClick={onAddToBooklist}>加入书单</ContextMenuItem>
     <ContextMenuItem icon={<BookOpen className="h-4 w-4" />} onClick={() => { usePreviewStore.getState().setPreviewThreadId(null); navigate(path); }}>查看作品操作</ContextMenuItem>
     <ContextMenuSeparator />
     <ContextMenuItem icon={<Copy className="h-4 w-4" />} onClick={() => void copy()}>复制作品链接</ContextMenuItem>

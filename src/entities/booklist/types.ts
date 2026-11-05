@@ -1,7 +1,7 @@
 import { components } from "@shared-types/openapi";
 
-export type Booklist = components["schemas"]["BooklistDetail"];
-export type BooklistItem = components["schemas"]["BooklistItemDetail"];
+export type Booklist = components["schemas"]["BooklistDetail"] & { canonical?: boolean; can_manage?: boolean };
+export type BooklistItem = components["schemas"]["BooklistItemDetail"] & { work?: import("@/features/works/types").Work };
 export type BooklistCreateResponse =
   components["schemas"]["BooklistCreateResponse"];
 export type BooklistUpdateResponse =
@@ -37,6 +37,7 @@ export interface BooklistFormInput {
 }
 
 export interface BooklistItemAddInput {
+  work_id?: string;
   thread_id: string | number;
   comment?: string;
   display_order?: number;

@@ -322,12 +322,13 @@ function ThreadCardImpl({
         </ContextMenuContent>
       </ContextMenu>
 
-      {!thread.work && <QuickAddToBooklistModal
+      <QuickAddToBooklistModal
         isOpen={quickAddOpen}
-        threadId={thread.thread_id}
+        threadId={thread.work ? "" : thread.thread_id}
+        workId={thread.work?.id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
-      />}
+      />
     </>
   );
 }

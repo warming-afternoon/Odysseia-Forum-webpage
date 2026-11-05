@@ -74,3 +74,15 @@ describe("AddThreadsToBooklistModal", () => {
     expect(ids).toHaveValue("123456789012345678");
   });
 });
+it('batches canonical work IDs as strings and rejects over 100 entries', () => {
+  const onSubmit = vi.fn();
+  render(<AddThreadsToBooklistModal isOpen workMode onClose={vi.fn()} onSubmit={onSubmit} />);
+  fireEvent.change(screen.getAllByRole('textbox')[0], { target: { value: '9007199254740993123,42,42' } });
+  fireEvent.click(screen.getByRole('button', { name: '添加到书单' }));
+  expect(onSubmit).toHaveBeenCalledWith([
+    expect.objectContaining({ work_id: '9007199254740993123', thread_id: '' }),
+    expect.objectContaining({ work_id: '42', thread_id: '' }),
+  ]);
+  fireEvent.change(screen.getAllByRole('textbox')[0], { target: { value: Array.from({ length: 101 }, (_, i) => i + 1).join(',') } });
+  expect(screen.getByRole('button', { name: '添加到书单' })).toBeDisabled();
+});

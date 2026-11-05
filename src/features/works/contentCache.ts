@@ -5,7 +5,7 @@ import { usePreviewStore } from '@/features/search/store/previewStore';
 export async function resetVisibleContent(client: QueryClient) {
   const filter = { predicate: (query: { queryKey: readonly unknown[] }) =>
     (query.queryKey[0] === 'works-v2' && query.queryKey[1] !== 'me') ||
-    ['search', 'authors', 'search-discovery'].includes(String(query.queryKey[0])) };
+    ['search', 'authors', 'search-discovery', 'booklists'].includes(String(query.queryKey[0])) };
   await client.cancelQueries(filter);
   usePreviewStore.getState().setPreviewThreadId(null);
   // reset, rather than invalidate: old restricted titles/images must disappear now.

@@ -103,7 +103,7 @@ export function MeBooklistsSection({
           {activeBooklists.map((booklist) => {
             const commonProps = {
               booklist,
-              canManage: String(booklist.owner_id) === String(userId),
+              canManage: booklist.can_manage ?? (String(booklist.owner_id) === String(userId)),
               onOpen,
               onToggleCollect,
               onEdit,

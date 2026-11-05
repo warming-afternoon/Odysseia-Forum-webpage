@@ -701,6 +701,7 @@ function CanonicalUserProfilePage({ userId }: { userId: string | undefined }) {
                         collectBooklistMutation.mutate({
                           id: item.id,
                           collected: Boolean(item.collected_flag),
+                          canonical: item.canonical,
                         })
                       }
                       onEdit={() => undefined}

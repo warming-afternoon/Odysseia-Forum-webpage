@@ -4,6 +4,7 @@ import { BookmarkPlus, Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { useMyBooklistsList } from "@/features/booklists/hooks/useBooklistsData";
+import { v2BooklistsApi } from "@/features/booklists/api/v2BooklistsApi";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 import { invalidateBooklistQueries } from "@/features/booklists/lib/invalidateBooklistQueries";
 import { Checkbox } from "@/shared/ui/Checkbox";
@@ -13,6 +14,7 @@ import { extractErrorMessage } from "@/shared/lib/notify";
 interface QuickAddToBooklistModalProps {
   isOpen: boolean;
   threadId: string;
+  workId?: string;
   threadTitle?: string;
   onClose: () => void;
 }
@@ -21,6 +23,7 @@ type BooklistsQuery = ReturnType<typeof useMyBooklistsList>;
 interface QuickAddBooklistContentProps {
   isOpen: boolean;
   threadId: string;
+  workId?: string;
   threadTitle?: string;
   onClose: () => void;
   query: BooklistsQuery;
@@ -29,19 +32,22 @@ interface QuickAddBooklistContentProps {
 export function QuickAddToBooklistModal({
   isOpen,
   threadId,
+  workId,
   threadTitle,
   onClose,
 }: QuickAddToBooklistModalProps) {
   const myBooklistsQuery = useMyBooklistsList({
-    markThreadId: threadId,
-    enabled: isOpen && /^\d+$/.test(threadId),
+    markWorkId: workId,
+    markThreadId: workId === undefined ? threadId : undefined,
+    enabled: isOpen && /^\d+$/.test(workId ?? threadId),
   });
 
   if (!isOpen) return null;
   return (
     <QuickAddToBooklistModalContent
-      key={`${isOpen}:${threadId}:${myBooklistsQuery.dataUpdatedAt}`}
+      key={`${isOpen}:${workId === undefined ? "thread" : "work"}:${workId ?? threadId}`}
       threadId={threadId}
+      workId={workId}
       threadTitle={threadTitle}
       onClose={onClose}
       query={myBooklistsQuery}
@@ -51,21 +57,22 @@ export function QuickAddToBooklistModal({
 }
 
 function QuickAddToBooklistModalContent({
-  isOpen, threadId, threadTitle, onClose, query: myBooklistsQuery,
+  isOpen, threadId, workId, threadTitle, onClose, query: myBooklistsQuery,
 }: QuickAddBooklistContentProps) {
   const queryClient = useQueryClient();
-  const markedIds = new Set(
-    (myBooklistsQuery.data?.results || [])
-      .filter((booklist) => booklist.is_marked)
-      .map((booklist) => booklist.id),
-  );
-  const [selectedBooklistIds, setSelectedBooklistIds] = useState<Set<number>>(
-    markedIds,
-  );
-  const initialBooklistIds = markedIds;
+  // Capture the first loaded rows for this opening. Background refetches must
+  // not reset edits or silently change the scope submitted with this draft.
+  const [snapshot, setSnapshot] = useState<BooklistsQuery["data"]>(myBooklistsQuery.data);
+  const initialBooklistIds = useMemo(() => new Set(
+    (snapshot?.results || []).filter((booklist) => booklist.is_marked).map((booklist) => booklist.id),
+  ), [snapshot]);
+  const [selectedBooklistIds, setSelectedBooklistIds] = useState<Set<number>>(initialBooklistIds);
   const [comment, setComment] = useState("");
-
-  const myBooklists = myBooklistsQuery.data?.results || [];
+  if (!snapshot && myBooklistsQuery.data) {
+    setSnapshot(myBooklistsQuery.data);
+    setSelectedBooklistIds(new Set(myBooklistsQuery.data.results.filter(row => row.is_marked).map(row => row.id)));
+  }
+  const myBooklists = snapshot?.results || [];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,7 +89,7 @@ function QuickAddToBooklistModalContent({
   }, [isOpen, onClose]);
 
   const canSubmit = useMemo(() => {
-    if (!/^\d+$/.test(threadId) || !myBooklistsQuery.isSuccess) return false;
+    if (!/^\d+$/.test(workId ?? threadId) || !myBooklistsQuery.isSuccess) return false;
     const selectionChanged =
       selectedBooklistIds.size !== initialBooklistIds.size ||
       [...selectedBooklistIds].some((id) => !initialBooklistIds.has(id));
@@ -96,16 +103,20 @@ function QuickAddToBooklistModalContent({
     myBooklistsQuery.isSuccess,
     selectedBooklistIds,
     threadId,
+    workId,
   ]);
 
   const syncMutation = useMutation({
-    mutationFn: () =>
-      booklistsApi.syncItems({
-        thread_id: threadId,
+    mutationFn: async () => {
+      const input = {
         scope_booklist_ids: myBooklists.map((booklist) => booklist.id),
         target_booklist_ids: [...selectedBooklistIds],
         comment: comment.trim() || undefined,
-      }),
+      };
+      return workId !== undefined
+        ? v2BooklistsApi.syncItems({ ...input, work_id: workId })
+        : booklistsApi.syncItems({ ...input, thread_id: threadId });
+    },
     onSuccess: (result) => {
       const added = result.added_to_booklist_ids?.length || 0;
       const removed = result.removed_from_booklist_ids?.length || 0;
@@ -118,10 +129,10 @@ function QuickAddToBooklistModalContent({
         booklistIds: [
           ...(result.added_to_booklist_ids || []),
           ...(result.removed_from_booklist_ids || []),
+          ...(result.unchanged_booklist_ids || []),
         ],
         includeItems: true,
       });
-      onClose();
     },
     onError: (error) => {
       notifyError(extractErrorMessage(error, "添加到书单失败"));
@@ -167,9 +178,9 @@ function QuickAddToBooklistModalContent({
         </div>
 
         <div className="space-y-4 p-5">
-          {!/^\d+$/.test(threadId) ? (
+          {!/^\d+$/.test(workId ?? threadId) ? (
             <p className="text-sm text-(--od-error)">
-              当前帖子 ID 无效，暂时无法加入书单。
+              当前{workId !== undefined ? "作品" : "帖子"} ID 无效，暂时无法加入书单。
             </p>
           ) : myBooklistsQuery.isLoading ? (
             <div className="flex items-center gap-2 text-sm text-(--od-text-secondary)">
@@ -259,7 +270,9 @@ function QuickAddToBooklistModalContent({
               type="button"
               disabled={!canSubmit || syncMutation.isPending}
               onClick={() => {
-                syncMutation.mutate();
+                // UI callbacks only run while this modal instance is mounted.
+                // A completed save must not close a newer, reopened modal.
+                syncMutation.mutate(undefined, { onSuccess: onClose });
               }}
               className="inline-flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--od-accent-hover) disabled:opacity-60"
             >

@@ -96,8 +96,6 @@ const WorkPresentationPage = lazyPage(() => import("@/pages/ThreadDetailPage"), 
 const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
 
 const WorkMePage = lazyPage(() => import("@/features/works/member"), "WorkMePage");
-const WorkBooklistsPage = lazyPage(() => import("@/features/works/booklists"), "WorkBooklistsPage");
-const WorkBooklistPage = lazyPage(() => import("@/features/works/booklists"), "WorkBooklistPage");
 
 const WorkCreatePage = lazyPage(() => import("@/features/works/editor"), "WorkCreatePage");
 const WorkFollowsPage = lazyPage(() => import("@/features/works/social"), "WorkFollowsPage");
@@ -130,6 +128,12 @@ const appChildren = [
     path: "works/:workId",
     element: withSuspense(<WorkPresentationPage />),
   }, {
+    path: "works/booklists",
+    element: <Navigate to="/booklists" replace />,
+  }, {
+    path: "works/booklists/:id",
+    element: withSuspense(<BooklistDetailPage />),
+  }, {
     path: "works",
     element: withSuspense(<WorksLayout />),
     children: [
@@ -140,8 +144,6 @@ const appChildren = [
       { path: "me", element: withSuspense(<WorkMePage />) },
       { path: "follows", element: withSuspense(<WorkFollowsPage />) },
       { path: "notifications", element: withSuspense(<WorkNotificationsPage />) },
-      { path: "booklists", element: withSuspense(<WorkBooklistsPage />) },
-      { path: "booklists/:booklistId", element: withSuspense(<WorkBooklistPage />) },
       { path: ":workId/edit", element: withSuspense(<WorkEditPage />) },
     ],
   }] : []),

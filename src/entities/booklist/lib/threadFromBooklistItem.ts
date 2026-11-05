@@ -10,6 +10,7 @@ export function threadFromBooklistItem(
   extra?: Partial<Thread>,
 ): Thread {
   return {
+    work: item.work,
     thread_id: item.thread_id,
     guild_id: item.guild_id,
     channel_id: item.channel_id,

@@ -6,6 +6,7 @@ import { fromDateTimeLocal } from "@/features/booklists/lib/tournamentDateTime";
 
 interface AddThreadsToBooklistModalProps {
   isOpen: boolean;
+  workMode?: boolean;
   submitting?: boolean;
   title?: string;
   submitLabel?: string;
@@ -34,6 +35,7 @@ export function AddThreadsToBooklistModal({
 
 function AddThreadsToBooklistModalContent({
   submitting,
+  workMode = false,
   title = "批量添加帖子",
   submitLabel = "添加到书单",
   commentLabel = "统一备注（可选）",
@@ -75,7 +77,7 @@ function AddThreadsToBooklistModalContent({
       >
         <div className="flex items-center justify-between border-b border-(--od-border) px-5 py-4">
           <h2 id="add-threads-to-booklist-title" className="text-base font-bold text-(--od-text-primary)">
-            {title}
+            {workMode ? "批量添加作品" : title}
           </h2>
           <button
             type="button"
@@ -89,7 +91,7 @@ function AddThreadsToBooklistModalContent({
         <div className="space-y-4 p-5">
           <div>
             <label className="mb-1 block text-xs font-semibold text-(--od-text-secondary)">
-              Thread ID 列表（逗号/空格/换行分隔）
+              {workMode ? "作品 ID（非 Discord / Fluxer 帖子 ID）" : "Thread ID 列表（逗号/空格/换行分隔）"}
             </label>
             <textarea
               value={rawIds}
@@ -99,7 +101,7 @@ function AddThreadsToBooklistModalContent({
               className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) outline-hidden transition-colors focus:border-(--od-accent)"
             />
             <p className="mt-1 text-xs text-(--od-text-tertiary)">
-              可解析 {parsedIds.length} 个 ID
+              {workMode ? `可解析 ${parsedIds.length} 个作品 ID，每次最多 100 个` : `可解析 ${parsedIds.length} 个 ID`}
             </p>
           </div>
 
@@ -151,12 +153,13 @@ function AddThreadsToBooklistModalContent({
             </button>
             <button
               type="button"
-              disabled={submitting || parsedIds.length === 0}
+              disabled={submitting || parsedIds.length === 0 || (workMode && (parsedIds.length > 100 || parsedIds.some(id => !/^[1-9]\d*$/.test(id))))}
               onClick={() => {
                 const orderStart = Number.parseInt(displayOrder, 10);
                 const hasOrder = Number.isFinite(orderStart);
                 const items = parsedIds.map((id, index) => ({
-                  thread_id: id,
+                  thread_id: workMode ? "" : id,
+                  ...(workMode ? { work_id: id } : {}),
                   comment: comment.trim() || undefined,
                   display_order: hasOrder ? orderStart + index : undefined,
                   tournament_participated_at:

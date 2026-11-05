@@ -1,6 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { useMyBooklistsList } from "@/features/booklists/hooks/useBooklistsData";
 import { ThreadCard } from "@/features/threads/components/ThreadCard";
 import { ThreadListItem } from "@/features/threads/components/ThreadListItem";
 import type { Thread } from "@/entities/thread/types";
@@ -8,6 +9,10 @@ import { render } from "@/tests/test-utils";
 
 vi.mock("@/features/threads/lib/thumbnailRepairQueue", () => ({
   subscribeThreadThumbnailRepair: vi.fn(() => vi.fn()),
+}));
+
+vi.mock("@/features/booklists/hooks/useBooklistsData", () => ({
+  useMyBooklistsList: vi.fn(() => ({ data: { results: [] }, isSuccess: true })),
 }));
 
 const thread = {
@@ -84,7 +89,7 @@ it.each([
   const onApplyBanner = vi.fn();
   const workThread = {
     ...thread,
-    thread_id: "9007199254740993123",
+    thread_id: "1234567890123456789",
     work: { id: "9007199254740993123", source_platform: "fluxer" },
   } as Thread;
   const { unmount } = render(<Card thread={workThread} onPreview={onPreview} onApplyBanner={onApplyBanner} animateIn={false} />);
@@ -95,8 +100,12 @@ it.each([
   expect(onPreview).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "更多作品操作" }));
   expect(screen.getByRole("menuitem", { name: "查看作品操作" })).toBeInTheDocument();
-  expect(screen.queryByRole("menuitem", { name: "加入书单" })).not.toBeInTheDocument();
+  expect(screen.getByRole("menuitem", { name: "加入书单" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: /关注作品/ })).not.toBeInTheDocument();
   expect(screen.queryByRole("menuitem", { name: "申请 Banner" })).not.toBeInTheDocument();
   expect(onApplyBanner).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("menuitem", { name: "加入书单" }));
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  expect(useMyBooklistsList).toHaveBeenLastCalledWith({ markWorkId: "9007199254740993123", markThreadId: undefined, enabled: true });
   unmount();
 });

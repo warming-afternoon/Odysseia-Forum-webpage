@@ -268,12 +268,13 @@ export function BooklistsPage() {
             {normalizedResults.map((booklist) => {
               const commonProps = {
                 booklist,
-                canManage: String(booklist.owner_id) === String(user?.id),
+                canManage: booklist.can_manage ?? (String(booklist.owner_id) === String(user?.id)),
                 onOpen: (id: number) => navigate(`/booklists/${id}`),
                 onToggleCollect: (item: Booklist) =>
                   collectMutation.mutate({
                     id: item.id,
                     collected: Boolean(item.collected_flag),
+                    canonical: item.canonical,
                   }),
                 onEdit: (item: Booklist) => setEditing(item),
                 onDelete: (item: Booklist) => {

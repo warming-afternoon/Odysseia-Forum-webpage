@@ -74,6 +74,7 @@ export function BooklistListItem({
               {booklist.author?.id ? (
                 <AuthorIdentityLink
                   author={booklist.author}
+                  canonical={booklist.canonical}
                   avatarClassName="h-6 w-6"
                   nameClassName="max-w-40 text-(--od-text-secondary)"
                 />

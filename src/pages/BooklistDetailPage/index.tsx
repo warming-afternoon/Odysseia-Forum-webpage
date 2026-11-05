@@ -1,3 +1,4 @@
+import { worksV2Enabled } from '@/shared/config/works';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteScrollTrigger } from "@/shared/hooks/useInfiniteScrollTrigger";
 import { useListEntranceAnimation } from "@/shared/hooks/useListEntranceAnimation";
@@ -86,8 +87,8 @@ export function BooklistDetailPage() {
   const itemsQuery = useBooklistItems(booklistId);
 
   const isOwner = useMemo(
-    () => String(detailQuery.data?.owner_id ?? "") === String(user?.id ?? ""),
-    [detailQuery.data?.owner_id, user?.id],
+    () => detailQuery.data?.can_manage ?? (Boolean(user?.id) && String(detailQuery.data?.owner_id ?? "") === String(user?.id)),
+    [detailQuery.data?.owner_id, detailQuery.data?.can_manage, user?.id],
   );
 
   const items = useMemo(() => {
@@ -239,7 +240,7 @@ export function BooklistDetailPage() {
                   <p className="mt-1 whitespace-pre-line text-sm text-(--od-text-secondary)">
                     {booklist.description || "暂无简介"}
                   </p>
-                  {customTagsEnabled && <div className="mt-3">
+                  {!worksV2Enabled && customTagsEnabled && <div className="mt-3">
                     <TargetTagSection key={String(booklist.id)} target={{ type: "booklist", id: String(booklist.id) }} ownerId={booklist.owner_id}
                       targetLabel={booklist.is_tournament ? "赛事" : "书单"}
                       onSearch={(tag) => navigate(`/search?${new URLSearchParams({ q: customTagSearchQuery(tag), type: booklist.is_tournament ? "tournament" : "booklist" })}`)} />
@@ -297,7 +298,7 @@ export function BooklistDetailPage() {
               <div className="flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:items-end">
                 {isOwner && (
                   <div className="order-1 flex w-full flex-wrap items-center justify-start gap-1 lg:w-auto lg:justify-end">
-                    {publishStatus !== 2 ? (
+                    {!worksV2Enabled && publishStatus !== 2 ? (
                       <button
                         type="button"
                         onClick={() => openPublishModal()}
@@ -326,7 +327,7 @@ export function BooklistDetailPage() {
                         className="inline-flex h-9 items-center justify-center gap-1 rounded-full px-2 text-xs font-medium text-(--od-text-secondary) transition-colors hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary)"
                       >
                         <Plus className="h-3.5 w-3.5" />
-                        添加帖子
+                        {worksV2Enabled ? "添加作品" : "添加帖子"}
                       </button>
                     )}
 
@@ -357,7 +358,7 @@ export function BooklistDetailPage() {
                               role="menu"
                               className="od-floating-panel-solid absolute right-0 top-11 z-30 w-44 overflow-hidden rounded-xl border border-(--od-border) p-1.5 shadow-xl"
                             >
-                              {publishStatus === 2 && (
+                              {!worksV2Enabled && publishStatus === 2 && (
                                 <button
                                   type="button"
                                   role="menuitem"
@@ -369,7 +370,7 @@ export function BooklistDetailPage() {
                                 </button>
                               )}
                               <div className="my-1 border-t border-(--od-border)" />
-                              {canUnpublish && (
+                              {!worksV2Enabled && canUnpublish && (
                                 <button
                                   type="button"
                                   role="menuitem"
@@ -450,6 +451,7 @@ export function BooklistDetailPage() {
                           collectMutation.mutate({
                             id: Number(booklistId),
                             collected: Boolean(booklist.collected_flag),
+                            canonical: booklist.canonical,
                           })
                         }
                         className={`inline-flex min-h-9 items-center gap-1 rounded-full px-2 text-xs font-semibold transition-colors hover:text-(--od-accent) disabled:opacity-50 ${
@@ -520,7 +522,7 @@ export function BooklistDetailPage() {
                           ? {
                               onEdit: () => setEditingItem(item),
                               onRemove: () =>
-                                removeItemMutation.mutate(String(item.thread_id)),
+                                removeItemMutation.mutate(String(item.work?.id ?? item.thread_id)),
                               removePending: removeItemMutation.isPending,
                             }
                           : undefined
@@ -537,7 +539,7 @@ export function BooklistDetailPage() {
                           ? {
                               onEdit: () => setEditingItem(item),
                               onRemove: () =>
-                                removeItemMutation.mutate(String(item.thread_id)),
+                                removeItemMutation.mutate(String(item.work?.id ?? item.thread_id)),
                               removePending: removeItemMutation.isPending,
                             }
                           : undefined
@@ -573,6 +575,7 @@ export function BooklistDetailPage() {
       />
 
       <AddThreadsToBooklistModal
+        workMode={worksV2Enabled}
         isOpen={showAdd}
         submitting={addItemsMutation.isPending}
         onClose={() => setShowAdd(false)}
@@ -597,7 +600,7 @@ export function BooklistDetailPage() {
         onSubmit={(payload) => {
           if (!editingItem) return;
           updateItemMutation.mutate({
-            threadId: String(editingItem.thread_id),
+            threadId: String(editingItem.work?.id ?? editingItem.thread_id),
             payload,
           });
         }}

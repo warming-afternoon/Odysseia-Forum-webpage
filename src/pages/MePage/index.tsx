@@ -365,6 +365,7 @@ export function MePage() {
               collectMutation.mutate({
                 id: item.id,
                 collected: Boolean(item.collected_flag),
+                canonical: item.canonical,
               });
             }}
           />
