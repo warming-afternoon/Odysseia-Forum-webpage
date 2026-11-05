@@ -1,3 +1,9 @@
+import { usePreviewStore } from '@/features/search/store/previewStore';
+import { useWorkPresentation } from '@/features/works/useWorkPresentation';
+import { worksApi } from '@/features/works/api';
+import { workToThread } from '@/features/works/workPresentation';
+import { WorkPresentationControls } from '@/features/works/WorkPresentationControls';
+import { useAuthorProfile } from '@/features/authors/hooks/useAuthorsData';
 import {
   Calendar,
   Clock3,
@@ -52,7 +58,23 @@ interface ThreadPreviewOverlayProps {
   hideExternalButton?: boolean;
 }
 
-export function ThreadPreviewOverlay({
+export function ThreadPreviewOverlay(props: ThreadPreviewOverlayProps) {
+  return props.thread.work ? <WorkPreviewOverlay {...props} /> : <ThreadPreviewContent {...props} />;
+}
+
+function WorkPreviewOverlay(props: ThreadPreviewOverlayProps) {
+  const workId = props.thread.work!.id;
+  const result = useWorkPresentation(workId);
+  const author = useAuthorProfile(result.error ? undefined : result.data?.author_id || undefined);
+  // Search projections must never bypass a new permission check or failed refresh.
+  if (result.isPending || result.isFetching) return <div role="dialog" aria-label="加载作品" className="fixed inset-0 z-50 flex items-center justify-center gap-4 bg-(--od-surface-floating)"><p>正在帮你加载作品...</p><button onClick={props.onClose}>关闭</button></div>;
+  if (result.error || !result.data) return <div role="alert">作品不存在或当前不可访问<button onClick={props.onClose}>关闭</button></div>;
+  const thread = workToThread(result.data);
+  if (author.data && !author.error) thread.author = author.data;
+  return <ThreadPreviewContent key={workId} {...props} thread={thread} />;
+}
+
+function ThreadPreviewContent({
   thread,
   onClose,
   externalUrlOverride,
@@ -61,6 +83,14 @@ export function ThreadPreviewOverlay({
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const work = thread.work;
+
+  useEffect(() => {
+    const workId = work?.id;
+    if (!workId) return;
+    const timer = window.setTimeout(() => { void worksApi.view(workId).catch(() => undefined); }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [work?.id]);
   const { mutate: markThreadNotificationsRead } =
     useMarkThreadNotificationsRead();
   const { params, setParams } = useSearchURLParams();
@@ -85,6 +115,7 @@ export function ThreadPreviewOverlay({
   useEffect(() => {
     const threadId = String(thread.thread_id);
     if (
+      thread.work ||
       !isAuthenticated ||
       !hasViewerFlag(thread, "unread") ||
       markedReadThreadRef.current === threadId
@@ -95,11 +126,16 @@ export function ThreadPreviewOverlay({
     markThreadNotificationsRead(threadId);
   }, [isAuthenticated, markThreadNotificationsRead, thread]);
 
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) clearTimeout(closeTimerRef.current);
+  }, []);
+
   const handleClose = useCallback(() => {
     if (isClosingRef.current) return;
     isClosingRef.current = true;
     setIsVisible(false);
-    setTimeout(() => {
+    closeTimerRef.current = setTimeout(() => {
       onClose();
     }, 300);
   }, [onClose]);
@@ -309,27 +345,29 @@ export function ThreadPreviewOverlay({
             <div className="col-start-2 row-start-1 flex min-w-0 max-w-full items-center justify-self-center gap-2">
               <AuthorIdentityLink
                 author={thread.author}
+                canonical={!!work}
                 currentThreadId={thread.thread_id}
                 viewerFlags={thread.viewer_flags}
                 showName={false}
                 avatarClassName="h-10 w-10"
                 className="shrink-0"
                 onNavigate={({ id }) => {
-                  handleClose();
-                  navigate(`/u/${id}`);
+                  usePreviewStore.getState().setPreviewThreadId(null);
+                  navigate(`${work ? "/works/users" : "/u"}/${encodeURIComponent(id)}`);
                 }}
               />
               <div className="min-w-0">
                 <AuthorIdentityLink
                   author={thread.author}
+                canonical={!!work}
                   currentThreadId={thread.thread_id}
                   viewerFlags={thread.viewer_flags}
                   showAvatar={false}
                   nameClassName="max-w-24 font-bold text-(--od-text-primary) sm:max-w-56"
                   className="max-w-full"
                   onNavigate={({ id }) => {
-                    handleClose();
-                    navigate(`/u/${id}`);
+                    usePreviewStore.getState().setPreviewThreadId(null);
+                    navigate(`${work ? "/works/users" : "/u"}/${encodeURIComponent(id)}`);
                   }}
                 />
                 <div className="mt-1 flex min-w-0 items-center gap-2 overflow-hidden text-[10px] text-(--od-text-tertiary) sm:text-xs">
@@ -363,9 +401,9 @@ export function ThreadPreviewOverlay({
                   />
                 </ContextMenuContent>
               </ContextMenu>
-              {!hideExternalButton && (
+              {!hideExternalButton && (!work || (work.source_platform === "discord" && work.source_thread_id && work.source_guild_id && work.source_channel_id)) && (
                 <ThreadActions
-                  threadId={thread.thread_id}
+                  threadId={work?.source_thread_id || thread.thread_id}
                   channelId={thread.channel_id}
                   guildId={thread.guild_id}
                   size="md"
@@ -442,7 +480,7 @@ export function ThreadPreviewOverlay({
             )}
 
             {/* Tags */}
-            {customTagsEnabled
+            {customTagsEnabled && !work
               ? <TargetTagSection key={String(thread.thread_id)} target={{ type: "thread", id: String(thread.thread_id) }} ownerId={thread.author?.id}
                   onSearch={(tag) => applySearchToken("tagid", `${tag.id}|${encodeURIComponent(tag.name)}`)}>{nativeTagContent}</TargetTagSection>
               : (thread.tags?.length || virtualOnlyTags.length > 0) ? <div className="mb-6 flex flex-wrap gap-2">{nativeTagContent}</div> : null}
@@ -453,9 +491,11 @@ export function ThreadPreviewOverlay({
               variant="tags"
               onNavigate={handleClose}
             />
-            <SimilarRecommendations currentThreadId={thread.thread_id} />
+            {work && <WorkPresentationControls work={work} />}
+            <SimilarRecommendations currentThreadId={thread.thread_id} workId={work?.id} />
             {thread.author?.id && (
               <AuthorRecommendations
+                canonical={!!work}
                 authorId={thread.author.id}
                 authorName={authorName}
                 currentThreadId={thread.thread_id}
@@ -464,12 +504,12 @@ export function ThreadPreviewOverlay({
           </div>
         </div>
       </div>
-      <QuickAddToBooklistModal
+      {!work && <QuickAddToBooklistModal
         isOpen={quickAddOpen}
         threadId={thread.thread_id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
-      />
+      />}
     </div>,
     document.body,
   );

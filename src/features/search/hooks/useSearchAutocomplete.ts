@@ -175,7 +175,7 @@ export function useSearchAutocomplete({
       query: suggestionQuery,
       applyPreferences: true,
     }),
-    queryFn: () => searchApi.getSuggestions(suggestionQuery),
+    queryFn: ({ signal }) => searchApi.getSuggestions(suggestionQuery, true, signal),
     enabled: enabled && showSuggestions && suggestionQuery.length > 0,
     staleTime: 30 * 1000,
     retry: false,

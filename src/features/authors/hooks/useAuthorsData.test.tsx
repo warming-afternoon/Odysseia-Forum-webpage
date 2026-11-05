@@ -43,3 +43,13 @@ it('卸载作者查询会中止传入 API 的信号', async () => {
   expect(requestSignal?.aborted).toBe(true);
   client.clear();
 });
+
+it('uses canonical nonnumeric IDs without adding an author-name filter', async () => {
+  const search = vi.mocked(searchApi.search).mockResolvedValue({ results: [], total: 0 } as never);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  renderHook(() => useAuthorThreads('fluxer-user-9007199254740993123', { page: 1, sortMethod: 'created_desc', channelIds: [] }), { wrapper });
+  await waitFor(() => expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ include_authors: ['fluxer-user-9007199254740993123'], apply_preferences: true }), expect.any(AbortSignal)));
+  expect(search.mock.calls[search.mock.calls.length - 1]?.[0]).not.toHaveProperty('author_name');
+  client.clear();
+});

@@ -140,6 +140,7 @@ export function SearchPage() {
     viewedPage,
     setIgnoreDiscoveryPreferences,
     totalResults,
+    paginationLimitReached,
     visibleRateLimit,
   } = useSearchResults({
     params,
@@ -637,6 +638,8 @@ export function SearchPage() {
                     '正在加载更多帖子...'
                   ) : infiniteQueryState.hasNextPage ? (
                     '继续向下滚动加载更多'
+                  ) : paginationLimitReached ? (
+                    '已达到连续加载上限，请缩小筛选范围，或切换分页模式继续浏览。'
                   ) : (
                     '已经到底啦'
                   )}

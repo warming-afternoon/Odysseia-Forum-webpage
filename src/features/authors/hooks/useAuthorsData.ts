@@ -34,10 +34,10 @@ export function useAuthorThreads(
     queryFn: ({ signal }) =>
       searchApi.search({
         include_authors: authorId ? [authorId] : [],
-        author_name: authorId || undefined,
         sort_method: params.sortMethod,
         channel_ids:
           params.channelIds.length > 0 ? params.channelIds : undefined,
+        apply_preferences: true,
         limit: AUTHOR_THREADS_PAGE_SIZE,
         offset: (params.page - 1) * AUTHOR_THREADS_PAGE_SIZE,
       }, signal),

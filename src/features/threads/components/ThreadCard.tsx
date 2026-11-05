@@ -1,3 +1,4 @@
+import { usePreviewStore } from "@/features/search/store/previewStore";
 import {
   Calendar,
   Clock3,
@@ -129,11 +130,11 @@ function ThreadCardImpl({
   }, [initialThumbnail, thread.thread_id]);
 
   useEffect(() => {
-    if (imageMode === "off") return;
+    if (imageMode === "off" || thread.work) return;
     return subscribeThreadThumbnailRepair(thread.thread_id, (urls) => {
       if (urls.length > 0) setThumbnailSrc(urls[0]);
     });
-  }, [thread.thread_id, imageMode]);
+  }, [thread.thread_id, imageMode, thread.work]);
 
   // 缓存命中直出的页面传 animateIn=false：内容用户已看过，不再重播浮现动画。
   const entranceClass = animateIn
@@ -158,7 +159,10 @@ function ThreadCardImpl({
         }}
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("[data-thread-preview]")) {
-            onPreview?.(thread);
+            if (thread.work) {
+              usePreviewStore.getState().setPreviewThreadId(null);
+              navigate(`/works/${encodeURIComponent(thread.work.id)}`);
+            } else onPreview?.(thread);
           }
         }}
       >
@@ -168,6 +172,7 @@ function ThreadCardImpl({
           <div className="flex flex-col gap-2 px-1 pb-3 pt-1 text-(--od-text-primary)">
             <div className="flex min-w-0 items-center gap-2 overflow-hidden">
               <AuthorIdentityLink
+                canonical={!!thread.work}
                 author={thread.author}
                 currentThreadId={thread.thread_id}
                 viewerFlags={thread.viewer_flags}
@@ -179,6 +184,7 @@ function ThreadCardImpl({
               <div className="min-w-0 flex-1">
                 <div className="flex h-4 min-w-0 items-center gap-1">
                   <AuthorIdentityLink
+                canonical={!!thread.work}
                     author={thread.author}
                     currentThreadId={thread.thread_id}
                     viewerFlags={thread.viewer_flags}
@@ -222,7 +228,7 @@ function ThreadCardImpl({
                   src={thumbnailSrc}
                   alt={thread.title}
                   className="h-full w-full transition-transform duration-500 group-hover:scale-[1.015]"
-                  threadId={thread.thread_id}
+                  threadId={thread.work ? undefined : thread.thread_id}
                   channelId={thread.channel_id}
                   index={index}
                   subscribeToRecovery={false}
@@ -250,7 +256,8 @@ function ThreadCardImpl({
                 <MoreHorizontal className="h-4 w-4" />
               </ContextMenuButton>
               <ThreadActions
-                threadId={thread.thread_id}
+                  workId={thread.work?.id}
+                threadId={thread.work ? undefined : thread.thread_id}
                 channelId={thread.channel_id}
                 guildId={thread.guild_id}
                 variant="glass"
@@ -315,12 +322,12 @@ function ThreadCardImpl({
         </ContextMenuContent>
       </ContextMenu>
 
-      <QuickAddToBooklistModal
+      {!thread.work && <QuickAddToBooklistModal
         isOpen={quickAddOpen}
         threadId={thread.thread_id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
-      />
+      />}
     </>
   );
 }

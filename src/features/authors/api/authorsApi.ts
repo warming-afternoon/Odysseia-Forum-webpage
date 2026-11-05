@@ -1,9 +1,10 @@
-import { apiClient } from '@/shared/api/client';
+import { worksClient } from '@/features/works/api';
+import { workGovernanceApi } from '@/features/works/governanceApi';
 
 export interface AuthorStats {
   thread_count: number;
-  reaction_count: number;
-  reply_count: number;
+  reaction_count: number | null;
+  reply_count: number | null;
 }
 
 export interface AuthorProfileResponse {
@@ -16,12 +17,20 @@ export interface AuthorProfileResponse {
 }
 
 export const authorsApi = {
-  /**
-   * 获取作者详情与统计
-   * GET /v1/authors/{author_id}
-   */
+  resolveLegacyAuthor: async (discordId: string, signal?: AbortSignal): Promise<string> => {
+    if (!/^\d+$/.test(discordId)) throw new Error('无效旧作者 ID');
+    const { data } = await worksClient.get<{ id: string }>(`/authors/discord/${encodeURIComponent(discordId)}`, { signal });
+    if (!data || typeof data.id !== 'string' || !data.id.trim()) throw new Error('作者映射不可用');
+    return data.id;
+  },
+  /** Canonical V2 author ID. Never interpret a Discord identity as this ID. */
   getAuthorProfile: async (authorId: string, signal?: AbortSignal): Promise<AuthorProfileResponse> => {
-    const response = await apiClient.get<AuthorProfileResponse>(`/authors/${authorId}`, { signal });
-    return response.data;
+    const profile = await workGovernanceApi.author(authorId, signal);
+    return {
+      id: profile.id, name: profile.username, global_name: null,
+      display_name: profile.display_name || profile.username,
+      avatar_url: profile.avatar_url,
+      stats: { thread_count: profile.work_count, reaction_count: null, reply_count: null },
+    };
   },
 };

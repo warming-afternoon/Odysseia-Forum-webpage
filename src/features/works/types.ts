@@ -1,12 +1,11 @@
+import type { Work } from "@/entities/work/types";
+export type { Work, WorkTag } from "@/entities/work/types";
+
 export interface Page<T> {
   items: T[];
   total: number;
   offset: number;
   limit: number;
-}
-export interface WorkTag {
-  id: string;
-  name: string;
 }
 export interface ThreadRef {
   id: string;
@@ -26,34 +25,6 @@ export interface ThreadRef {
   can_restore?: boolean;
   deletion_reason?: string | null;
   initializing?: boolean;
-}
-export interface Work {
-  id: string;
-  title: string;
-  description: string | null;
-  images: string[];
-  sync_status?: 'pending' | 'ready';
-  author_id: string | null;
-  source_platform: string;
-  source_guild_id: string | null;
-  source_channel_id: string | null;
-  source_thread_id: string | null;
-  main_ref: string | null;
-  is_nsfw: boolean;
-  is_abyss: boolean;
-  created_at: string;
-  deleted_at: string | null;
-  statistics: {
-    view_count: number;
-    collection_count: number;
-    reaction_count: number;
-    reply_count: number;
-  };
-  reactions: {
-    emoji: string | { id: string | null; name: string; animated?: boolean };
-    count: number;
-  }[];
-  tags: WorkTag[];
 }
 export interface WorkInput {
   title: string;

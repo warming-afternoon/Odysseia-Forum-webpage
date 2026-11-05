@@ -1,3 +1,5 @@
+import { authorsApi } from "@/features/authors/api/authorsApi";
+import { captureAuthSession } from "@/shared/lib/authSession";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -10,6 +12,7 @@ import { Link } from "react-router-dom";
 import { CompactThreadCard } from "@/features/threads/components/CompactThreadCard";
 
 interface AuthorRecommendationsProps {
+  canonical?: boolean;
   authorId: string;
   authorName: string;
   currentThreadId: string;
@@ -21,6 +24,7 @@ interface AuthorRecommendationsProps {
  */
 export function AuthorRecommendations({
   authorId,
+  canonical = false,
   authorName,
   currentThreadId,
 }: AuthorRecommendationsProps) {
@@ -28,23 +32,29 @@ export function AuthorRecommendations({
     (state) => state.setPreviewThreadId,
   );
 
+  const resolved = useQuery({
+    queryKey: ['authors', 'legacy-recommendations', captureAuthSession().generation, authorId],
+    queryFn: ({ signal }) => authorsApi.resolveLegacyAuthor(authorId, signal),
+    enabled: !canonical && Boolean(authorId), retry: false,
+  });
+  const canonicalId = canonical ? authorId : resolved.data;
   const { data, isLoading } = useQuery({
     queryKey: [
       ...searchKeys.all,
-      "author-recommendations",
-      authorId,
+      "work-author-recommendations",
+      canonicalId,
+      canonical,
       currentThreadId,
     ],
     queryFn: () =>
       searchApi.search({
-        include_authors: [authorId],
-        author_name: authorId,
-        exclude_thread_ids: [currentThreadId],
+        include_authors: [canonicalId!],
+        exclude_thread_ids: canonical ? [currentThreadId] : [],
         apply_preferences: true,
         limit: 6,
         sort_method: "created_desc",
       }),
-    enabled: !!authorId,
+    enabled: !!canonicalId,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -101,7 +111,7 @@ export function AuthorRecommendations({
           {authorName} 的其他作品
         </h3>
         <Link
-          to={`/u/${authorId}`}
+          to={`/works/users/${encodeURIComponent(canonicalId!)}`}
           onClick={() => setPreviewThreadId(null)}
           className="flex items-center gap-1 text-sm font-medium text-(--od-accent) transition-colors hover:text-(--od-accent-hover)"
         >

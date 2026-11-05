@@ -19,6 +19,7 @@ import {
     Dices,
     Info,
     LogOut,
+    PenLine,
     Search as SearchIcon,
     Settings,
     Tag as TagIcon,
@@ -179,7 +180,6 @@ export function AppSidebar() {
             </h2>
           </div>
           <div className="space-y-0.5">
-            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
             <Link
               to="/"
               className={navItemClass(isActive('/'))}
@@ -211,6 +211,19 @@ export function AppSidebar() {
               />
               <span className="truncate">赛事</span>
             </Link>
+
+            {worksV2Enabled && (
+              <Link to="/publish" className={navItemClass(isActive('/publish'))} aria-current={isActive('/publish') ? 'page' : undefined}>
+                <span className={navIndicatorClass(isActive('/publish'))} />
+                <AnimatedIcon
+                  icon={PenLine}
+                  className={`h-4 w-4 shrink-0 ${isActive('/publish') ? 'text-(--od-accent)' : ''}`}
+                  animation="scale"
+                  trigger="hover"
+                />
+                <span className="truncate">发布</span>
+              </Link>
+            )}
 
             <button
               type="button"
@@ -341,7 +354,6 @@ export function AppSidebar() {
           </div>
 
           <div className="space-y-0.5">
-            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
             <button
               onClick={clearChannelSelection}
               title={
@@ -366,7 +378,6 @@ export function AppSidebar() {
                   {category.groupName}
                 </div>
                 <div className="space-y-0.5">
-            {worksV2Enabled && <Link to="/works" className={navItemClass(location.pathname.startsWith("/works"))}><BookOpen size={18} /><span>作品 V2</span></Link>}
                   {category.channels.map((channel) => {
                     const active = activeChannelId === channel.id;
                     return (

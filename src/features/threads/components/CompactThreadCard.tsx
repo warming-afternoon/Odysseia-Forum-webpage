@@ -1,3 +1,5 @@
+import { usePreviewStore } from "@/features/search/store/previewStore";
+import { useNavigate } from "react-router-dom";
 import { Image as ImageIcon, ThumbsUp } from "lucide-react";
 
 import type { Thread } from "@/entities/thread/types";
@@ -32,6 +34,7 @@ export function CompactThreadCardSkeleton() {
 }
 
 export function CompactThreadCard({ thread, onOpen }: CompactThreadCardProps) {
+  const navigate = useNavigate();
   const thumbnail = thread.thumbnail_urls?.[0];
   const authorName = getAuthorName(thread);
 
@@ -39,7 +42,12 @@ export function CompactThreadCard({ thread, onOpen }: CompactThreadCardProps) {
     <article className="min-w-0">
       <button
         type="button"
-        onClick={() => onOpen(thread)}
+        onClick={() => {
+          if (thread.work) {
+            usePreviewStore.getState().setPreviewThreadId(null);
+            navigate(`/works/${encodeURIComponent(thread.work.id)}`);
+          } else onOpen(thread);
+        }}
         aria-label={`预览帖子：${thread.title}，作者：${authorName}`}
         className="group block w-full min-w-0 text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-(--od-accent)"
       >
@@ -49,7 +57,7 @@ export function CompactThreadCard({ thread, onOpen }: CompactThreadCardProps) {
               src={thumbnail}
               alt=""
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.035]"
-              threadId={thread.thread_id}
+              threadId={thread.work ? undefined : thread.thread_id}
               channelId={thread.channel_id}
               imageIndex={0}
             />
@@ -77,6 +85,7 @@ export function CompactThreadCard({ thread, onOpen }: CompactThreadCardProps) {
         </span>
       </button>
       <AuthorIdentityLink
+                canonical={!!thread.work}
         author={thread.author}
         currentThreadId={thread.thread_id}
         viewerFlags={thread.viewer_flags}

@@ -14,6 +14,7 @@ export function WorkTasks({ workId }: { workId: string }) {
     if (finished) {
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'threads', workId] });
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'detail', workId] });
+      void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'presentation', workId] });
     }
   }, [finished, queryClient, workId]);
   if (!query.data?.items.length && !query.error) return null;

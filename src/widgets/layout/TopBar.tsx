@@ -267,6 +267,13 @@ export function TopBar({
 
   const handleSuggestionSelect = useCallback(
     (action: SearchSuggestionAction) => {
+      if (action.type === "open_work") {
+        setPreviewThreadId(null);
+        navigate(`/works/${encodeURIComponent(action.workId)}`);
+        closePanels();
+        return;
+      }
+
       if (action.type === "open_thread") {
         setPreviewThreadId(action.threadId);
         closePanels();
@@ -284,7 +291,7 @@ export function TopBar({
       }
 
       if (action.type === "open_booklist") {
-        navigate(`/booklists/${action.booklistId}`);
+        navigate(`${action.isWorkBooklist ? "/works/booklists" : "/booklists"}/${encodeURIComponent(action.booklistId)}`);
         closePanels();
         return;
       }
@@ -353,6 +360,9 @@ export function TopBar({
     }
     if (location.pathname === "/me") {
       return { fallback: "/", segments: [{ label: "我的" }] };
+    }
+    if (location.pathname === "/publish") {
+      return { fallback: "/", segments: [{ label: "发布作品" }] };
     }
     if (location.pathname === "/search") {
       if (activeVirtualTag) {

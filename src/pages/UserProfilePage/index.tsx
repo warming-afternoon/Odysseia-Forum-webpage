@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 
 import { BooklistCard } from "@/features/booklists/components/BooklistCard";
 import { BannerApplicationModal } from "@/features/banner/components/BannerApplicationModal";
@@ -28,6 +28,7 @@ import {
   AUTHOR_THREADS_PAGE_SIZE,
 } from "@/features/authors/hooks/useAuthorsData";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useWorkMember } from "@/features/works/member";
 import {
   useBooklistsList,
   useToggleBooklistCollection,
@@ -35,7 +36,7 @@ import {
 import {
   useAuthorFollowState,
   useToggleAuthorFollow,
-} from "@/features/follows/hooks/useAuthorFollow";
+} from "@/features/authors/hooks/useV2AuthorFollow";
 import { resolveAuthorKeywordTrigger } from "@/features/mascot/lib/messageResolver";
 import { useMascotStore } from "@/features/mascot/store/mascotStore";
 import { type UISortMethod } from "@/features/search/api/searchApi";
@@ -43,13 +44,13 @@ import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
 import { useChannels } from "@/shared/hooks/useChannels";
 import { useListEntranceAnimation } from "@/shared/hooks/useListEntranceAnimation";
 import {
-  buildAuthorShareText,
   copyTextToClipboard,
 } from "@/shared/lib/shareText";
 import { FluidDivider } from "@/shared/ui/FluidDivider";
 import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
 import { ShareTextDialog } from "@/shared/ui/ShareTextDialog";
 import { scrollPageToTop } from "@/shared/lib/pageScroll";
+import { LegacyAuthorRedirect } from "./LegacyAuthorRedirect";
 import { UserContentProfile } from "./UserContentProfile";
 
 // ─── 排序选项 ───────────────────────────────────────────────
@@ -83,13 +84,21 @@ function serializeChannels(ids: string[]): string {
 
 export function UserProfilePage() {
   const { userId } = useParams();
+  const location = useLocation();
+  return location.pathname.startsWith('/u/')
+    ? <LegacyAuthorRedirect discordId={userId || ''} />
+    : <CanonicalUserProfilePage userId={userId} />;
+}
+
+function CanonicalUserProfilePage({ userId }: { userId: string | undefined }) {
   const navigate = useNavigate();
   const { openPreview } = usePreviewThread();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const member = useWorkMember();
   const [searchParams, setSearchParams] = useSearchParams();
   const [shareText, setShareText] = useState<string | null>(null);
   const [bannerThread, setBannerThread] = useState<Thread | null>(null);
-  const isOwnProfile = isAuthenticated && Boolean(userId && user?.id === userId);
+  const isOwnProfile = isAuthenticated && Boolean(userId && member.data?.id === userId);
 
   useEffect(() => {
     const trigger = resolveAuthorKeywordTrigger(userId);
@@ -270,8 +279,8 @@ export function UserProfilePage() {
   }, []);
 
   // 优先使用 profile 接口返回的权威元数据
-  const profile = profileQuery.data;
-  const authorFromThreads = threads[0]?.author;
+  const profile = profileQuery.error ? undefined : profileQuery.data;
+  const authorFromThreads = threadsQuery.error ? undefined : threads[0]?.author;
 
   const authorName =
     profile?.display_name ||
@@ -289,12 +298,12 @@ export function UserProfilePage() {
     },
     {
       label: "累计受赞",
-      value: profile?.stats.reaction_count ?? 0,
+      value: profile?.stats.reaction_count ?? "—",
       icon: Heart,
     },
     {
       label: "累计获评",
-      value: profile?.stats.reply_count ?? 0,
+      value: profile?.stats.reply_count ?? "—",
       icon: MessageCircle,
     },
   ];
@@ -302,18 +311,11 @@ export function UserProfilePage() {
   const handleShare = () => {
     if (!userId) return;
 
-    setShareText(
-      buildAuthorShareText({
-        userId,
-        authorName,
-        stats: {
-          thread_count:
-            profile?.stats.thread_count ?? threadsQuery.data?.total ?? 0,
-          reaction_count: profile?.stats.reaction_count ?? 0,
-          reply_count: profile?.stats.reply_count ?? 0,
-        },
-      }),
-    );
+    setShareText([
+      `分享作者：${authorName}`,
+      `发布 ${profile?.stats.thread_count ?? threadsQuery.data?.total ?? 0} 个作品`,
+      `${window.location.origin}/works/users/${encodeURIComponent(userId)}`,
+    ].join("\n"));
   };
 
   const handleCopyShareText = async () => {
@@ -399,7 +401,7 @@ export function UserProfilePage() {
                 <button
                   type="button"
                   disabled={
-                    !isAuthenticated ||
+                    !isAuthenticated || isOwnProfile ||
                     (!authorFollowQuery.isError &&
                       isAuthorFollowed === undefined) ||
                     authorFollowQuery.isFetching ||

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { DiscordIcon } from '@/shared/ui/icons/DiscordIcon';
 import { AnimatedIcon } from '@/shared/ui/animation/AnimatedIcon';
@@ -10,7 +12,8 @@ import { openDiscordWithFallback } from '@/features/threads/lib/openDiscordWithF
 import { useOpenModeSetting } from '@/shared/hooks/useSettings';
 
 interface ThreadActionsProps {
-    threadId: string;
+    threadId?: string;
+    workId?: string;
     channelId?: string;
     guildId?: string;
     size?: 'sm' | 'md';
@@ -27,9 +30,13 @@ interface ThreadActionsProps {
  *  - 'white': 白色，用于深色背景/图片上
  *  - 'glass': 毛玻璃圆形按钮，用于卡片封面悬浮（与刷新按钮一致）
  */
-export function ThreadActions({ threadId, channelId, guildId, size = 'md', variant = 'default', alwaysVisible = false, className, externalUrlOverride }: ThreadActionsProps) {
+export function ThreadActions({ workId, threadId = "", channelId, guildId, size = 'md', variant = 'default', alwaysVisible = false, className, externalUrlOverride }: ThreadActionsProps) {
     const [isHovered, setIsHovered] = useState(false);
     const openMode = useOpenModeSetting();
+
+    if (workId) {
+        return <Link to={`/works/${encodeURIComponent(workId)}`} onClick={(event) => event.stopPropagation()} aria-label="查看作品详情" className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-(--od-bg-tertiary) ${className || ''}`}><ExternalLink className="h-4 w-4" /></Link>;
+    }
 
     const webUrl = externalUrlOverride || buildDiscordWebThreadUrl({
         guildId,

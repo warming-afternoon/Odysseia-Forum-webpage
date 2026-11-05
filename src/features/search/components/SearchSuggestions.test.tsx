@@ -45,3 +45,16 @@ describe('搜索建议键盘操作', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+
+it("V2 建议选择作品和书单时发出安全路由动作", () => {
+  const onSelect = vi.fn();
+  const id = "9007199254740993123";
+  render(<SearchSuggestions currentQuery="原生" onSelect={onSelect} onClose={vi.fn()}
+    threads={[{ thread_id: id, work_id: id, title: "原生作品", channel_id: "", guild_id: "" }]}
+    booklists={[{ id, title: "原生书单", item_count: 1, is_work_booklist: true }]} />);
+  fireEvent.click(screen.getByText("原生作品"));
+  expect(onSelect).toHaveBeenLastCalledWith({ type: "open_work", workId: id });
+  fireEvent.click(screen.getByText("原生书单"));
+  expect(onSelect).toHaveBeenLastCalledWith({ type: "open_booklist", booklistId: id, isWorkBooklist: true });
+});

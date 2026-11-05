@@ -25,6 +25,7 @@ import {
   useResultPagingModeSetting,
   useResultPreloadSettings,
 } from '@/shared/hooks/useSettings';
+import { getStoredAuthToken } from '@/shared/lib/authSession';
 import { notifyRateLimit } from '@/features/mascot/lib/notify';
 
 interface UseSearchResultsOptions {
@@ -34,6 +35,8 @@ interface UseSearchResultsOptions {
 }
 
 const PAGE_SIZE = 24;
+// Match the V2 request bound. Never truncate exclusions: that would repeat old results.
+export const MAX_SEARCH_EXCLUDE_IDS = 1000;
 
 // 搜索是全站最重的接口。此前是 staleTime: 0 且每次挂载都 resetQueries，
 // 等于每次进入页面、每次返回都要全量重拉一遍。
@@ -70,6 +73,7 @@ export function computeNextExcludeIds(
     return undefined;
   }
 
+  if (loadedThreadIds.size > MAX_SEARCH_EXCLUDE_IDS) return undefined;
   return Array.from(loadedThreadIds);
 }
 
@@ -123,6 +127,7 @@ export function useSearchResults({
   const nextPageOriginRef = useRef<RateLimitOrigin>('foreground');
   const attemptedForegroundPageRef = useRef<number | null>(null);
   const resultPagingMode = useResultPagingModeSetting();
+  const resultSource = getStoredAuthToken()?.startsWith('flx_') ? 'native' : 'legacy';
   const resultPreload = useResultPreloadSettings();
   const currentPage = Math.max(1, page || 1);
 
@@ -147,6 +152,7 @@ export function useSearchResults({
 
   const applyPreferences = !ignoreDiscoveryPreferences;
   const resultSignature = JSON.stringify([
+    resultSource,
     params.includeTagIds,
     params.excludeTagIds,
     query,
@@ -181,6 +187,7 @@ export function useSearchResults({
       applyPreferences,
       preferenceSignature: discoveryPreferenceContext?.signature,
       resultPagingMode,
+      resultSource,
     }),
     queryFn: ({ pageParam, signal }) => {
       const excludeThreadIds = pageParam;
@@ -192,6 +199,8 @@ export function useSearchResults({
           channel_ids: selectedChannel ? [selectedChannel] : undefined,
           include_tags: includeTags.length > 0 ? includeTags : undefined,
           exclude_tags: excludeTags.length > 0 ? excludeTags : undefined,
+          include_authors: includeAuthors.length > 0 ? includeAuthors : undefined,
+          exclude_authors: excludeAuthors.length > 0 ? excludeAuthors : undefined,
           include_tag_ids: params.includeTagIds,
           exclude_tag_ids: params.excludeTagIds,
           tag_logic: tagLogic,
@@ -501,6 +510,9 @@ export function useSearchResults({
     viewedPage,
     setIgnoreDiscoveryPreferences,
     totalResults,
+    paginationLimitReached: resultPagingMode === 'infinite' &&
+      collectThreadIds(infiniteQueryState.data?.pages || []).size > MAX_SEARCH_EXCLUDE_IDS &&
+      totalResults > results.length + (currentPage - 1) * PAGE_SIZE,
     visibleRateLimit: visibleRateLimit
       ? { info: visibleRateLimit, remaining: visibleRateLimitRemaining }
       : null,

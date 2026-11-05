@@ -78,5 +78,5 @@ export function WorkCreatePage() {
     await queryClient.invalidateQueries({ queryKey: workKeys.all });
     navigate(`/works/${encodeURIComponent(result.work.id)}`);
   } });
-  return <><h2 className="mb-4 text-xl">发布作品</h2><WorkStatus pending={member.isPending} error={member.error} />{member.data && !member.error && (member.data.can_create_work && member.data.can_speak ? <WorkForm save={input => mutation.mutate(input)} pending={mutation.isPending} /> : <p>发布作品需要当前 Discord 正式成员身份及发言权限。</p>)}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</>;
+  return <section className="mx-auto w-full max-w-6xl p-4 sm:p-6" aria-labelledby="publish-title"><h1 id="publish-title" className="mb-6 text-2xl font-semibold">发布作品</h1><WorkStatus pending={member.isPending} error={member.error} />{member.data && !member.error && (member.data.can_create_work && member.data.can_speak ? <WorkForm save={input => mutation.mutate(input)} pending={mutation.isPending} /> : <p>发布作品需要当前 Discord 正式成员身份及发言权限。</p>)}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</section>;
 }

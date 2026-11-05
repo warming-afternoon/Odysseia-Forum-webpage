@@ -80,3 +80,27 @@ describe('buildResultPageMap', () => {
     expect(map.get('3')).toBe(2);
   });
 });
+
+
+it("原生作品分页保留逻辑 ID 字符串，不使用来源帖子 ID", () => {
+  const id = "9007199254740993123";
+  const first = page([id], 3);
+  first.results[0].work = { id, source_thread_id: "33" } as NonNullable<typeof first.results[0]["work"]>;
+  expect(computeNextExcludeIds([first])).toEqual([id]);
+  expect(buildResultPageMap([first], 2).get(id)).toBe(2);
+  expect(computeNextExcludeIds([first, first])).toBeUndefined();
+});
+
+
+it("无限滚动保留超过 100 个逻辑 ID，避免截断后重复加载", () => {
+  const ids = Array.from({ length: 120 }, (_, index) => String(9007199254740993000n + BigInt(index)));
+  const pages = Array.from({ length: 5 }, (_, index) => page(ids.slice(index * 24, (index + 1) * 24), 200));
+  expect(computeNextExcludeIds(pages)).toEqual(ids);
+});
+
+
+it("排除列表最多1000项，超限停止而非截断", () => {
+  const makePage = (count: number) => ({ total: 2000, results: Array.from({ length: count }, (_, i) => ({ thread_id: String(i) })) }) as unknown as SearchResponse;
+  expect(computeNextExcludeIds([makePage(1000)])).toHaveLength(1000);
+  expect(computeNextExcludeIds([makePage(1001)])).toBeUndefined();
+});

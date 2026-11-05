@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 
 import type { Thread } from '@/entities/thread/types';
@@ -32,6 +33,11 @@ export function AISearchResponse({
   onTokenSelect?: (token: AISearchInlineToken) => void;
   isStreaming?: boolean;
 }) {
+  const navigate = useNavigate();
+  const openResult = (thread: Thread) => {
+    if (thread.work) navigate(`/works/${encodeURIComponent(thread.work.id)}`);
+    else onPreview(thread);
+  };
   const visibleContent = useMemo(() => {
     return isStreaming ? getStreamingSafeContent(content) : content;
   }, [content, isStreaming]);
@@ -69,7 +75,7 @@ export function AISearchResponse({
             key={`thread-${segment.reference.threadId}-${index}`}
             thread={thread}
             reference={segment.reference}
-            onPreview={onPreview}
+            onPreview={openResult}
           />
         ) : null;
       })}
@@ -87,7 +93,7 @@ export function AISearchResponse({
             threads={draw.threads}
             ariaLabel={`AI 抽卡结果 ${index + 1}，可滚轮或左右滑动`}
             emptyMessage="这次没有抽到符合配方的帖子。"
-            onOpen={onPreview}
+            onOpen={openResult}
           />
         </section>
       ))}

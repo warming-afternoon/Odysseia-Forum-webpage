@@ -6,6 +6,8 @@ import type { AISearchDisplayMessage, AISearchToolTraceItem } from '@/features/a
 import { booklistsApi } from '@/features/booklists/api/booklistsApi';
 import { discoveryApi } from '@/features/discovery/api/discoveryApi';
 import { searchApi, type SearchUIRequest } from '@/features/search/api/searchApi';
+import { worksApi } from '@/features/works/api';
+import { workToThread } from '@/features/works/workPresentation';
 import { parseDateRangeToken } from '@/shared/lib/searchTokenizer';
 
 export type AISearchStatus = 'thinking' | 'searching' | 'reading' | 'complete' | 'error';
@@ -593,7 +595,13 @@ export function createAISearchToolRuntime(
           status: 'running',
           parameters: `读取 ${uniqueResources.length} 个候选资源`,
         });
-        const threadDetails = await Promise.all(threadResources.map((resource) => searchApi.getThread(resource.id, signal)));
+        const threadDetails = await Promise.all(threadResources.map(async (resource) => {
+          const candidate = searchedThreads.get(resource.id);
+          if (candidate?.work || !candidate) {
+            return workToThread(await worksApi.get(resource.id, signal));
+          }
+          return searchApi.getThread(resource.id, signal);
+        }));
         const tournamentDetails = await Promise.all(tournamentResources.map(async (resource) => {
           const [detail, items] = await Promise.all([
             booklistsApi.getDetail(resource.id, signal),

@@ -1,3 +1,4 @@
+import type { Work } from "@/entities/work/types";
 import type { components } from "@shared-types/openapi";
 
 // --- 基础领域模型 (从 OpenAPI 自动生成类型映射) ---
@@ -14,6 +15,8 @@ export type Thread = Omit<
   components["schemas"]["ThreadDetail-Output"],
   "collection_count" | "tags" | "is_tournament" | "tournament_info_list"
 > & {
+  /** 原生搜索返回的作品；thread_id 仅用于列表标识和分页去重。 */
+  work?: Work;
   tags: string[];
   collection_count?: number;
   is_tournament?: boolean;
@@ -46,7 +49,9 @@ export type SearchParams = components["schemas"]["SearchRequest"];
 /**
  * 搜索响应结果
  */
-export type SearchResponse = components["schemas"]["SearchResponse"];
+export type SearchResponse = Omit<components["schemas"]["SearchResponse"], "results"> & {
+  results: Thread[];
+};
 
 /**
  * 相似帖子推荐响应

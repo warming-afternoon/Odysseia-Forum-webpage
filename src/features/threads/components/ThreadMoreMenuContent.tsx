@@ -1,3 +1,5 @@
+import { usePreviewStore } from "@/features/search/store/previewStore";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   BellOff,
@@ -34,7 +36,7 @@ interface ThreadMoreMenuContentProps {
   managementActions?: ThreadItemManagementActions;
 }
 
-export function ThreadMoreMenuContent({
+function LegacyThreadMoreMenuContent({
   thread,
   onAddToBooklist,
   onFindSimilar,
@@ -159,4 +161,27 @@ export function ThreadMoreMenuContent({
       )}
     </>
   );
+}
+
+
+/** Work menus never send a logical ID to a legacy mutation or share URL. */
+export function ThreadMoreMenuContent(props: ThreadMoreMenuContentProps) {
+  return props.thread.work ? <WorkMoreMenuContent {...props} /> : <LegacyThreadMoreMenuContent {...props} />;
+}
+
+function WorkMoreMenuContent({ thread, onFindSimilar, onAISimilar }: ThreadMoreMenuContentProps) {
+  const navigate = useNavigate();
+  const path = `/works/${encodeURIComponent(thread.work!.id)}`;
+  const copy = async () => {
+    if (await copyTextToClipboard(`${window.location.origin}${path}`)) toast.success("已复制作品链接");
+    else toast.error("复制作品链接失败");
+  };
+  return <>
+    <ContextMenuItem icon={<BookOpen className="h-4 w-4" />} onClick={() => { usePreviewStore.getState().setPreviewThreadId(null); navigate(path); }}>查看作品操作</ContextMenuItem>
+    <ContextMenuSeparator />
+    <ContextMenuItem icon={<Copy className="h-4 w-4" />} onClick={() => void copy()}>复制作品链接</ContextMenuItem>
+    <ContextMenuItem icon={<ExternalLink className="h-4 w-4" />} onClick={() => window.open(path, "_blank", "noopener,noreferrer")}>在新标签页打开</ContextMenuItem>
+    {onFindSimilar && <ContextMenuItem icon={<Search className="h-4 w-4" />} onClick={onFindSimilar}>找相似作品</ContextMenuItem>}
+    {onAISimilar && <ContextMenuItem icon={<Sparkles className="h-4 w-4" />} onClick={onAISimilar}>AI 探索相似</ContextMenuItem>}
+  </>;
 }

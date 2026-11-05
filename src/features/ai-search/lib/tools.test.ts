@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Booklist } from '@/entities/booklist/types';
 import type { Thread } from '@/entities/thread/types';
+import { worksApi } from "@/features/works/api";
+import { workToThread } from "@/features/works/workPresentation";
+import type { Work } from "@/features/works/types";
 import { booklistsApi } from '@/features/booklists/api/booklistsApi';
 import { discoveryApi } from '@/features/discovery/api/discoveryApi';
 import { searchApi } from '@/features/search/api/searchApi';
@@ -12,6 +15,8 @@ import {
   findPendingAISearchQuestion,
   parseAISearchAskUserCall,
 } from './tools';
+
+vi.mock('@/features/works/api', () => ({ worksApi: { get: vi.fn() } }));
 
 vi.mock('@/features/booklists/api/booklistsApi', () => ({
   booklistsApi: { listPublic: vi.fn(), getDetail: vi.fn(), listItems: vi.fn() },
@@ -170,4 +175,31 @@ describe('AI 搜索工具结果', () => {
     expect(runtime.getDraws()).toEqual([{ configuration: result.configuration, threads: [thread] }]);
     expect(runtime.getThreads()).toContain(thread);
   });
+});
+
+
+it("AI 搜索作品详情使用逻辑作品 ID 调 V2，不调用旧 getThread", async () => {
+  vi.clearAllMocks();
+  const work: Work = {
+    id: "9007199254740993123", title: "原生作品", description: "完整正文", images: [],
+    author_id: "9007199254740993999", source_platform: "fluxer", source_guild_id: null,
+    source_channel_id: null, source_thread_id: "33", main_ref: null,
+    is_nsfw: false, is_abyss: false, created_at: "2026-11-05T00:00:00Z", deleted_at: null,
+    statistics: { view_count: 0, collection_count: 0, reaction_count: 0, reply_count: 0 }, reactions: [], tags: [],
+  };
+  vi.mocked(searchApi.search).mockResolvedValueOnce({ total: 1, results: [workToThread(work)], limit: 12, offset: 0 });
+  vi.mocked(worksApi.get).mockResolvedValueOnce(work);
+  const runtime = createAISearchToolRuntime(() => undefined);
+  await runtime.execute({ id: "search", type: "function", function: { name: "search_threads", arguments: "{}" } });
+  const details = JSON.parse(await runtime.execute({ id: "details", type: "function", function: { name: "get_resource_details", arguments: JSON.stringify({ resources: [{ type: "thread", id: work.id }] }) } }));
+  expect(worksApi.get).toHaveBeenCalledWith(work.id, undefined);
+  expect(searchApi.getThread).not.toHaveBeenCalled();
+  expect(details.results[0].content).toBe(work.description);
+  expect(runtime.getThreads()[0].work).toEqual(work);
+  // 恢复会话只有 ID 时，也不能把逻辑编号送进旧帖子接口。
+  vi.mocked(worksApi.get).mockResolvedValueOnce(work);
+  const restored = createAISearchToolRuntime(() => undefined, [], undefined, undefined, { threadIds: [work.id], tournamentIds: [] });
+  await restored.execute({ id: "restored", type: "function", function: { name: "get_thread_details", arguments: JSON.stringify({ thread_ids: [work.id] }) } });
+  expect(searchApi.getThread).not.toHaveBeenCalled();
+  expect(restored.getThreads()[0].work).toEqual(work);
 });

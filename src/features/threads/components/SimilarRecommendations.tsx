@@ -1,3 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+import { worksClient } from '@/features/works/api';
+import type { Work } from '@/features/works/types';
+import { workToThread } from '@/features/works/workPresentation';
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -11,18 +15,24 @@ import { CompactThreadCard } from "@/features/threads/components/CompactThreadCa
 
 interface SimilarRecommendationsProps {
   currentThreadId: string;
+  workId?: string;
 }
 
 export function SimilarRecommendations({
-  currentThreadId,
+  currentThreadId, workId,
 }: SimilarRecommendationsProps) {
+  const navigate = useNavigate();
   const setPreviewThreadId = usePreviewStore(
     (state) => state.setPreviewThreadId,
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: [...searchKeys.thread(currentThreadId), "similar"],
-    queryFn: () => searchApi.getSimilarThreads(currentThreadId, 6),
+    queryKey: workId ? ["works-v2", "similar", workId] : [...searchKeys.thread(currentThreadId), "similar"],
+    queryFn: async ({ signal }) => {
+      if (!workId) return searchApi.getSimilarThreads(currentThreadId, 6);
+      const { data } = await worksClient.get<{ items: Work[]; matched_tag_count: number }>(`/works/${encodeURIComponent(workId)}/similar`, { params: { limit: 6, apply_preferences: true }, signal });
+      return { results: data.items.map(workToThread), matched_tag_count: data.matched_tag_count };
+    },
     enabled: !!currentThreadId,
     staleTime: 5 * 60 * 1000,
   });
@@ -82,7 +92,7 @@ export function SimilarRecommendations({
           >
             <CompactThreadCard
               thread={thread}
-              onOpen={(item) => setPreviewThreadId(item.thread_id)}
+              onOpen={(item) => { if (item.work) { setPreviewThreadId(null); navigate(`/works/${encodeURIComponent(item.work.id)}`); } else setPreviewThreadId(item.thread_id); }}
             />
           </motion.div>
         ))}

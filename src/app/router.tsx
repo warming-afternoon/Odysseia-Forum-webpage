@@ -1,6 +1,6 @@
 import { worksV2Enabled } from "@/shared/config/works";
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/app/providers/ProtectedRoute";
 import { RequiredSetupGate } from "@/app/providers/RequiredSetupGate";
 import { RootLayout } from "@/widgets/layout/RootLayout";
@@ -92,7 +92,7 @@ const WorksSearchPage = lazyPage(() => import("@/features/works/browse"), "Works
 const WorksDiscoverPage = lazyPage(() => import("@/features/works/browse"), "WorksDiscoverPage");
 const WorksCollectionPage = lazyPage(() => import("@/features/works/browse"), "WorksCollectionPage");
 const DeletedWorksAdminPage = lazyPage(() => import("@/features/works/moderation"), "DeletedWorksAdminPage");
-const WorkDetailPage = lazyPage(() => import("@/features/works/detail"), "WorkDetailPage");
+const WorkPresentationPage = lazyPage(() => import("@/pages/ThreadDetailPage"), "WorkPresentationPage");
 const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
 
 const WorkMePage = lazyPage(() => import("@/features/works/member"), "WorkMePage");
@@ -118,6 +118,18 @@ const withSuspense = (node: ReactNode) => (
 
 const appChildren = [
   ...(worksV2Enabled ? [{
+    path: "publish",
+    element: withSuspense(<WorkCreatePage />),
+  }, {
+    path: "works/new",
+    element: <Navigate to="/publish" replace />,
+  }, {
+    path: "works/users/:userId",
+    element: withSuspense(<UserProfilePage />),
+  }, {
+    path: "works/:workId",
+    element: withSuspense(<WorkPresentationPage />),
+  }, {
     path: "works",
     element: withSuspense(<WorksLayout />),
     children: [
@@ -126,14 +138,11 @@ const appChildren = [
       { path: "admin/deleted", element: withSuspense(<DeletedWorksAdminPage />) },
       { path: "collection", element: withSuspense(<WorksCollectionPage />) },
       { path: "me", element: withSuspense(<WorkMePage />) },
-      { path: "new", element: withSuspense(<WorkCreatePage />) },
       { path: "follows", element: withSuspense(<WorkFollowsPage />) },
       { path: "notifications", element: withSuspense(<WorkNotificationsPage />) },
       { path: "booklists", element: withSuspense(<WorkBooklistsPage />) },
       { path: "booklists/:booklistId", element: withSuspense(<WorkBooklistPage />) },
-      { path: "users/:userId", element: withSuspense(<WorksSearchPage />) },
       { path: ":workId/edit", element: withSuspense(<WorkEditPage />) },
-      { path: ":workId", element: withSuspense(<WorkDetailPage />) },
     ],
   }] : []),
   {

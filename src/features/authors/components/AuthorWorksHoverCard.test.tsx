@@ -6,7 +6,7 @@ import { authorsApi } from "@/features/authors/api/authorsApi";
 import {
   useAuthorFollowState,
   useToggleAuthorFollow,
-} from "@/features/follows/hooks/useAuthorFollow";
+} from "@/features/authors/hooks/useV2AuthorFollow";
 import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
 import { searchApi } from "@/features/search/api/searchApi";
 import { AuthorWorksHoverCard } from "./AuthorWorksHoverCard";
@@ -16,7 +16,7 @@ vi.mock("@/features/search/api/searchApi", () => ({
 }));
 
 vi.mock("@/features/authors/api/authorsApi", () => ({
-  authorsApi: { getAuthorProfile: vi.fn() },
+  authorsApi: { getAuthorProfile: vi.fn(), resolveLegacyAuthor: vi.fn() },
 }));
 
 vi.mock("@/features/preferences/hooks/useUserPreferences", () => ({
@@ -28,7 +28,7 @@ vi.mock("@/features/preferences/hooks/useUserPreferences", () => ({
   })),
 }));
 
-vi.mock("@/features/follows/hooks/useAuthorFollow", () => ({
+vi.mock("@/features/authors/hooks/useV2AuthorFollow", () => ({
   useAuthorFollowState: vi.fn(() => ({
     data: false,
     isError: false,
@@ -75,6 +75,19 @@ describe("AuthorWorksHoverCard", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.clearAllMocks();
+  });
+
+  it("原生近作链接到作品，不显示旧预览按钮", async () => {
+    const id = "9007199254740993123";
+    vi.mocked(searchApi.search).mockResolvedValue({ total: 1, limit: 3, offset: 0,
+      results: [{ thread_id: id, work: { id, title: "原生作品" } }] } as never);
+    render(<AuthorWorksHoverCard author={author}><button type="button">作者头像</button></AuthorWorksHoverCard>);
+    const trigger = screen.getByRole("button", { name: "作者头像" }).parentElement!;
+    fireEvent.pointerEnter(trigger, { pointerType: "mouse" });
+    await act(async () => vi.advanceTimersByTime(300));
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole("link", { name: "原生作品", hidden: true })).toHaveAttribute("href", `/works/${id}`);
+    expect(screen.queryByRole("button", { name: "原生作品", hidden: true })).not.toBeInTheDocument();
   });
 
   it("停留达到阈值后才打开并查询作者作品", async () => {
@@ -255,4 +268,33 @@ describe("AuthorWorksHoverCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "重试关注状态" }));
     expect(refetch).toHaveBeenCalledTimes(1);
   });
+});
+
+
+it('legacy hover waits for explicit mapping before any V2 author profile request', async () => {
+  vi.useFakeTimers();
+  vi.mocked(authorsApi.getAuthorProfile).mockClear();
+  vi.mocked(authorsApi.resolveLegacyAuthor).mockResolvedValue('canonical-resolved');
+  vi.mocked(searchApi.search).mockResolvedValue({ results: [], total: 0 } as never);
+  render(<AuthorWorksHoverCard author={author} canonical={false}><button>旧作者</button></AuthorWorksHoverCard>);
+  fireEvent.pointerEnter(screen.getByText('旧作者').parentElement!, { pointerType: 'mouse' });
+  await act(async () => { await vi.advanceTimersByTimeAsync(400); });
+  await act(async () => { await vi.advanceTimersByTimeAsync(50); });
+  expect(authorsApi.resolveLegacyAuthor).toHaveBeenCalledWith(author.id, expect.any(AbortSignal));
+  expect(authorsApi.getAuthorProfile).toHaveBeenCalledWith('canonical-resolved', expect.any(AbortSignal));
+  expect(authorsApi.getAuthorProfile).not.toHaveBeenCalledWith(author.id, expect.anything());
+  vi.useRealTimers();
+});
+
+it('denied legacy hover never queries a guessed canonical author', async () => {
+  vi.useFakeTimers();
+  vi.mocked(authorsApi.getAuthorProfile).mockClear();
+  vi.mocked(authorsApi.resolveLegacyAuthor).mockRejectedValue(new Error('404'));
+  render(<AuthorWorksHoverCard author={author} canonical={false}><button>失效旧作者</button></AuthorWorksHoverCard>);
+  fireEvent.pointerEnter(screen.getByText('失效旧作者').parentElement!, { pointerType: 'mouse' });
+  await act(async () => { await vi.advanceTimersByTimeAsync(400); });
+  await act(async () => { await vi.advanceTimersByTimeAsync(50); });
+  expect(screen.getByText('旧作者链接已失效或当前不可访问')).toBeInTheDocument();
+  expect(authorsApi.getAuthorProfile).not.toHaveBeenCalled();
+  vi.useRealTimers();
 });

@@ -168,7 +168,7 @@ export function SearchDiscoveryHub({
   };
   const getTagThreadQueryKey = (tag: string) => [
     "search-discovery",
-    "tag-threads",
+    "tag-works-v2",
     scope,
     tag,
     applyPreferences,

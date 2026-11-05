@@ -60,3 +60,11 @@ it.each([
   vi.spyOn(worksClient, 'patch').mockResolvedValue({ data: { ...fakeV2Preferences, show_nsfw: true, nsfw_preference_version: 4, ...invalid } });
   await expect(worksApi.preferences({ show_nsfw: true, expected_version: 3 }, captureAuthSession(), { user_id: String(fakeV2Preferences.user_id), nsfw_guild_id: fakeV2Preferences.nsfw_guild_id! })).rejects.toThrow();
 });
+
+it('discards late author/work projections after account change', async () => {
+  vi.restoreAllMocks(); setStoredAuthToken('flx_old');
+  await expect(worksClient.get('/search', {adapter: async config => {
+    invalidateAuthSession(); setStoredAuthToken('flx_new');
+    return {config, data:{author:{name:'OLD PRIVATE AUTHOR'}}, status:200,statusText:'OK',headers:{}};
+  }})).rejects.toThrow('登录状态已变化');
+});

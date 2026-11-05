@@ -7,13 +7,17 @@ export const searchKeys = {
       applyPreferences?: boolean;
       preferenceSignature?: string;
       resultPagingMode?: string;
+      resultSource?: "legacy" | "native";
     },
   ) =>
     [
       ...searchKeys.all,
-      "results",
+      "work-results-v2",
       {
+        resultSource: params.resultSource ?? "legacy",
         query: params.query,
+        includeTags: params.includeTags,
+        excludeTags: params.excludeTags,
         includeTagIds: params.includeTagIds,
         excludeTagIds: params.excludeTagIds,
         channel: params.channel,
@@ -40,7 +44,7 @@ export const searchKeys = {
   }) =>
     [
       ...searchKeys.all,
-      "suggestions",
+      "work-suggestions-v2",
       {
         query: params.query,
         applyPreferences: params.applyPreferences,

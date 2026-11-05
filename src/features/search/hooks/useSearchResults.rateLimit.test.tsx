@@ -94,6 +94,17 @@ describe("useSearchResults 限流分层", () => {
     vi.restoreAllMocks();
   });
 
+  it("显式作者筛选原样传递大整数 ID", async () => {
+    settings.preload = { enabled: false, pages: 1 };
+    vi.mocked(searchApi.search).mockResolvedValueOnce(page([], 0));
+    renderHook(() => useSearchResults({ params: {
+      ...params, includeAuthors: ["9007199254740993123"], excludeAuthors: ["9007199254740993999"],
+    }, preferences: null }), { wrapper: createWrapper() });
+    await waitFor(() => expect(searchApi.search).toHaveBeenCalledWith(expect.objectContaining({
+      include_authors: ["9007199254740993123"], exclude_authors: ["9007199254740993999"],
+    }), expect.anything(), "foreground"));
+  });
+
   it("跳转后从目标页继续无限滚动，页码和结束条件包含跳过的结果", async () => {
     settings.preload = { enabled: false, pages: 1 };
     const targetPageIds = Array.from({ length: 24 }, (_, index) => String(index + 25));

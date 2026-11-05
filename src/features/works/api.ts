@@ -49,7 +49,11 @@ worksClient.interceptors.request.use((config) => {
   return config;
 });
 worksClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const session = requestSessions.get(response.config);
+    if (session && !isAuthSessionCurrent(session)) throw new axios.CanceledError('登录状态已变化，请重试。');
+    return response;
+  },
   (error) => {
     const session = error.config && requestSessions.get(error.config);
     if (error.response?.status === 401 && session?.token && isAuthSessionCurrent(session)) {

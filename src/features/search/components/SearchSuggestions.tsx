@@ -1,5 +1,6 @@
 import type {
   SearchSuggestionAuthor,
+  SearchSuggestionTag,
   SearchSuggestionBooklist as ApiSearchSuggestionBooklist,
   SearchSuggestionThread,
 } from "@/features/search/api/searchApi";
@@ -30,7 +31,6 @@ import {
   YESTERDAY_POPULAR_LABEL,
 } from "@/features/search/lib/searchPresets";
 import { chooseSuggestedTags } from "@/features/search/lib/searchDiscoveryTags";
-import type { components } from "@/shared/types/openapi";
 
 export type SearchSuggestionAction =
   | { type: "append"; value: string }
@@ -46,7 +46,8 @@ export type SearchSuggestionAction =
       type: "open_thread";
       threadId: string;
     }
-  | { type: "open_booklist"; booklistId: number };
+  | { type: "open_work"; workId: string }
+  | { type: "open_booklist"; booklistId: number | string; isWorkBooklist?: boolean };
 
 interface SearchSuggestionsProps {
   currentQuery: string;
@@ -57,7 +58,7 @@ interface SearchSuggestionsProps {
   booklists?: ApiSearchSuggestionBooklist[];
   history?: SearchHistoryItem[];
   suggestedTags?: string[];
-  tagEntities?: components["schemas"]["TagResponse"][];
+  tagEntities?: SearchSuggestionTag[];
   preferredTags?: string[];
   onSelect: (action: SearchSuggestionAction) => void;
   onClose: () => void;
@@ -132,13 +133,15 @@ export function SearchSuggestions({
         type: "thread";
         display: string;
         threadId: string;
+        workId?: string;
         icon: typeof FileText;
       }
     | {
         key: string;
         type: "booklist";
         display: string;
-        booklistId: number;
+        booklistId: number | string;
+        isWorkBooklist?: boolean;
         icon: typeof BookOpen;
         itemCount?: number;
       }
@@ -271,6 +274,7 @@ export function SearchSuggestions({
           type: "thread",
           display: thread.title,
           threadId: thread.thread_id,
+          workId: thread.work_id,
           icon: FileText,
         }));
       if (directThreads.length > 0) {
@@ -289,6 +293,7 @@ export function SearchSuggestions({
           type: "booklist",
           display: booklist.title,
           booklistId: booklist.id,
+          isWorkBooklist: booklist.is_work_booklist,
           itemCount: booklist.item_count,
           icon: BookOpen,
         }));
@@ -342,7 +347,7 @@ export function SearchSuggestions({
     mode: "include" | "exclude" = "include",
   ) => {
     if (item.type === "thread") {
-      onSelect({
+      onSelect(item.workId ? { type: "open_work", workId: item.workId } : {
         type: "open_thread",
         threadId: item.threadId,
       });
@@ -350,7 +355,7 @@ export function SearchSuggestions({
     }
 
     if (item.type === "booklist") {
-      onSelect({ type: "open_booklist", booklistId: item.booklistId });
+      onSelect({ type: "open_booklist", booklistId: item.booklistId, ...(item.isWorkBooklist ? { isWorkBooklist: true } : {}) });
       return;
     }
 

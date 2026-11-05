@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+import { authorsApi } from '@/features/authors/api/authorsApi';
+import { captureAuthSession } from '@/shared/lib/authSession';
 import {
   Bell,
   BellOff,
@@ -17,7 +20,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { Author, Thread } from '@/entities/thread/types';
@@ -26,7 +29,7 @@ import { useAuthorProfile, useAuthorRecentWorks } from '@/features/authors/hooks
 import {
   useAuthorFollowState,
   useToggleAuthorFollow,
-} from '@/features/follows/hooks/useAuthorFollow';
+} from '@/features/authors/hooks/useV2AuthorFollow';
 import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
 import { usePreviewStore } from '@/features/search/store/previewStore';
 import { GUILD_ID } from '@/shared/config/channelCategories.private';
@@ -41,6 +44,7 @@ const PANEL_GAP = 10;
 
 interface AuthorWorksHoverCardProps {
   author: Author;
+  canonical?: boolean;
   currentThreadId?: string;
   initialFollowed?: boolean;
   children: ReactNode;
@@ -107,7 +111,8 @@ function AuthorWorksPanel({
 
   const openAuthorPage = () => {
     close();
-    navigate(`/u/${author.id}`);
+    setPreviewThreadId(null);
+    navigate(`/works/users/${encodeURIComponent(author.id)}`);
   };
 
   const toggleAuthorBlock = async () => {
@@ -297,6 +302,16 @@ function AuthorWorksPanel({
           {!isLoading &&
             !isError &&
             threads.map((thread) => {
+              if (thread.work) return (
+                <Link
+                  key={thread.thread_id}
+                  to={`/works/${encodeURIComponent(thread.work.id)}`}
+                  onClick={() => { close(); setPreviewThreadId(null); }}
+                  className="block rounded-xl p-2 text-xs font-medium text-(--od-text-primary) hover:text-(--od-accent)"
+                >
+                  {thread.work.title}
+                </Link>
+              );
               const thumbnail = thread.thumbnail_urls?.[0];
               return (
                 <button
@@ -420,6 +435,7 @@ function AuthorWorksPanel({
 
 export function AuthorWorksHoverCard({
   author,
+  canonical = true,
   currentThreadId,
   initialFollowed,
   children,
@@ -430,6 +446,14 @@ export function AuthorWorksHoverCard({
   const closeTimerRef = useRef<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
+  const legacy = useQuery({
+    queryKey: ['authors', 'legacy-discord', captureAuthSession().generation, author.id],
+    queryFn: ({ signal }) => authorsApi.resolveLegacyAuthor(author.id, signal),
+    enabled: isOpen && !canonical,
+    retry: false, staleTime: 0,
+  });
+  const canonicalId = canonical ? author.id : (!legacy.error && !legacy.isFetching ? legacy.data : undefined);
+
 
   const clearOpenTimer = useCallback(() => {
     if (openTimerRef.current !== null) {
@@ -580,7 +604,7 @@ export function AuthorWorksHoverCard({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('pointerdown', handlePointerDown);
     };
-  }, [close, isOpen, updatePosition]);
+  }, [close, isOpen, updatePosition, canonicalId]);
 
   return (
     <>
@@ -598,16 +622,18 @@ export function AuthorWorksHoverCard({
       </span>
       {isOpen &&
         createPortal(
-          <AuthorWorksPanel
-            author={author}
-            currentThreadId={currentThreadId}
-            initialFollowed={initialFollowed}
+          canonicalId ? <AuthorWorksPanel
+            author={{ ...author, id: canonicalId }}
+            currentThreadId={canonical ? currentThreadId : undefined}
+            initialFollowed={canonical ? initialFollowed : undefined}
             panelRef={panelRef}
             panelStyle={panelStyle}
             close={close}
             keepOpen={keepOpen}
             closeSoon={closeSoon}
-          />,
+          /> : <div ref={panelRef} style={panelStyle} popover="manual" className="od-floating-panel-solid fixed z-50 rounded-2xl border border-(--od-border-strong) p-4 text-sm shadow-2xl" onPointerEnter={keepOpen} onPointerLeave={closeSoon}>
+            {legacy.error ? '旧作者链接已失效或当前不可访问' : '正在查找作者...'}
+          </div>,
           document.body,
         )}
     </>

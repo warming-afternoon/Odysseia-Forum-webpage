@@ -7,7 +7,7 @@ import {
 import { authorKeys } from "@/features/authors/lib/queryKeys";
 
 export function useAuthorProfiles(authorIds: string[]) {
-  const ids = Array.from(new Set(authorIds.filter((id) => /^\d+$/.test(id))));
+  const ids = Array.from(new Set(authorIds.filter((id) => Boolean(id.trim()))));
   const queries = useQueries({
     queries: ids.map((id) => ({
       queryKey: authorKeys.profile(id),

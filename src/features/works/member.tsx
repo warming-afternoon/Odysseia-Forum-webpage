@@ -1,3 +1,4 @@
+import { resetVisibleContent } from './contentCache';
 import {
   captureAuthSession,
   isAuthSessionCurrent,
@@ -84,10 +85,7 @@ export function WorkMePage() {
         { queryKey: context.queryKey, exact: true },
         (previous) => (previous ? { ...previous, ...data } : previous),
       );
-      await queryClient.resetQueries({
-        queryKey: workKeys.all,
-        predicate: (query) => query.queryKey[1] !== 'me',
-      });
+      await resetVisibleContent(queryClient);
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'me'] });
       void queryClient.invalidateQueries({ queryKey: queryKey, exact: true });
     },

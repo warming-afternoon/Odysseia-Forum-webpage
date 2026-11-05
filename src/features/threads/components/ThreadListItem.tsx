@@ -1,3 +1,5 @@
+import { usePreviewStore } from "@/features/search/store/previewStore";
+import { useNavigate } from "react-router-dom";
 import {
   Clock3,
   Images,
@@ -62,6 +64,7 @@ function ThreadListItemImpl({
   managementActions,
   onApplyBanner,
 }: ThreadListItemProps) {
+  const navigate = useNavigate();
   const {
     fontSizes,
     quickAddOpen,
@@ -88,11 +91,11 @@ function ThreadListItemImpl({
       : initialThumbnailUrls;
 
   useEffect(() => {
-    if (imageMode === "off") return;
+    if (imageMode === "off" || thread.work) return;
     return subscribeThreadThumbnailRepair(thread.thread_id, (urls) => {
       setRepairedThumbnailState({ threadId: thread.thread_id, urls });
     });
-  }, [imageMode, thread.thread_id]);
+  }, [imageMode, thread.thread_id, thread.work]);
 
   // 获取有效的去重缩略图列表，最多 4 张
   const thumbnails = useMemo(() => {
@@ -113,7 +116,10 @@ function ThreadListItemImpl({
           data-result-page={resultPage}
           className={`group relative w-full cursor-pointer py-3 text-(--od-text-primary) [content-visibility:auto] [contain-intrinsic-size:auto_200px] transition-colors duration-200${trailingAction ? " md:pr-32" : ""}${entranceClass}`}
           style={animateIn ? { animationDelay } : undefined}
-          onClick={() => onPreview?.(thread)}
+          onClick={() => { if (thread.work) {
+              usePreviewStore.getState().setPreviewThreadId(null);
+              navigate(`/works/${encodeURIComponent(thread.work.id)}`);
+            } else onPreview?.(thread); }}
         >
       {!hideBottomDivider && (
         <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--od-divider-strong)_60%,transparent),transparent)]" />
@@ -129,7 +135,7 @@ function ThreadListItemImpl({
                     src={thumbnails[0]}
                     alt={`${thread.title} 缩略图 1`}
                     className="h-full w-full object-cover"
-                    threadId={thread.thread_id}
+                    threadId={thread.work ? undefined : thread.thread_id}
                     channelId={thread.channel_id}
                     imageIndex={0}
                     subscribeToRecovery={false}
@@ -145,7 +151,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.thread_id}
+                      threadId={thread.work ? undefined : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -157,7 +163,7 @@ function ThreadListItemImpl({
                         src={thumbnails[1]}
                         alt={`${thread.title} 缩略图 2`}
                         className="h-full w-full object-cover"
-                        threadId={thread.thread_id}
+                        threadId={thread.work ? undefined : thread.thread_id}
                         channelId={thread.channel_id}
                         index={index}
                         imageIndex={1}
@@ -175,7 +181,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.thread_id}
+                      threadId={thread.work ? undefined : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -188,7 +194,7 @@ function ThreadListItemImpl({
                           src={thumbnails[1]}
                           alt={`${thread.title} 缩略图 2`}
                           className="h-full w-full object-cover"
-                          threadId={thread.thread_id}
+                          threadId={thread.work ? undefined : thread.thread_id}
                           channelId={thread.channel_id}
                           index={index}
                           imageIndex={1}
@@ -200,7 +206,7 @@ function ThreadListItemImpl({
                           src={thumbnails[2]}
                           alt={`${thread.title} 缩略图 3`}
                           className="h-full w-full object-cover"
-                          threadId={thread.thread_id}
+                          threadId={thread.work ? undefined : thread.thread_id}
                           channelId={thread.channel_id}
                           imageIndex={2}
                           subscribeToRecovery={false}
@@ -219,7 +225,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.thread_id}
+                      threadId={thread.work ? undefined : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -235,7 +241,7 @@ function ThreadListItemImpl({
                           src={src}
                           alt={`${thread.title} 缩略图 ${idx + 2}`}
                           className="h-full w-full object-cover"
-                          threadId={thread.thread_id}
+                          threadId={thread.work ? undefined : thread.thread_id}
                           channelId={thread.channel_id}
                           index={index}
                           imageIndex={idx + 1}
@@ -269,6 +275,7 @@ function ThreadListItemImpl({
             className={`mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 ${fontSizes.meta} text-(--od-text-tertiary)`}
           >
             <AuthorIdentityLink
+                canonical={!!thread.work}
               author={thread.author}
               currentThreadId={thread.thread_id}
               viewerFlags={thread.viewer_flags}
@@ -330,7 +337,8 @@ function ThreadListItemImpl({
                   <MoreHorizontal className="h-4 w-4" />
                 </ContextMenuButton>
                 <ThreadActions
-                  threadId={thread.thread_id}
+                  workId={thread.work?.id}
+                  threadId={thread.work ? undefined : thread.thread_id}
                   channelId={thread.channel_id}
                   guildId={thread.guild_id}
                   size="md"
@@ -350,12 +358,12 @@ function ThreadListItemImpl({
         />
       </div>
 
-      <QuickAddToBooklistModal
+      {!thread.work && <QuickAddToBooklistModal
         isOpen={quickAddOpen}
         threadId={thread.thread_id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
-      />
+      />}
         </article>
       </ContextMenuTrigger>
 

@@ -1,3 +1,5 @@
+import { useWorkPresentation } from '@/features/works/useWorkPresentation';
+import { workToThread } from '@/features/works/workPresentation';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -40,4 +42,14 @@ export function ThreadDetailPage() {
       onClose={() => navigate('/')}
     />
   );
+}
+
+/** Canonical work route; legacy /threads/:threadId stays a source-thread route. */
+export function WorkPresentationPage() {
+  const { workId = '' } = useParams();
+  const navigate = useNavigate();
+  const result = useWorkPresentation(workId);
+  if (result.isPending) return <PageStatusMessage>正在帮你加载作品...</PageStatusMessage>;
+  if (result.error || !result.data) return <PageStatusMessage tone="error">作品不存在或当前不可访问</PageStatusMessage>;
+  return <ThreadPreviewOverlay thread={workToThread(result.data)} onClose={() => navigate('/')} />;
 }

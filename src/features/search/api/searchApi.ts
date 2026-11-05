@@ -1,4 +1,9 @@
+import axios from 'axios';
+import { captureAuthSession, isAuthSessionCurrent } from '@/shared/lib/authSession';
 import { SearchParams as ApiSearchParams, SearchResponse, SimilarThreadsResponse, Thread } from '@/entities/thread/types';
+import { worksClient } from '@/features/works/api';
+import { workToThread } from '@/features/works/workPresentation';
+import type { Work, Page } from '@/features/works/types';
 import { apiClient } from '@/shared/api/client';
 import {
   getActiveRateLimit,
@@ -55,6 +60,7 @@ export interface SearchSuggestionAuthor {
 }
 
 export interface SearchSuggestionThread {
+  work_id?: string;
   thread_id: string;
   title: string;
   channel_id: string;
@@ -62,13 +68,16 @@ export interface SearchSuggestionThread {
 }
 
 export interface SearchSuggestionBooklist {
-  id: number;
+  id: number | string;
+  is_work_booklist?: boolean;
   title: string;
   item_count: number;
 }
 
+export type SearchSuggestionTag = Pick<components["schemas"]["TagResponse"], "id" | "name" | "category" | "is_abyss"> & Partial<components["schemas"]["TagResponse"]>;
+
 export interface SearchSuggestionResponse {
-  tags?: components["schemas"]["TagResponse"][];
+  tags?: SearchSuggestionTag[];
   authors?: SearchSuggestionAuthor[];
   threads?: SearchSuggestionThread[];
   booklists?: SearchSuggestionBooklist[];
@@ -212,16 +221,20 @@ export const searchApi = {
     signal?: AbortSignal,
     origin: RateLimitOrigin = 'foreground',
   ): Promise<SearchResponse> => {
+    const session = captureAuthSession();
     const activeRateLimit = getActiveRateLimit('search', origin);
     if (activeRateLimit) throw new RateLimitError(activeRateLimit);
 
-    const requestBody = buildSearchRequest(params);
+    const { exclude_thread_ids, ...filters } = buildSearchRequest(params);
+    const requestBody = { ...filters, exclude_work_ids: (exclude_thread_ids || []).map(String) };
     try {
       const response = signal
-        ? await apiClient.post<SearchResponse>('/search/', requestBody, { signal })
-        : await apiClient.post<SearchResponse>('/search/', requestBody);
-      return response.data;
+        ? await worksClient.post<Page<Work>>('/search', requestBody, { signal })
+        : await worksClient.post<Page<Work>>('/search', requestBody);
+      if (!isAuthSessionCurrent(session)) throw new axios.CanceledError('登录状态已变化，请重试。');
+      return { ...response.data, results: response.data.items.map(workToThread) };
     } catch (error) {
+      if (!isAuthSessionCurrent(session)) throw new axios.CanceledError('登录状态已变化，请重试。');
       const rateLimit = getRateLimitInfo(error, { scope: 'search', origin });
       if (!rateLimit) throw error;
       throw new RateLimitError(rememberRateLimit(rateLimit), error);
@@ -245,13 +258,25 @@ export const searchApi = {
   getSuggestions: async (
     keyword: string,
     applyPreferences = true,
+    signal?: AbortSignal,
   ): Promise<SearchSuggestionResponse> => {
-    const response = await apiClient.get<SearchSuggestionResponse>('/search/suggestions', {
+    const session = captureAuthSession();
+    const response = await worksClient.get<{ works: Work[]; authors: SearchSuggestionAuthor[]; tags: SearchSuggestionTag[]; booklists: SearchSuggestionBooklist[] }>('/search/suggestions', {
+      signal,
       params: {
         keyword,
         apply_preferences: applyPreferences,
       },
     });
-    return response.data;
+    if (!isAuthSessionCurrent(session)) throw new axios.CanceledError('登录状态已变化，请重试。');
+    return {
+      authors: response.data.authors,
+      tags: response.data.tags,
+      threads: response.data.works.map((work) => ({
+        thread_id: work.id, work_id: work.id, title: work.title,
+        channel_id: work.source_channel_id || '', guild_id: work.source_guild_id || '',
+      })),
+      booklists: response.data.booklists.map((booklist) => ({ ...booklist, is_work_booklist: true })),
+    };
   },
 };

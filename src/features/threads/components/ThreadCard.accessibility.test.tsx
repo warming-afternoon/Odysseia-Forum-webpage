@@ -75,3 +75,28 @@ describe("帖子卡片无障碍入口", () => {
     unmount();
   });
 });
+
+it.each([
+  ["网格", ThreadCard],
+  ["列表", ThreadListItem],
+] as const)("%s 作品保留原卡片结构且不进入旧帖子操作", (_name, Card) => {
+  const onPreview = vi.fn();
+  const onApplyBanner = vi.fn();
+  const workThread = {
+    ...thread,
+    thread_id: "9007199254740993123",
+    work: { id: "9007199254740993123", source_platform: "fluxer" },
+  } as Thread;
+  const { unmount } = render(<Card thread={workThread} onPreview={onPreview} onApplyBanner={onApplyBanner} animateIn={false} />);
+  expect(screen.getByRole("button", { name: "预览帖子：无障碍测试帖子" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "查看作品详情" })).toHaveAttribute("href", "/works/9007199254740993123");
+  expect(screen.queryByRole("link", { name: /Discord/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "预览帖子：无障碍测试帖子" }));
+  expect(onPreview).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "更多作品操作" }));
+  expect(screen.getByRole("menuitem", { name: "查看作品操作" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "加入书单" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "申请 Banner" })).not.toBeInTheDocument();
+  expect(onApplyBanner).not.toHaveBeenCalled();
+  unmount();
+});

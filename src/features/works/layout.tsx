@@ -16,7 +16,7 @@ export function WorksLayout() {
         <Link to="/works">搜索</Link><Link to="/works/discover">发现</Link>
         <Link to="/works/collection">收藏</Link><Link to="/works/booklists">书单</Link>
         <Link to="/works/follows">关注</Link><Link to="/works/notifications">通知</Link>
-        <Link to="/works/me">个人页</Link><Link to="/works/new">发布作品</Link>
+        <Link to="/works/me">个人页</Link><Link to="/publish">发布作品</Link>
         {member.data?.is_admin && <Link to="/works/admin/deleted">管理已隐藏作品</Link>}
         <Link to="/">旧版首页</Link>
       </nav>

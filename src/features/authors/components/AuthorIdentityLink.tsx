@@ -1,3 +1,4 @@
+import { usePreviewStore } from "@/features/search/store/previewStore";
 import { useNavigate } from "react-router-dom";
 
 import type { Author, Thread } from "@/entities/thread/types";
@@ -6,6 +7,7 @@ import { AuthorWorksHoverCard } from "@/features/authors/components/AuthorWorksH
 
 interface AuthorIdentityLinkProps {
   author?: Author | null;
+  canonical?: boolean;
   currentThreadId?: string;
   viewerFlags?: Thread["viewer_flags"];
   showName?: boolean;
@@ -25,6 +27,7 @@ function getAuthorName(author?: Author | null) {
 
 export function AuthorIdentityLink({
   author,
+  canonical = false,
   currentThreadId,
   viewerFlags,
   showName = true,
@@ -65,16 +68,7 @@ export function AuthorIdentityLink({
     );
   }
 
-  return (
-    <AuthorWorksHoverCard
-      author={author}
-      currentThreadId={currentThreadId}
-      initialFollowed={
-        viewerFlags === undefined
-          ? undefined
-          : viewerFlags.includes("followed_author")
-      }
-    >
+  const button = (
       <button
         type="button"
         onClick={(event) => {
@@ -83,7 +77,8 @@ export function AuthorIdentityLink({
             onNavigate({ id: String(author.id), name: authorName });
             return;
           }
-          navigate(`/u/${author.id}`);
+          usePreviewStore.getState().setPreviewThreadId(null);
+          navigate(`${canonical ? "/works/users" : "/u"}/${encodeURIComponent(author.id)}`);
         }}
         onPointerDown={(event) => event.stopPropagation()}
         onPointerUp={(event) => event.stopPropagation()}
@@ -92,6 +87,15 @@ export function AuthorIdentityLink({
       >
         {content}
       </button>
+  );
+  return (
+    <AuthorWorksHoverCard
+      author={author}
+      canonical={canonical}
+      currentThreadId={currentThreadId}
+      initialFollowed={viewerFlags === undefined ? undefined : viewerFlags.includes("followed_author")}
+    >
+      {button}
     </AuthorWorksHoverCard>
   );
 }
