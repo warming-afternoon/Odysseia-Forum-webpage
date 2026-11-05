@@ -6,7 +6,7 @@ import {
   MessageCircle,
   ThumbsUp,
   UserRoundX,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   type CSSProperties,
   type ReactNode,
@@ -15,26 +15,23 @@ import {
   useEffect,
   useRef,
   useState,
-} from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+} from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-import type { Author, Thread } from "@/entities/thread/types";
-import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
-import {
-  useAuthorProfile,
-  useAuthorRecentWorks,
-} from "@/features/authors/hooks/useAuthorsData";
+import type { Author, Thread } from '@/entities/thread/types';
+import { AuthorAvatar } from '@/entities/user/AuthorAvatar';
+import { useAuthorProfile, useAuthorRecentWorks } from '@/features/authors/hooks/useAuthorsData';
 import {
   useAuthorFollowState,
   useToggleAuthorFollow,
-} from "@/features/follows/hooks/useAuthorFollow";
-import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
-import { usePreviewStore } from "@/features/search/store/previewStore";
-import { GUILD_ID } from "@/shared/config/channelCategories.private";
-import { formatRelativeDateTime } from "@/shared/lib/dateTime";
-import { LazyImage } from "@/shared/ui/LazyImage";
+} from '@/features/follows/hooks/useAuthorFollow';
+import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
+import { usePreviewStore } from '@/features/search/store/previewStore';
+import { GUILD_ID } from '@/shared/config/channelCategories.private';
+import { formatRelativeDateTime } from '@/shared/lib/dateTime';
+import { LazyImage } from '@/shared/ui/LazyImage';
 
 const OPEN_DELAY = 300;
 const CLOSE_DELAY = 180;
@@ -71,40 +68,36 @@ function AuthorWorksPanel({
   closeSoon,
 }: AuthorWorksPanelProps) {
   const navigate = useNavigate();
-  const setPreviewThreadId = usePreviewStore(
-    (state) => state.setPreviewThreadId,
-  );
+  const setPreviewThreadId = usePreviewStore((state) => state.setPreviewThreadId);
   const [confirmBlockOpen, setConfirmBlockOpen] = useState(false);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const { user, preferences, savePreferences, isSaving } = useUserPreferences({
     guildId: GUILD_ID,
   });
-  const { data, isLoading, isError, refetch } = useAuthorRecentWorks(
-    author.id,
-    { excludeThreadId: currentThreadId, enabled: true },
-  );
+  const { data, isLoading, isError, refetch } = useAuthorRecentWorks(author.id, {
+    excludeThreadId: currentThreadId,
+    enabled: true,
+  });
   const { data: profile } = useAuthorProfile(author.id, { enabled: true });
   const followStateQuery = useAuthorFollowState(author.id, {
     enabled: Boolean(user?.id),
     initialFollowed,
   });
   const isAuthorFollowed = followStateQuery.data;
-  const toggleAuthorFollow = useToggleAuthorFollow(
-    author.id,
-    isAuthorFollowed ?? false,
-  );
+  const toggleAuthorFollow = useToggleAuthorFollow(author.id, isAuthorFollowed ?? false);
 
   const authorName = author.display_name || author.global_name || author.name;
   const excludedAuthorIds = (preferences?.exclude_authors || []).map(String);
-  const isAuthorBlocked = excludedAuthorIds.includes(String(author.id));
+  const isAuthorBlocked =
+    preferences?.is_first_time === undefined && excludedAuthorIds.includes(String(author.id));
   const threads = (data?.results || []) as Thread[];
 
   useEffect(() => {
     if (!confirmBlockOpen) return;
     const dialog = confirmDialogRef.current;
     if (!dialog || dialog.open) return;
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else dialog.setAttribute("open", "");
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
   }, [confirmBlockOpen]);
 
   const openThread = (threadId: string) => {
@@ -118,7 +111,11 @@ function AuthorWorksPanel({
   };
 
   const toggleAuthorBlock = async () => {
-    if (!user?.id || isSaving) return;
+    if (!user?.id || isSaving || !preferences) return;
+    if (preferences.is_first_time !== undefined) {
+      toast.error('旧版作者使用 Discord ID。请在作品个人页用 Fluxer 用户 ID 设置作者偏好。');
+      return;
+    }
     const authorId = String(author.id);
     const nextExcludedAuthorIds = isAuthorBlocked
       ? excludedAuthorIds.filter((id) => id !== authorId)
@@ -127,19 +124,14 @@ function AuthorWorksPanel({
 
     try {
       await savePreferences({
-        preferred_channels: preferences?.preferred_channels || [],
         exclude_authors: nextExcludedAuthorIds,
         include_authors: isAuthorBlocked
           ? includedAuthorIds
           : includedAuthorIds.filter((id) => id !== authorId),
       });
-      toast.success(
-        isAuthorBlocked
-          ? `已取消屏蔽 ${authorName}`
-          : `已将 ${authorName} 加入屏蔽`,
-      );
+      toast.success(isAuthorBlocked ? `已取消屏蔽 ${authorName}` : `已将 ${authorName} 加入屏蔽`);
     } catch {
-      toast.error("偏好保存失败，请稍后再试");
+      toast.error('偏好保存失败，请稍后再试');
     }
   };
 
@@ -178,20 +170,20 @@ function AuthorWorksPanel({
               <span className="mt-1.5 flex items-center gap-2.5 text-[10px] text-(--od-text-tertiary)">
                 <span>
                   <strong className="font-medium text-(--od-text-secondary)">
-                    {profile?.stats.thread_count ?? "—"}
-                  </strong>{" "}
+                    {profile?.stats.thread_count ?? '—'}
+                  </strong>{' '}
                   作品
                 </span>
                 <span>
                   <strong className="font-medium text-(--od-text-secondary)">
-                    {profile?.stats.reaction_count ?? "—"}
-                  </strong>{" "}
+                    {profile?.stats.reaction_count ?? '—'}
+                  </strong>{' '}
                   点赞
                 </span>
                 <span>
                   <strong className="font-medium text-(--od-text-secondary)">
-                    {profile?.stats.reply_count ?? "—"}
-                  </strong>{" "}
+                    {profile?.stats.reply_count ?? '—'}
+                  </strong>{' '}
                   回复
                 </span>
               </span>
@@ -215,24 +207,24 @@ function AuthorWorksPanel({
             aria-pressed={isAuthorFollowed ?? false}
             aria-label={
               followStateQuery.isError
-                ? "重试关注状态"
+                ? '重试关注状态'
                 : isAuthorFollowed
-                  ? "取消关注作者"
-                  : "关注作者"
+                  ? '取消关注作者'
+                  : '关注作者'
             }
             title={
               !user?.id
-                ? "登录后关注作者"
+                ? '登录后关注作者'
                 : followStateQuery.isError
-                  ? "关注状态加载失败"
+                  ? '关注状态加载失败'
                   : isAuthorFollowed
-                    ? "取消关注作者"
-                    : "关注作者"
+                    ? '取消关注作者'
+                    : '关注作者'
             }
             className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
               isAuthorFollowed
-                ? "bg-(--od-accent)/15 text-(--od-accent) hover:bg-(--od-accent)/25"
-                : "text-(--od-text-tertiary) hover:bg-(--od-interactive-hover) hover:text-(--od-accent)"
+                ? 'bg-(--od-accent)/15 text-(--od-accent) hover:bg-(--od-accent)/25'
+                : 'text-(--od-text-tertiary) hover:bg-(--od-interactive-hover) hover:text-(--od-accent)'
             }`}
           >
             {followStateQuery.isFetching || toggleAuthorFollow.isPending ? (
@@ -249,14 +241,22 @@ function AuthorWorksPanel({
               if (isAuthorBlocked) void toggleAuthorBlock();
               else setConfirmBlockOpen(true);
             }}
-            disabled={!user?.id || isSaving}
+            disabled={
+              !user?.id || isSaving || !preferences || preferences.is_first_time !== undefined
+            }
             aria-pressed={isAuthorBlocked}
-            aria-label={isAuthorBlocked ? "取消屏蔽作者" : "屏蔽作者"}
-            title={isAuthorBlocked ? "取消屏蔽作者" : "屏蔽作者"}
+            aria-label={isAuthorBlocked ? '取消屏蔽作者' : '屏蔽作者'}
+            title={
+              preferences?.is_first_time !== undefined
+                ? '请在作品个人页用 Fluxer 用户 ID 设置作者偏好'
+                : isAuthorBlocked
+                  ? '取消屏蔽作者'
+                  : '屏蔽作者'
+            }
             className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
               isAuthorBlocked
-                ? "bg-rose-500/15 text-rose-400 hover:bg-rose-500/25"
-                : "text-(--od-text-tertiary) hover:bg-(--od-interactive-hover) hover:text-rose-400"
+                ? 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/25'
+                : 'text-(--od-text-tertiary) hover:bg-(--od-interactive-hover) hover:text-rose-400'
             }`}
           >
             <UserRoundX className="h-4 w-4" />
@@ -266,10 +266,7 @@ function AuthorWorksPanel({
         <div className="p-2">
           {isLoading &&
             Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={index}
-                className="flex animate-pulse items-center gap-3 rounded-xl p-2"
-              >
+              <div key={index} className="flex animate-pulse items-center gap-3 rounded-xl p-2">
                 <div className="h-13 w-13 shrink-0 rounded-lg bg-(--od-bg-tertiary)" />
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="h-3 w-4/5 rounded bg-(--od-bg-tertiary)" />
@@ -280,9 +277,7 @@ function AuthorWorksPanel({
 
           {isError && (
             <div className="px-3 py-6 text-center">
-              <p className="text-xs text-(--od-text-tertiary)">
-                作品加载失败
-              </p>
+              <p className="text-xs text-(--od-text-tertiary)">作品加载失败</p>
               <button
                 type="button"
                 onClick={() => void refetch()}
@@ -334,10 +329,7 @@ function AuthorWorksPanel({
                         <MessageCircle className="h-3 w-3" />
                         {thread.reply_count}
                       </span>
-                      <time
-                        dateTime={thread.created_at}
-                        className="ml-auto whitespace-nowrap"
-                      >
+                      <time dateTime={thread.created_at} className="ml-auto whitespace-nowrap">
                         {formatRelativeDateTime(thread.created_at)}
                       </time>
                     </span>
@@ -369,7 +361,7 @@ function AuthorWorksPanel({
               setConfirmBlockOpen(false);
             }}
             onKeyDown={(event) => {
-              if (event.key === "Escape") event.stopPropagation();
+              if (event.key === 'Escape') event.stopPropagation();
             }}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
@@ -390,9 +382,7 @@ function AuthorWorksPanel({
                   >
                     屏蔽这位作者？
                   </h2>
-                  <p className="mt-0.5 truncate text-xs text-(--od-text-tertiary)">
-                    {authorName}
-                  </p>
+                  <p className="mt-0.5 truncate text-xs text-(--od-text-tertiary)">{authorName}</p>
                 </div>
               </div>
 
@@ -514,10 +504,7 @@ export function AuthorWorksHoverCard({
       return;
     }
 
-    const width = Math.min(
-      PANEL_WIDTH,
-      window.innerWidth - VIEWPORT_PADDING * 2,
-    );
+    const width = Math.min(PANEL_WIDTH, window.innerWidth - VIEWPORT_PADDING * 2);
     const height = panelRef.current?.offsetHeight || 280;
     let left = rect.right + PANEL_GAP;
     let top = rect.top;
@@ -559,44 +546,39 @@ export function AuthorWorksHoverCard({
     updatePosition();
     const panel = panelRef.current;
     try {
-      if (panel && !panel.matches(":popover-open")) panel.showPopover();
+      if (panel && !panel.matches(':popover-open')) panel.showPopover();
     } catch {
       // 不支持 Popover API 时保留原有 fixed Portal 展示。
     }
-    window.addEventListener("scroll", updatePosition, true);
-    window.addEventListener("resize", updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== 'Escape') return;
       close();
-      triggerRef.current
-        ?.querySelector<HTMLElement>("button, a, [tabindex]")
-        ?.focus();
+      triggerRef.current?.querySelector<HTMLElement>('button, a, [tabindex]')?.focus();
     };
 
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (
-        triggerRef.current?.contains(target) ||
-        panelRef.current?.contains(target)
-      ) {
+      if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) {
         return;
       }
       close();
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
     return () => {
       try {
-        if (panel?.matches(":popover-open")) panel.hidePopover();
+        if (panel?.matches(':popover-open')) panel.hidePopover();
       } catch {
         // 面板卸载时浏览器会自动清理 Top Layer。
       }
-      window.removeEventListener("scroll", updatePosition, true);
-      window.removeEventListener("resize", updatePosition);
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
     };
   }, [close, isOpen, updatePosition]);
 
@@ -606,7 +588,7 @@ export function AuthorWorksHoverCard({
         ref={triggerRef}
         className="inline-flex min-w-0 max-w-full"
         onPointerEnter={(event) => {
-          if (event.pointerType === "mouse") openSoon();
+          if (event.pointerType === 'mouse') openSoon();
         }}
         onPointerLeave={closeSoon}
         onFocus={openFromFocus}

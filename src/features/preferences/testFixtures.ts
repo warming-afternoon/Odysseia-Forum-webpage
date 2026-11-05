@@ -1,0 +1,28 @@
+import type { UserPreferencesResponse } from './api/preferencesApi';
+// Synthetic contract fixture; never a live user or service.
+export const fakeV2Preferences: UserPreferencesResponse = {
+  user_id: '9007199254740993123',
+  guild_id: '9007199254740993124',
+  is_first_time: false,
+  show_nsfw: false,
+  nsfw_eligible: true,
+  nsfw_guild_id: '9007199254740993125',
+  nsfw_preference_version: 3,
+  preferred_channels: ['9876543210987654321'],
+  include_authors: ['9007199254740993123'],
+  exclude_authors: [],
+  include_tags: ['冒险'],
+  exclude_tags: ['恐怖'],
+  include_keywords: 'original',
+  exclude_keywords: '广告',
+  exclude_keyword_exemption_markers: ['禁', '🈲'],
+  preview_image_mode: 'full',
+  results_per_page: 5,
+  ui_page_size: 48,
+  sort_method: 'collection_count',
+  custom_base_sort: 'reaction_count',
+  created_after: '-7d',
+  created_before: null,
+  active_after: null,
+  active_before: null,
+};

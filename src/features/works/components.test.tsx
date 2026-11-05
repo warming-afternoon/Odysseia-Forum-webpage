@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { PreferencePreviewContext } from '@/features/preferences/lib/preferenceDisplay';
 import { WorkCard, WorkReactions } from './components';
 import { discordThreadUrl } from './threads';
 import type { Work } from './types';
@@ -31,4 +32,14 @@ it('renders native emoji objects and legacy Unicode aggregates without treating 
   expect(screen.getByText('👍 2')).toBeInTheDocument();
   expect(screen.getByText('party 3')).toBeInTheDocument();
   expect(screen.getByText('❤️ 1')).toBeInTheDocument();
+});
+
+
+it('honors none/full saved preview modes without changing work identity', () => {
+  const { rerender } = render(<MemoryRouter><PreferencePreviewContext.Provider value="none"><WorkCard work={work} /></PreferencePreviewContext.Provider></MemoryRouter>);
+  expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: work.title })).toHaveAttribute('href', `/works/${work.id}`);
+  rerender(<MemoryRouter><PreferencePreviewContext.Provider value="full"><WorkCard work={work} /></PreferencePreviewContext.Provider></MemoryRouter>);
+  expect(screen.getByRole('presentation')).toHaveClass('object-contain');
+  expect(screen.getByRole('presentation')).not.toHaveClass('aspect-video');
 });

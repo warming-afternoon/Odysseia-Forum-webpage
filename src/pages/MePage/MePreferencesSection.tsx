@@ -1,9 +1,9 @@
-import { Save, Search } from "lucide-react";
+import { Save, Search } from 'lucide-react';
 
-import { PreferenceTagSelector } from "@/features/preferences/components/PreferenceTagSelector";
-import type { PreferencesFormValue } from "@/features/preferences/lib/preferencesMapper";
-import { AuthorModePicker } from "@/features/search/components/AuthorModePicker";
-import { Select } from "@/shared/ui/Select";
+import { PreferenceTagSelector } from '@/features/preferences/components/PreferenceTagSelector';
+import type { PreferencesFormValue } from '@/features/preferences/lib/preferencesMapper';
+import { AuthorModePicker } from '@/features/search/components/AuthorModePicker';
+import { Select } from '@/shared/ui/Select';
 
 interface ChannelOption {
   id: string;
@@ -20,9 +20,7 @@ interface MePreferencesSectionProps {
   isSyncing: boolean;
   onSave: () => void;
   onToggleChannel: (channelId: string) => void;
-  onUpdateForm: (
-    updater: (prev: PreferencesFormValue) => PreferencesFormValue,
-  ) => void;
+  onUpdateForm: (updater: (prev: PreferencesFormValue) => PreferencesFormValue) => void;
 }
 
 export function MePreferencesSection({
@@ -51,7 +49,7 @@ export function MePreferencesSection({
           className="od-inline-action od-inline-action-primary disabled:opacity-60"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? "保存中..." : "保存偏好"}
+          {isSaving ? '保存中...' : '保存偏好'}
         </button>
       </div>
 
@@ -60,9 +58,7 @@ export function MePreferencesSection({
       ) : (
         <div className="space-y-8">
           <div className="space-y-3">
-            <p className="text-sm font-medium text-(--od-text-primary)">
-              偏好频道
-            </p>
+            <p className="text-sm font-medium text-(--od-text-primary)">偏好频道</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {channelOptions.map((channel) => {
                 const active = form.preferredChannelIds.includes(channel.id);
@@ -73,8 +69,8 @@ export function MePreferencesSection({
                     onClick={() => onToggleChannel(channel.id)}
                     className={`rounded-2xl border-0 px-4 py-3 text-left text-sm transition-colors ${
                       active
-                        ? "bg-(--od-accent)/10 text-(--od-accent) font-od-medium"
-                        : "bg-transparent text-(--od-text-secondary) font-od-normal hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
+                        ? 'bg-(--od-accent)/10 text-(--od-accent) font-od-medium'
+                        : 'bg-transparent text-(--od-text-secondary) font-od-normal hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)'
                     }`}
                   >
                     {channel.name}
@@ -86,9 +82,7 @@ export function MePreferencesSection({
 
           <div className="grid gap-6 sm:grid-cols-2">
             <label className="block space-y-2">
-              <span className="block text-sm font-medium text-(--od-text-secondary)">
-                默认排序
-              </span>
+              <span className="block text-sm font-medium text-(--od-text-secondary)">默认排序</span>
               <Select
                 value={form.sortMethod}
                 options={[
@@ -101,7 +95,7 @@ export function MePreferencesSection({
                 onChange={(v) => {
                   onUpdateForm((prev) => ({
                     ...prev,
-                    sortMethod: v as PreferencesFormValue["sortMethod"],
+                    sortMethod: v as PreferencesFormValue['sortMethod'],
                   }));
                 }}
                 className="w-full"
@@ -115,13 +109,13 @@ export function MePreferencesSection({
               <input
                 type="number"
                 min={1}
-                max={100}
+                max={9}
                 value={form.resultsPerPage}
                 onChange={(e) => {
                   const val = e.target.value;
                   onUpdateForm((prev) => ({
                     ...prev,
-                    resultsPerPage: val === "" ? "" : Number(val),
+                    resultsPerPage: val === '' ? '' : Number(val),
                   }));
                 }}
                 className="od-ghost-input min-h-10 w-full px-1 text-sm"
@@ -131,27 +125,25 @@ export function MePreferencesSection({
 
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-(--od-text-primary)">
-                作者偏好
-              </p>
+              <p className="text-sm font-medium text-(--od-text-primary)">作者偏好</p>
               <p className="mt-1 text-sm leading-6 text-(--od-text-secondary)">
                 输入作者名称后，用 + 只看该作者，用 − 屏蔽该作者。
               </p>
             </div>
             <AuthorModePicker
               selected={[
-                ...form.includeAuthorIds.map((id) => ({ id, mode: "include" as const })),
-                ...form.excludeAuthorIds.map((id) => ({ id, mode: "exclude" as const })),
+                ...form.includeAuthorIds.map((id) => ({ id, mode: 'include' as const })),
+                ...form.excludeAuthorIds.map((id) => ({ id, mode: 'exclude' as const })),
               ]}
               onSelect={(author, mode) => {
                 onUpdateForm((prev) => ({
                   ...prev,
                   includeAuthorIds:
-                    mode === "include"
+                    mode === 'include'
                       ? Array.from(new Set([...prev.includeAuthorIds, author.id]))
                       : prev.includeAuthorIds.filter((id) => id !== author.id),
                   excludeAuthorIds:
-                    mode === "exclude"
+                    mode === 'exclude'
                       ? Array.from(new Set([...prev.excludeAuthorIds, author.id]))
                       : prev.excludeAuthorIds.filter((id) => id !== author.id),
                 }));
@@ -160,11 +152,11 @@ export function MePreferencesSection({
                 onUpdateForm((prev) => ({
                   ...prev,
                   includeAuthorIds:
-                    selection.mode === "include"
+                    selection.mode === 'include'
                       ? prev.includeAuthorIds.filter((id) => id !== selection.id)
                       : prev.includeAuthorIds,
                   excludeAuthorIds:
-                    selection.mode === "exclude"
+                    selection.mode === 'exclude'
                       ? prev.excludeAuthorIds.filter((id) => id !== selection.id)
                       : prev.excludeAuthorIds,
                 }));
@@ -177,13 +169,13 @@ export function MePreferencesSection({
               label="包含标签"
               placeholder="还没有设置正选标签"
               selectedTags={form.includeTagsText
-                .split(",")
+                .split(',')
                 .map((item) => item.trim())
                 .filter(Boolean)}
               availableTags={availablePreferenceTags.filter(
                 (tag) =>
                   !form.excludeTagsText
-                    .split(",")
+                    .split(',')
                     .map((item) => item.trim())
                     .filter(Boolean)
                     .includes(tag),
@@ -192,7 +184,7 @@ export function MePreferencesSection({
               onChange={(tags) => {
                 onUpdateForm((prev) => ({
                   ...prev,
-                  includeTagsText: tags.join(", "),
+                  includeTagsText: tags.join(', '),
                 }));
               }}
             />
@@ -200,13 +192,13 @@ export function MePreferencesSection({
               label="排除标签"
               placeholder="还没有设置反选标签"
               selectedTags={form.excludeTagsText
-                .split(",")
+                .split(',')
                 .map((item) => item.trim())
                 .filter(Boolean)}
               availableTags={availablePreferenceTags.filter(
                 (tag) =>
                   !form.includeTagsText
-                    .split(",")
+                    .split(',')
                     .map((item) => item.trim())
                     .filter(Boolean)
                     .includes(tag),
@@ -215,7 +207,7 @@ export function MePreferencesSection({
               onChange={(tags) => {
                 onUpdateForm((prev) => ({
                   ...prev,
-                  excludeTagsText: tags.join(", "),
+                  excludeTagsText: tags.join(', '),
                 }));
               }}
             />
@@ -237,7 +229,9 @@ export function MePreferencesSection({
                 className="od-ghost-input min-h-[110px] w-full px-1 py-3 text-sm"
               />
               <p className="mt-2 text-[11px] leading-relaxed text-(--od-text-tertiary)">
-                支持多组关键词组合：使用逗号 <code className="px-1 text-(--od-accent)">,</code> 分隔表示“且”（AND），使用斜杠 <code className="px-1 text-(--od-accent)">/</code> 分隔表示“或”（OR）。
+                支持多组关键词组合：使用逗号 <code className="px-1 text-(--od-accent)">,</code>{' '}
+                分隔表示“且”（AND），使用斜杠 <code className="px-1 text-(--od-accent)">/</code>{' '}
+                分隔表示“或”（OR）。
                 <br />
                 精确匹配请使用双引号包裹，例如 <code className="px-1 text-(--od-accent)">"</code>
                 <a
@@ -276,7 +270,7 @@ export function MePreferencesSection({
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
             <p className="od-text-meta">
               当前状态：
-              {isSyncing ? "同步中" : isDirty ? "有未保存修改" : "已同步"}
+              {isSyncing ? '同步中' : isDirty ? '有未保存修改' : '已同步'}
             </p>
           </div>
         </div>

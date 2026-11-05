@@ -1,64 +1,57 @@
-import { ThreadCardSkeleton } from "@/entities/thread/ThreadCardSkeleton";
-import { useInfiniteScrollTrigger } from "@/shared/hooks/useInfiniteScrollTrigger";
-import { ThreadListItemSkeleton } from "@/entities/thread/ThreadListItemSkeleton";
-import { ThreadResultsCollection } from "@/features/threads/components/ThreadResultsCollection";
-import { VirtualThreadList } from "@/features/threads/components/VirtualThreadList";
-import { SearchCollectionResults } from "./SearchCollectionResults";
-import { useSearchWhisper } from "@/features/easter-eggs/hooks/useSearchWhisper";
-import { usePreviewThread } from "@/features/search/hooks/usePreviewThread";
-import { SearchDiscoveryHub } from "@/features/search/components/SearchDiscoveryHub";
+import { ThreadCardSkeleton } from '@/entities/thread/ThreadCardSkeleton';
+import { useInfiniteScrollTrigger } from '@/shared/hooks/useInfiniteScrollTrigger';
+import { ThreadListItemSkeleton } from '@/entities/thread/ThreadListItemSkeleton';
+import { ThreadResultsCollection } from '@/features/threads/components/ThreadResultsCollection';
+import { VirtualThreadList } from '@/features/threads/components/VirtualThreadList';
+import { SearchCollectionResults } from './SearchCollectionResults';
+import { useSearchWhisper } from '@/features/easter-eggs/hooks/useSearchWhisper';
+import { usePreviewThread } from '@/features/search/hooks/usePreviewThread';
+import { SearchDiscoveryHub } from '@/features/search/components/SearchDiscoveryHub';
 import {
   getSearchTagLogicPreference,
   useSearchURLParams,
-} from "@/features/search/hooks/useSearchParams";
-import { useSearchResults } from "@/features/search/hooks/useSearchResults";
+} from '@/features/search/hooks/useSearchParams';
+import { useSearchResults } from '@/features/search/hooks/useSearchResults';
 import {
   useBooklistsList,
   useToggleBooklistCollection,
-} from "@/features/booklists/hooks/useBooklistsData";
+} from '@/features/booklists/hooks/useBooklistsData';
 import {
   useCardGridClass,
   useResultPagingModeSetting,
   useLayoutMode,
-} from "@/shared/hooks/useSettings";
-import { useLayoutPreference } from "@/shared/hooks/useLayoutPreference";
-import { useListEntranceAnimation } from "@/shared/hooks/useListEntranceAnimation";
-import { useMascotStore } from "@/features/mascot/store/mascotStore";
-import { useUserPreferences } from "@/features/preferences/hooks/useUserPreferences";
-import { PreferenceFilterNotice } from "@/features/preferences/components/PreferenceFilterNotice";
-import { GUILD_ID } from "@/shared/config/channelCategories.private";
-import { useChannels } from "@/shared/hooks/useChannels";
+} from '@/shared/hooks/useSettings';
+import { useLayoutPreference } from '@/shared/hooks/useLayoutPreference';
+import { useListEntranceAnimation } from '@/shared/hooks/useListEntranceAnimation';
+import { useMascotStore } from '@/features/mascot/store/mascotStore';
+import { useUserPreferences } from '@/features/preferences/hooks/useUserPreferences';
+import { PreferenceFilterNotice } from '@/features/preferences/components/PreferenceFilterNotice';
+import { GUILD_ID } from '@/shared/config/channelCategories.private';
+import { useChannels } from '@/shared/hooks/useChannels';
 import {
   addToken,
   parseSearchQuery,
   tokenizeSearchPayload,
   tagTokenLabel,
-} from "@/shared/lib/searchTokenizer";
-import { SearchSortMenu } from "@/features/search/components/SearchSortMenu";
+} from '@/shared/lib/searchTokenizer';
+import { SearchSortMenu } from '@/features/search/components/SearchSortMenu';
 import {
   sortApiToUiMap,
   sortUiToApiMap,
   type PreferencesSortUi,
-} from "@/features/preferences/lib/preferencesMapper";
-import { extractErrorMessage } from "@/shared/lib/notify";
-import { toast } from "sonner";
-import { AnimatedPagination } from "@/shared/ui/AnimatedPagination";
+} from '@/features/preferences/lib/preferencesMapper';
+import { extractErrorMessage } from '@/shared/lib/notify';
+import { toast } from 'sonner';
+import { AnimatedPagination } from '@/shared/ui/AnimatedPagination';
 import {
   buildYesterdayPopularQuery,
   YESTERDAY_POPULAR_LABEL,
-} from "@/features/search/lib/searchPresets";
-import { scrollPageToTop } from "@/shared/lib/pageScroll";
-import { LayoutModeToggle } from "@/shared/ui/LayoutModeToggle";
-import {
-  ArrowUpDown,
-  Clock3,
-  MoveDown,
-  MoveUp,
-  Search,
-  SlidersHorizontal,
-} from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+} from '@/features/search/lib/searchPresets';
+import { scrollPageToTop } from '@/shared/lib/pageScroll';
+import { LayoutModeToggle } from '@/shared/ui/LayoutModeToggle';
+import { ArrowUpDown, Clock3, MoveDown, MoveUp, Search, SlidersHorizontal } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function SearchRateLimitNotice({
   remaining,
@@ -69,7 +62,7 @@ function SearchRateLimitNotice({
 }) {
   const message =
     remaining === null
-      ? "搜索有点频繁，请稍后再试。"
+      ? '搜索有点频繁，请稍后再试。'
       : `搜索有点频繁，请在 ${remaining} 秒后再试。`;
 
   if (compact) {
@@ -85,16 +78,11 @@ function SearchRateLimitNotice({
   }
 
   return (
-    <div
-      className="flex flex-col items-center justify-center py-20 text-center"
-      role="status"
-    >
+    <div className="flex flex-col items-center justify-center py-20 text-center" role="status">
       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
         <Clock3 className="h-10 w-10" />
       </div>
-      <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
-        搜索有点频繁
-      </h3>
+      <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">搜索有点频繁</h3>
       <p className="text-(--od-text-secondary)">{message}</p>
     </div>
   );
@@ -104,12 +92,9 @@ export function SearchPage() {
   const navigate = useNavigate();
   const { params, setParams } = useSearchURLParams();
   const { query, channel: selectedChannel, page: currentSearchPage } = params;
-  const isThreadTab = params.type === "thread";
-  const isTournamentTab = params.type === "tournament";
-  const collectionKeywords = useMemo(
-    () => tokenizeSearchPayload(query).text,
-    [query],
-  );
+  const isThreadTab = params.type === 'thread';
+  const isTournamentTab = params.type === 'tournament';
+  const collectionKeywords = useMemo(() => tokenizeSearchPayload(query).text, [query]);
 
   const {
     preferences,
@@ -122,11 +107,10 @@ export function SearchPage() {
     // 把当前排序显式留在 URL，保存偏好后不让默认值同步改变当前结果。
     setParams({ sortMethod: params.sortMethod });
     try {
-      const { user_id: _userId, ...current } = preferences!;
-      await savePreferences({ ...current, sort_method: sortUiToApiMap[sortMethod] });
-      toast.success("默认排序已保存");
+      await savePreferences({ sort_method: sortUiToApiMap[sortMethod] });
+      toast.success('默认排序已保存');
     } catch (error) {
-      toast.error(extractErrorMessage(error, "默认排序保存失败"));
+      toast.error(extractErrorMessage(error, '默认排序保存失败'));
     }
   };
   const collectBooklistMutation = useToggleBooklistCollection();
@@ -135,10 +119,7 @@ export function SearchPage() {
   const reactToSearch = useMascotStore((state) => state.reactToSearch);
 
   const defaultLayoutMode = useLayoutMode();
-  const [layoutMode, setLayoutMode] = useLayoutPreference(
-    "search",
-    defaultLayoutMode,
-  );
+  const [layoutMode, setLayoutMode] = useLayoutPreference('search', defaultLayoutMode);
   const resultPagingMode = useResultPagingModeSetting();
   const hasTriggeredSearchCueRef = useRef<string | null>(null);
 
@@ -165,16 +146,16 @@ export function SearchPage() {
     preferences,
     enabled: isThreadTab && !arePreferencesLoading,
   });
-  const isLoading =
-    isResultsLoading || (isThreadTab && arePreferencesLoading);
+  const isLoading = isResultsLoading || (isThreadTab && arePreferencesLoading);
 
   const animateIn = useListEntranceAnimation(isLoading);
 
   const booklistQuery = useBooklistsList({
     includeTagIds: params.includeTagIds,
     excludeTagIds: params.excludeTagIds,
-    tagLogic: (params.includeTagIds?.length || params.excludeTagIds?.length) ? params.tagLogic : undefined,
-    scope: "public",
+    tagLogic:
+      params.includeTagIds?.length || params.excludeTagIds?.length ? params.tagLogic : undefined,
+    scope: 'public',
     keywords: collectionKeywords || undefined,
     sortMethod: 3,
     pageIndex: params.page - 1,
@@ -188,16 +169,19 @@ export function SearchPage() {
   const booklistPageSize = booklistQuery.data?.limit ?? 12;
   const booklistTotalPages = Math.max(1, Math.ceil(booklistTotal / booklistPageSize));
   const searchTotalPages = Math.max(1, Math.ceil(totalResults / pageSize));
-  const isInfiniteMode = resultPagingMode === "infinite";
-  const loadMoreRef = useInfiniteScrollTrigger({
-    hasNextPage: infiniteQueryState.hasNextPage,
-    isFetchingNextPage: infiniteQueryState.isFetchingNextPage,
-    isFetchNextPageError: infiniteQueryState.isFetchNextPageError,
-    fetchNextPage: requestNextPage,
-  }, {
-    rootMargin: "360px",
-    enabled: isInfiniteMode,
-  });
+  const isInfiniteMode = resultPagingMode === 'infinite';
+  const loadMoreRef = useInfiniteScrollTrigger(
+    {
+      hasNextPage: infiniteQueryState.hasNextPage,
+      isFetchingNextPage: infiniteQueryState.isFetchingNextPage,
+      isFetchNextPageError: infiniteQueryState.isFetchNextPageError,
+      fetchNextPage: requestNextPage,
+    },
+    {
+      rootMargin: '360px',
+      enabled: isInfiniteMode,
+    },
+  );
   useSearchWhisper(query);
 
   const prevChannelRef = useRef<string | undefined>(params.channel);
@@ -224,7 +208,7 @@ export function SearchPage() {
     prevTypeRef.current = params.type;
 
     if (channelChanged || queryChanged || sortChanged || typeChanged) {
-      scrollPageToTop("auto");
+      scrollPageToTop('auto');
     }
   }, [params.channel, params.query, params.sortMethod, params.type]);
 
@@ -243,7 +227,7 @@ export function SearchPage() {
   // 必须保持引用稳定，否则任何一次页面重渲染都会击穿整个列表的 memo。
   const handleTagClick = useCallback(
     (tagName: string) => {
-      const nextQuery = addToken(query || "", "tag", tagName, "include");
+      const nextQuery = addToken(query || '', 'tag', tagName, 'include');
       setParams({ query: nextQuery });
     },
     [query, setParams],
@@ -259,8 +243,7 @@ export function SearchPage() {
   const gridClass = useCardGridClass();
   const threadGridClass = gridClass;
   const selectedChannelName =
-    channelsData?.channels.find((channel) => channel.id === selectedChannel)
-      ?.name || null;
+    channelsData?.channels.find((channel) => channel.id === selectedChannel)?.name || null;
 
   useEffect(() => {
     if (isLoading) return;
@@ -271,7 +254,7 @@ export function SearchPage() {
       return;
     }
 
-    const cueKey = `${normalizedQuery}::${totalResults}::${isError ? "error" : "ok"}`;
+    const cueKey = `${normalizedQuery}::${totalResults}::${isError ? 'error' : 'ok'}`;
     if (hasTriggeredSearchCueRef.current === cueKey) return;
 
     if (isError) {
@@ -279,7 +262,7 @@ export function SearchPage() {
       return;
     }
 
-    reactToSearch(totalResults > 0 ? "found" : "empty", normalizedQuery);
+    reactToSearch(totalResults > 0 ? 'found' : 'empty', normalizedQuery);
     hasTriggeredSearchCueRef.current = cueKey;
   }, [isError, isLoading, query, reactToSearch, totalResults]);
 
@@ -294,7 +277,7 @@ export function SearchPage() {
 
     if (totalPages > 1) {
       window.dispatchEvent(
-        new CustomEvent("odysseia:active-page-info", {
+        new CustomEvent('odysseia:active-page-info', {
           detail: {
             currentPage,
             totalPages,
@@ -308,7 +291,7 @@ export function SearchPage() {
       );
     } else {
       window.dispatchEvent(
-        new CustomEvent("odysseia:active-page-info", {
+        new CustomEvent('odysseia:active-page-info', {
           detail: null,
         }),
       );
@@ -324,22 +307,23 @@ export function SearchPage() {
     setParams,
   ]);
 
-  useEffect(() => () => {
-    window.dispatchEvent(new CustomEvent("odysseia:active-page-info", { detail: null }));
-  }, []);
+  useEffect(
+    () => () => {
+      window.dispatchEvent(new CustomEvent('odysseia:active-page-info', { detail: null }));
+    },
+    [],
+  );
 
   // 标题栏与偏好同步共用的解析结果，按 query 缓存
   const queryTokens = useMemo(() => parseSearchQuery(query), [query]);
 
   // 同步用户偏好排序
   useEffect(() => {
-    const hasTextSearch = queryTokens.some(
-      (token) => token.type === "text" && token.value.trim(),
-    );
+    const hasTextSearch = queryTokens.some((token) => token.type === 'text' && token.value.trim());
     if (
       !hasTextSearch &&
       preferences?.sort_method &&
-      !new URLSearchParams(window.location.search).get("sort")
+      !new URLSearchParams(window.location.search).get('sort')
     ) {
       const preferredSort = sortApiToUiMap[preferences.sort_method];
       if (preferredSort && preferredSort !== params.sortMethod) {
@@ -347,7 +331,6 @@ export function SearchPage() {
       }
     }
   }, [preferences, params.sortMethod, queryTokens, setParams]);
-
 
   const showDiscoveryHub =
     isThreadTab &&
@@ -366,44 +349,42 @@ export function SearchPage() {
   return (
     <div className="flex min-h-full min-w-0 max-w-full flex-col overflow-x-clip">
       <div className="min-w-0 max-w-full flex-1 overflow-x-clip p-4 animate-in fade-in duration-500 sm:p-6 lg:p-8">
-        {isTagsChangedError(isThreadTab ? infiniteQueryState.error : booklistQuery.error) && <TagsChangedNotice />}
+        {isTagsChangedError(isThreadTab ? infiniteQueryState.error : booklistQuery.error) && (
+          <TagsChangedNotice />
+        )}
         <div className="od-page-heading mb-6 flex min-w-0 max-w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div data-tour="search-header" className="flex min-w-0 items-center justify-center text-center sm:justify-start sm:text-left">
+          <div
+            data-tour="search-header"
+            className="flex min-w-0 items-center justify-center text-center sm:justify-start sm:text-left"
+          >
             <div className="min-w-0">
               <h1 className="od-page-title flex min-w-0 max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start">
                 {query ? (
                   <>
                     <span>搜索:</span>
                     {queryTokens.map((token, i) => {
-                      if (token.type === "text") {
+                      if (token.type === 'text') {
                         return (
-                          <span
-                            key={i}
-                            className="truncate max-w-[200px] sm:max-w-md"
-                          >
+                          <span key={i} className="truncate max-w-[200px] sm:max-w-md">
                             {token.value}
                           </span>
                         );
                       }
 
-                      const isNegative = token.mode === "exclude";
+                      const isNegative = token.mode === 'exclude';
                       const colorClass = isNegative
-                        ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
-                        : "bg-[color-mix(in_srgb,var(--od-accent)_16%,transparent)] text-(--od-accent) border border-[color-mix(in_srgb,var(--od-accent)_26%,transparent)]";
+                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                        : 'bg-[color-mix(in_srgb,var(--od-accent)_16%,transparent)] text-(--od-accent) border border-[color-mix(in_srgb,var(--od-accent)_26%,transparent)]';
 
                       const prefix =
-                        token.type === "author"
-                          ? "@"
-                          : token.type === "channel"
-                            ? "#"
-                            : "";
+                        token.type === 'author' ? '@' : token.type === 'channel' ? '#' : '';
 
                       return (
                         <span
                           key={i}
                           className={`inline-flex items-center rounded-md px-2 py-0.5 text-base font-medium ${colorClass}`}
                         >
-                          {isNegative && "-"}
+                          {isNegative && '-'}
                           {prefix}
                           {tagTokenLabel(token)}
                         </span>
@@ -411,13 +392,11 @@ export function SearchPage() {
                     })}
                   </>
                 ) : (
-                  "探索社区"
+                  '探索社区'
                 )}
               </h1>
               <div className="flex min-w-0 flex-wrap items-center justify-center gap-2 text-sm text-(--od-text-secondary) sm:justify-start">
-                <span>
-                  找到 {isThreadTab ? totalResults : booklistTotal} 条结果
-                </span>
+                <span>找到 {isThreadTab ? totalResults : booklistTotal} 条结果</span>
                 {isThreadTab && results.length > 0 && (
                   <>
                     <span className="opacity-30">•</span>
@@ -447,33 +426,33 @@ export function SearchPage() {
             >
               <button
                 type="button"
-                onClick={() => setParams({ type: "thread" })}
+                onClick={() => setParams({ type: 'thread' })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  params.type === "thread"
-                    ? "bg-(--od-accent)/10 text-(--od-accent)"
-                    : "text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
+                  params.type === 'thread'
+                    ? 'bg-(--od-accent)/10 text-(--od-accent)'
+                    : 'text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)'
                 }`}
               >
                 帖子
               </button>
               <button
                 type="button"
-                onClick={() => setParams({ type: "booklist" })}
+                onClick={() => setParams({ type: 'booklist' })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  params.type === "booklist"
-                    ? "bg-(--od-accent)/10 text-(--od-accent)"
-                    : "text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
+                  params.type === 'booklist'
+                    ? 'bg-(--od-accent)/10 text-(--od-accent)'
+                    : 'text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)'
                 }`}
               >
                 书单
               </button>
               <button
                 type="button"
-                onClick={() => setParams({ type: "tournament" })}
+                onClick={() => setParams({ type: 'tournament' })}
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  params.type === "tournament"
-                    ? "bg-(--od-accent)/10 text-(--od-accent)"
-                    : "text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)"
+                  params.type === 'tournament'
+                    ? 'bg-(--od-accent)/10 text-(--od-accent)'
+                    : 'text-(--od-text-secondary) hover:bg-(--od-interactive-hover) hover:text-(--od-text-primary)'
                 }`}
               >
                 赛事
@@ -495,28 +474,24 @@ export function SearchPage() {
                   type="button"
                   onClick={() =>
                     setParams({
-                      sortOrder: params.sortOrder === "desc" ? "asc" : "desc",
+                      sortOrder: params.sortOrder === 'desc' ? 'asc' : 'desc',
                     })
                   }
                   className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-(--od-text-secondary) transition-colors hover:bg-(--od-surface-hover) hover:text-(--od-text-primary)"
-                  title={
-                    params.sortOrder === "desc" ? "当前为倒序" : "当前为正序"
-                  }
+                  title={params.sortOrder === 'desc' ? '当前为倒序' : '当前为正序'}
                 >
-                  {params.sortOrder === "desc" ? (
+                  {params.sortOrder === 'desc' ? (
                     <MoveDown className="h-3.5 w-3.5" />
                   ) : (
                     <MoveUp className="h-3.5 w-3.5" />
                   )}
-                  {params.sortOrder === "desc" ? "倒序" : "正序"}
+                  {params.sortOrder === 'desc' ? '倒序' : '正序'}
                 </button>
               </div>
             )}
 
             <LayoutModeToggle
-              value={
-                !isThreadTab && layoutMode === "masonry" ? "grid" : layoutMode
-              }
+              value={!isThreadTab && layoutMode === 'masonry' ? 'grid' : layoutMode}
               onChange={setLayoutMode}
               showMasonry={isThreadTab}
             />
@@ -525,9 +500,9 @@ export function SearchPage() {
               <button
                 onClick={() => {
                   setParams({
-                    query: "",
-                    sortMethod: "last_active_desc",
-                    sortOrder: "desc",
+                    query: '',
+                    sortMethod: 'last_active_desc',
+                    sortOrder: 'desc',
                     page: 1,
                     tagLogic: getSearchTagLogicPreference(),
                   });
@@ -559,7 +534,7 @@ export function SearchPage() {
               ignored={ignoreDiscoveryPreferences}
               onIgnore={() => setIgnoreDiscoveryPreferences(true)}
               onRestore={() => setIgnoreDiscoveryPreferences(false)}
-              onOpenSettings={() => navigate("/me?tab=preferences")}
+              onOpenSettings={() => navigate('/me?tab=preferences')}
             />
           </section>
         )}
@@ -577,17 +552,17 @@ export function SearchPage() {
           isLoading ? (
             <div
               className={
-                layoutMode === "list"
-                  ? "flex flex-col space-y-od-list-gap"
-                  : layoutMode === "masonry"
-                    ? "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                layoutMode === 'list'
+                  ? 'flex flex-col space-y-od-list-gap'
+                  : layoutMode === 'masonry'
+                    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                     : threadGridClass
               }
             >
               {Array.from({ length: 8 }).map((_, index) =>
-                layoutMode === "list" ? (
+                layoutMode === 'list' ? (
                   <ThreadListItemSkeleton key={index} />
-                ) : layoutMode === "masonry" ? (
+                ) : layoutMode === 'masonry' ? (
                   <div key={index} className="mb-4 break-inside-avoid">
                     <ThreadCardSkeleton />
                   </div>
@@ -604,12 +579,8 @@ export function SearchPage() {
                 <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 text-red-500">
                   <SlidersHorizontal className="h-10 w-10" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
-                  搜索出错了
-                </h3>
-                <p className="mb-6 text-(--od-text-secondary)">
-                  暂时拉不到结果，稍后再试试吧。
-                </p>
+                <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">搜索出错了</h3>
+                <p className="mb-6 text-(--od-text-secondary)">暂时拉不到结果，稍后再试试吧。</p>
                 <button
                   onClick={() => refetch()}
                   className="od-inline-action od-inline-action-primary px-6 py-3 text-sm"
@@ -621,12 +592,9 @@ export function SearchPage() {
           ) : results.length > 0 ? (
             <div className="flex flex-col gap-6">
               {visibleRateLimit && (
-                <SearchRateLimitNotice
-                  remaining={visibleRateLimit.remaining}
-                  compact
-                />
+                <SearchRateLimitNotice remaining={visibleRateLimit.remaining} compact />
               )}
-              {isInfiniteMode && layoutMode === "list" ? (
+              {isInfiniteMode && layoutMode === 'list' ? (
                 <VirtualThreadList
                   threads={results}
                   searchQuery={query}
@@ -636,19 +604,21 @@ export function SearchPage() {
                   pageByThreadId={pageByThreadId}
                   onViewedPageChange={reportViewedPage}
                 />
-              ) : <ThreadResultsCollection
-                threads={results}
-                onTagClick={handleTagClick}
-                searchQuery={query}
-                onAuthorClick={handleAuthorClick}
-                onPreview={openPreview}
-                gridClassName={threadGridClass}
-                listClassName="flex flex-col space-y-od-list-gap pb-4"
-                layoutMode={layoutMode}
-                animateIn={animateIn}
-                pageByThreadId={isInfiniteMode ? pageByThreadId : undefined}
-                onViewedPageChange={isInfiniteMode ? reportViewedPage : undefined}
-              />}
+              ) : (
+                <ThreadResultsCollection
+                  threads={results}
+                  onTagClick={handleTagClick}
+                  searchQuery={query}
+                  onAuthorClick={handleAuthorClick}
+                  onPreview={openPreview}
+                  gridClassName={threadGridClass}
+                  listClassName="flex flex-col space-y-od-list-gap pb-4"
+                  layoutMode={layoutMode}
+                  animateIn={animateIn}
+                  pageByThreadId={isInfiniteMode ? pageByThreadId : undefined}
+                  onViewedPageChange={isInfiniteMode ? reportViewedPage : undefined}
+                />
+              )}
 
               {isInfiniteMode ? (
                 <div
@@ -663,11 +633,13 @@ export function SearchPage() {
                     >
                       加载失败，点击重试
                     </button>
-                  ) : infiniteQueryState.isFetchingNextPage
-                    ? "正在加载更多帖子..."
-                    : infiniteQueryState.hasNextPage
-                      ? "继续向下滚动加载更多"
-                      : "已经到底啦"}
+                  ) : infiniteQueryState.isFetchingNextPage ? (
+                    '正在加载更多帖子...'
+                  ) : infiniteQueryState.hasNextPage ? (
+                    '继续向下滚动加载更多'
+                  ) : (
+                    '已经到底啦'
+                  )}
                 </div>
               ) : (
                 <AnimatedPagination
@@ -686,14 +658,12 @@ export function SearchPage() {
                 <Search className="mx-auto h-24 w-24" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-(--od-text-primary)">
-                {hasSearchFilters
-                  ? "没有找到匹配的结果"
-                  : "开始你的探索之旅吧～"}
+                {hasSearchFilters ? '没有找到匹配的结果' : '开始你的探索之旅吧～'}
               </h3>
               <p className="text-(--od-text-secondary)">
                 {hasSearchFilters
-                  ? "试试换个关键词，或者清掉筛选条件看看"
-                  : "在上面搜索框输入内容，或从侧边栏选个频道开始"}
+                  ? '试试换个关键词，或者清掉筛选条件看看'
+                  : '在上面搜索框输入内容，或从侧边栏选个频道开始'}
               </p>
             </div>
           )
@@ -703,7 +673,7 @@ export function SearchPage() {
             isLoading={booklistQuery.isLoading}
             isError={booklistQuery.isError}
             isTournament={isTournamentTab}
-            isList={layoutMode === "list"}
+            isList={layoutMode === 'list'}
             gridClassName={gridClass}
             collectLoading={collectBooklistMutation.isPending}
             pagination={{
@@ -712,13 +682,13 @@ export function SearchPage() {
               totalItems: booklistTotal,
             }}
             onRetry={() => void booklistQuery.refetch()}
-            onOpen={(id) => navigate(
-              isTournamentTab ? `/tournaments/${id}` : `/booklists/${id}`,
-            )}
-            onToggleCollect={(item) => collectBooklistMutation.mutate({
-              id: item.id,
-              collected: Boolean(item.collected_flag),
-            })}
+            onOpen={(id) => navigate(isTournamentTab ? `/tournaments/${id}` : `/booklists/${id}`)}
+            onToggleCollect={(item) =>
+              collectBooklistMutation.mutate({
+                id: item.id,
+                collected: Boolean(item.collected_flag),
+              })
+            }
             onPageChange={(page) => setParams({ page })}
           />
         )}
@@ -726,5 +696,5 @@ export function SearchPage() {
     </div>
   );
 }
-import { isTagsChangedError } from "@/shared/api/tagErrors";
-import { TagsChangedNotice } from "@/features/tags/components/TagsChangedNotice";
+import { isTagsChangedError } from '@/shared/api/tagErrors';
+import { TagsChangedNotice } from '@/features/tags/components/TagsChangedNotice';

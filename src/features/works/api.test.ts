@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fakeV2Preferences } from '@/features/preferences/testFixtures';
 import { worksApi, worksClient, workApiBaseUrl } from './api';
-import { invalidateAuthSession, setStoredAuthToken } from '@/shared/lib/authSession';
+import { captureAuthSession, invalidateAuthSession, setStoredAuthToken } from '@/shared/lib/authSession';
 
 
 describe('V2 work transport', () => {
@@ -29,4 +30,33 @@ describe('V2 work transport', () => {
     await expect(worksApi.collect('9876543210987654321', true)).resolves.toEqual({ collected: true });
     expect(post).toHaveBeenCalledWith('/works/9876543210987654321/collection');
   });
+});
+
+it('keeps boolean NSFW compatibility while supporting a separate expected-version update', async () => {
+  vi.spyOn(worksClient, 'get').mockResolvedValue({ data: fakeV2Preferences });
+  const patch = vi.spyOn(worksClient, 'patch').mockResolvedValue({ data: { ...fakeV2Preferences, show_nsfw: true, nsfw_preference_version: 4 } });
+  await worksApi.preferences(true);
+  expect(patch).toHaveBeenCalledWith('/me/preferences', { show_nsfw: true, expected_version: 3 }, expect.anything());
+  patch.mockResolvedValue({ data: { ...fakeV2Preferences, show_nsfw: false, nsfw_preference_version: 5 } });
+  await worksApi.preferences({ show_nsfw: false, expected_version: 4 });
+  expect(patch).toHaveBeenCalledWith('/me/preferences', { show_nsfw: false, expected_version: 4 }, expect.anything());
+});
+
+
+it('rejects a queued V2 write if its captured authentication session has changed', async () => {
+  vi.restoreAllMocks();
+  setStoredAuthToken('synthetic-A'); const session = captureAuthSession();
+  invalidateAuthSession(); setStoredAuthToken('synthetic-B');
+  const adapter = vi.fn();
+  await expect(worksClient.patch('/me/preferences', { include_keywords: 'old draft' }, { expectedAuthSession: session, adapter })).rejects.toThrow('登录状态已变化');
+  expect(adapter).not.toHaveBeenCalled();
+});
+
+it.each([
+  { show_nsfw: 'true' }, { nsfw_preference_version: 3 }, { nsfw_preference_version: 5 },
+  { user_id: 'another-user' }, { nsfw_guild_id: 'another-guild' }, { nsfw_eligible: undefined },
+])('rejects malformed or mismatched NSFW authority response: %j', async invalid => {
+  vi.restoreAllMocks();
+  vi.spyOn(worksClient, 'patch').mockResolvedValue({ data: { ...fakeV2Preferences, show_nsfw: true, nsfw_preference_version: 4, ...invalid } });
+  await expect(worksApi.preferences({ show_nsfw: true, expected_version: 3 }, captureAuthSession(), { user_id: String(fakeV2Preferences.user_id), nsfw_guild_id: fakeV2Preferences.nsfw_guild_id! })).rejects.toThrow();
 });

@@ -1,3 +1,4 @@
+import { PreferencePreviewContext } from '@/features/preferences/lib/preferenceDisplay';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore';
@@ -14,7 +15,9 @@ export function RequiredSetupGate() {
   const legacySetupCompleted = useOnboardingStore((state) =>
     state.completedTutorialIds.includes('initial_setup'),
   );
-  const { isFirstTime, isLoading, isError, refetch } = useUserPreferences({ guildId: GUILD_ID });
+  const { preferences, isFirstTime, isLoading, isError, refetch } = useUserPreferences({
+    guildId: GUILD_ID,
+  });
 
   if (isLoading) {
     return (
@@ -31,7 +34,11 @@ export function RequiredSetupGate() {
           <p className="text-sm leading-6 text-(--od-text-secondary)">
             暂时无法确认账号配置状态。为了避免误判成新用户，需要重新连接一次。
           </p>
-          <button type="button" onClick={() => void refetch()} className="od-button-primary rounded-xl px-5 py-2 text-sm">
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="od-button-primary rounded-xl px-5 py-2 text-sm"
+          >
             重新检查
           </button>
         </div>
@@ -39,10 +46,19 @@ export function RequiredSetupGate() {
     );
   }
 
-  if (shouldRequireSetup(isFirstTime, legacySetupCompleted)) {
+  if (
+    shouldRequireSetup(
+      isFirstTime,
+      preferences?.is_first_time === undefined && legacySetupCompleted,
+    )
+  ) {
     const returnTo = `${location.pathname}${location.search}${location.hash}`;
     return <Navigate to="/setup" replace state={{ returnTo }} />;
   }
 
-  return <Outlet />;
+  return (
+    <PreferencePreviewContext.Provider value={preferences?.preview_image_mode || 'thumbnail'}>
+      <Outlet />
+    </PreferencePreviewContext.Provider>
+  );
 }

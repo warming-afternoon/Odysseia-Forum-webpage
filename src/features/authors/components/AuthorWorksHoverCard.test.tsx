@@ -136,6 +136,21 @@ describe("AuthorWorksHoverCard", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("never submits a legacy Discord author ID as a Fluxer preference ID", async () => {
+    const savePreferences = vi.fn();
+    vi.mocked(useUserPreferences).mockReturnValue({
+      user: { id: "viewer-1" },
+      preferences: { is_first_time: false, exclude_authors: [author.id], include_authors: [] },
+      savePreferences, isSaving: false,
+    } as never);
+    render(<AuthorWorksHoverCard author={author}><button type="button">作者头像</button></AuthorWorksHoverCard>);
+    fireEvent.pointerEnter(screen.getByRole("button", { name: "作者头像" }).parentElement!, { pointerType: "mouse" });
+    await act(async () => vi.advanceTimersByTime(300));
+    const block = screen.getByRole("button", { name: "屏蔽作者" });
+    expect(block).toBeDisabled(); expect(block).toHaveAttribute("title", expect.stringContaining("Fluxer"));
+    fireEvent.click(block); expect(savePreferences).not.toHaveBeenCalled(); expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  });
+
   it("屏蔽确认使用顶层 dialog，确认期间不会被 Hover 延迟关闭", async () => {
     vi.mocked(useUserPreferences).mockReturnValue({
       user: { id: "viewer-1" },

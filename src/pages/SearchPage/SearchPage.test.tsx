@@ -118,6 +118,7 @@ describe('SearchPage 交互测试', () => {
   it('设为默认保留其他偏好，并固定当前排序而不切换结果', async () => {
     const preferences = {
       user_id: 123,
+      is_first_time: false, guild_id: 'old-source-guild', nsfw_guild_id: 'fluxer-guild', show_nsfw: true, nsfw_eligible: false, nsfw_preference_version: 9,
       preferred_channels: ['123456789012345678'],
       include_authors: ['234567890123456789'],
       exclude_authors: ['345678901234567890'],
@@ -139,8 +140,7 @@ describe('SearchPage 交互测试', () => {
     render(<SearchPage />);
     fireEvent.click(screen.getByLabelText('选择排序方式'));
     fireEvent.click(screen.getByRole('button', { name: '将最新发布设为默认排序' }));
-    const { user_id: _userId, ...expected } = preferences;
-    await waitFor(() => expect(savePreferences).toHaveBeenCalledWith({ ...expected, sort_method: 'created_at' }));
+    await waitFor(() => expect(savePreferences).toHaveBeenCalledWith({ sort_method: 'created_at' }));
     expect(mockSetParams).toHaveBeenCalledWith({ sortMethod: 'last_active_desc' });
     expect(mockSetParams).not.toHaveBeenCalledWith({ sortMethod: 'created_desc' });
   });
