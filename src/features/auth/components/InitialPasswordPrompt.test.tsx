@@ -9,6 +9,7 @@ const api = vi.hoisted(() => ({
   getPasswordSetupProof: vi.fn(),
 }));
 vi.mock('../api/fluxerAuthApi', () => api);
+vi.mock('../api/fluxerIdentityApi', () => ({ getFluxerLoginIdentity: vi.fn().mockResolvedValue(null) }));
 import { InitialPasswordPrompt } from './InitialPasswordPrompt';
 
 beforeEach(() => {

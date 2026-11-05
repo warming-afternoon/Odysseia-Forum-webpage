@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { acceptFluxerToken, fluxerRequest, getPasswordSetupProof } from '../api/fluxerAuthApi';
+import { FluxerLoginIdentity } from './FluxerLoginIdentity';
 import {
   captureAuthSession,
   isAuthSessionCurrent,
@@ -17,12 +18,16 @@ export function InitialPasswordPrompt() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => subscribeAuthInvalidation(() => {
-    setOpen(false);
-    setPassword('');
-    setConfirmation('');
-    setCode('');
-  }), []);
+  useEffect(
+    () =>
+      subscribeAuthInvalidation(() => {
+        setOpen(false);
+        setPassword('');
+        setConfirmation('');
+        setCode('');
+      }),
+    [],
+  );
 
   if (!open) return null;
 
@@ -56,9 +61,9 @@ export function InitialPasswordPrompt() {
         if (!PublicKeyCredential.parseRequestOptionsFromJSON) {
           throw new Error('请更新浏览器后使用安全密钥');
         }
-        const credential = await navigator.credentials.get({
+        const credential = (await navigator.credentials.get({
           publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(options),
-        }) as PublicKeyCredential | null;
+        })) as PublicKeyCredential | null;
         if (!credential) throw new Error('安全密钥验证已取消');
         if (!isAuthSessionCurrent(session) || getPasswordSetupProof() !== proof) return;
         Object.assign(verification, {
@@ -92,11 +97,17 @@ export function InitialPasswordPrompt() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="initial-password-title"
-        className="w-full max-w-md rounded-xl bg-(--od-bg) p-6"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-(--od-bg) p-6"
       >
-        <h2 id="initial-password-title" className="text-lg font-semibold">设置 Fluxer 登录密码</h2>
+        <h2 id="initial-password-title" className="text-lg font-semibold">
+          设置 Fluxer 登录密码
+        </h2>
         <p className="my-3 text-sm">
           设置后可以直接使用 Fluxer 用户名和密码登录，也可以继续通过 Discord 登录。
+        </p>
+        <FluxerLoginIdentity />
+        <p className="mb-3 text-sm text-(--od-text-secondary)">
+          以后也可以在「我的」页面查看登录用户名。
         </p>
         <form onSubmit={submit} className="space-y-3">
           <input
@@ -128,7 +139,11 @@ export function InitialPasswordPrompt() {
             placeholder="若已开启二步验证，请输入验证码"
             className="w-full rounded border p-3"
           />
-          {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-red-500">
+              {error}
+            </p>
+          )}
           <button disabled={busy} className="rounded border p-3">
             {busy ? '正在设置…' : '设置密码'}
           </button>
