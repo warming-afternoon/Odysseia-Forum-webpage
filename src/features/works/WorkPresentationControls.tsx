@@ -5,6 +5,7 @@ import { WorkTasks } from './tasks';
 import { WorkBooklistPicker } from './booklists';
 import { WorkAnnouncements } from './announcements';
 import { WorkThreads } from './threads';
+import { WorkDiscussionLinks } from './WorkDiscussionLinks';
 import { WorkModerationPanel } from './moderation';
 import { WorkTagGovernance } from './tagGovernance';
 import { worksApi } from './api';
@@ -25,7 +26,7 @@ export function WorkPresentationControls({ work }: { work: Work }) {
     mutationFn: () => worksApi.remove(work.id),
     onSuccess: async () => { await client.invalidateQueries({ queryKey: workKeys.all }); navigate('/'); },
   });
-  return <details className="mb-6 border-t border-(--od-shell-line) pt-4">
+  return <><WorkDiscussionLinks work={work} /><details className="mb-6 border-t border-(--od-shell-line) pt-4">
     <summary className="cursor-pointer text-sm font-medium text-(--od-text-secondary)">讨论、公告与作品操作</summary>
     <div className="mt-4">
       {awaitingSource && <p role="status">原生主帖正在创建，同步完成后可编辑作品、发布公告和管理讨论。</p>}
@@ -41,5 +42,5 @@ export function WorkPresentationControls({ work }: { work: Work }) {
       </>}
       {remove.error && <p role="alert">{workError(remove.error)}</p>}
     </div>
-  </details>;
+  </details></>;
 }

@@ -1,3 +1,4 @@
+import { resetVisibleContent } from '@/features/works/contentCache';
 import { isFeatureNotMigratedError } from '@/shared/api/featureMigration';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -9,6 +10,7 @@ import {
   usesV2Preferences,
   type PreferencesApiOptions,
   type UserPreferencesUpdateRequest,
+  type UserPreferencesResponse,
 } from '../api/preferencesApi';
 
 export function preferenceQueryKey(
@@ -62,6 +64,19 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
         throw new Error('登录状态已变化，请重试。');
       const data = await preferencesApi.getByUserId(userId, { ...options, mode: protocol });
       if (!isAuthSessionCurrent(session)) throw new Error('登录状态已变化，请重试。');
+      const previous = queryClient.getQueryData<UserPreferencesResponse>(queryKey);
+      // A native Fluxer save (or recovered partial save) does not emit a browser event.
+      // Revalidate content when our existing preference refetch observes a new authority
+      // snapshot. The reset excludes this preference query, so it cannot refetch itself.
+      if (protocol === 'v2' && previous && (
+        previous.show_nsfw !== data?.show_nsfw ||
+        previous.nsfw_eligible !== data?.nsfw_eligible ||
+        previous.nsfw_preference_version !== data?.nsfw_preference_version ||
+        previous.nsfw_guild_id !== data?.nsfw_guild_id
+      )) {
+        await resetVisibleContent(queryClient);
+        if (!isAuthSessionCurrent(session)) throw new Error('登录状态已变化，请重试。');
+      }
       return data;
     },
     staleTime: 60 * 1000,

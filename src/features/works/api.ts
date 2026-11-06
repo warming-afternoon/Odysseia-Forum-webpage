@@ -22,6 +22,8 @@ import type {
   WorkInput,
   WorkMember,
   WorkQuery,
+  WorkCardsQuery,
+  WorkCardsPageData,
 } from './types';
 
 declare module 'axios' {
@@ -178,11 +180,14 @@ export const worksApi = {
     worksClient.patch(`/works/${id(workId)}/announcements/${id(announcementId)}`, body),
   withdrawAnnouncement: async (workId: string, announcementId: string) =>
     worksClient.delete(`/works/${id(workId)}/announcements/${id(announcementId)}`),
-  createThread: async (workId: string, body: { title: string; body: string }) =>
+  cards: async (workId: string, params: WorkCardsQuery, signal?: AbortSignal) =>
+    (await worksClient.get<WorkCardsPageData>(`/works/${id(workId)}/cards`, { params, signal })).data,
+  createThread: async (workId: string, body: { title: string; body: string; client_request_id?: string }, session: AuthSessionSnapshot = captureAuthSession()) =>
     (
       await worksClient.post<{ task_id: string; status: string }>(
         `/works/${id(workId)}/threads`,
         body,
+        { expectedAuthSession: session },
       )
     ).data,
   updateThread: async (

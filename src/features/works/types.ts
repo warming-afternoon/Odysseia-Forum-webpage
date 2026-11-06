@@ -25,6 +25,11 @@ export interface ThreadRef {
   can_restore?: boolean;
   deletion_reason?: string | null;
   initializing?: boolean;
+  created_at?: string | null;
+  last_active_at?: string | null;
+  reaction_count?: number;
+  reply_count?: number;
+  collection_count?: number;
 }
 export interface WorkInput {
   title: string;
@@ -120,3 +125,12 @@ export interface UploadedWorkAttachment {
   upload_filename: string;
 }
 export type WorkAttachment = UploadedWorkAttachment | { id: string };
+
+export interface WorkCardsQuery {
+  offset?: number;
+  limit?: number;
+  sort_method?: 'last_active' | 'created_at' | 'reply_count' | 'reaction_count' | 'comprehensive' | 'reddit_hot' | 'collection_count';
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface WorkCardsPageData extends Page<ThreadRef> { can_create: boolean; create_disabled_reason: string | null }

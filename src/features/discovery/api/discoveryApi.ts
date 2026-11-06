@@ -1,3 +1,7 @@
+import { worksV2Enabled } from "@/shared/config/works";
+import { worksClient } from "@/features/works/api";
+import { workToThread } from "@/features/works/workPresentation";
+import type { Work } from "@/features/works/types";
 import type { Thread } from "@/entities/thread/types";
 import { apiClient } from "@/shared/api/client";
 
@@ -92,7 +96,7 @@ export const discoveryApi = {
   ): Promise<Thread[]> => {
     const channelIds = normalizeChannelIds(params.channel_ids);
     const excludeChannelIds = normalizeChannelIds(params.exclude_channel_ids);
-    const response = await apiClient.get<Thread[]>("/discovery/random", {
+    const response = await (worksV2Enabled ? worksClient : apiClient).get<Thread[] | Work[]>("/discovery/random", {
       params: {
         limit: params.limit ?? 10,
         channel_ids: channelIds.length ? channelIds : undefined,
@@ -103,6 +107,8 @@ export const discoveryApi = {
       },
       paramsSerializer: { indexes: null },
     });
-    return dedupeThreads(response.data || []);
+    return dedupeThreads(worksV2Enabled
+      ? (response.data as Work[] || []).map(workToThread)
+      : (response.data as Thread[] || []));
   },
 };

@@ -89,8 +89,12 @@ export function WorkMePage() {
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'me'] });
       void queryClient.invalidateQueries({ queryKey: queryKey, exact: true });
     },
-    onError: (_error, _input, context) => {
+    onError: async (_error, _input, context) => {
       if (!context || !isAuthSessionCurrent(context.session)) return;
+      // A failed acknowledgement is not a rollback: durable recovery may have
+      // committed the new preference. Remove old projections before reconciling.
+      await resetVisibleContent(queryClient);
+      if (!isAuthSessionCurrent(context.session)) return;
       void queryClient.invalidateQueries({ queryKey: queryKey, exact: true });
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'me'] });
     },

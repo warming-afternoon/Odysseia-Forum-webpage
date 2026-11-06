@@ -1,3 +1,6 @@
+import { restoreWorkDrawHistory, saveWorkDrawHistory } from "@/features/draw/history";
+import { subscribeAuthInvalidation } from "@/shared/lib/authSession";
+import { worksV2Enabled } from "@/shared/config/works";
 import {
     BadgeCheck,
     ChevronDown,
@@ -7,7 +10,7 @@ import {
     Wand2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { DrawSettingsPanel } from "./DrawSettingsPanel";
 
 import type { Thread } from "@/entities/thread/types";
@@ -125,6 +128,7 @@ export function buildDrawTagGroups(channels: ApiChannel[], activeChannelIds: str
 
 /** 从 localStorage 恢复上次的抽卡结果 */
 function loadDrawHistory(): Thread[] {
+  if (worksV2Enabled) return []; // V2 内容不从未经权限复核的持久缓存恢复。
   try {
     const raw = localStorage.getItem(DRAW_HISTORY_KEY);
     if (!raw) return [];
@@ -134,7 +138,11 @@ function loadDrawHistory(): Thread[] {
   }
 }
 /** 将抽卡结果持久化到 localStorage */
-function saveDrawHistory(results: Thread[]): void {
+function saveDrawHistory(results: Thread[], userId?: string): void {
+  if (worksV2Enabled) {
+    if (userId) saveWorkDrawHistory(userId, results);
+    return;
+  }
   try {
     localStorage.setItem(DRAW_HISTORY_KEY, JSON.stringify(results));
   } catch {
@@ -166,6 +174,8 @@ export function DrawPage() {
     return channelsData?.channels || [];
   }, [channelsData?.channels]);
 
+  const historyUserId = preferences?.user_id ? String(preferences.user_id) : undefined;
+
   const [storedRecipe] = useState<DrawRecipe | null>(() => loadDrawRecipe());
   const recipeInitializedRef = useRef(Boolean(storedRecipe));
   const [recipe, setRecipe] = useState<DrawRecipe>(storedRecipe || DEFAULT_DRAW_RECIPE);
@@ -181,10 +191,39 @@ export function DrawPage() {
   const [revealEnabled, setRevealEnabled] = useState(() => loadRevealEnabled());
   const drawSequenceRef = useRef(0);
   const skipRevealRef = useRef(false);
+  const drawingRef = useRef(false);
 
   // 历史记录：从 localStorage 恢复
   const [historyResults, setHistoryResults] = useState<Thread[]>(() => loadDrawHistory());
   const [historyActiveIndex, setHistoryActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const clear = () => {
+      drawSequenceRef.current += 1;
+      setHistoryResults([]);
+      setOverlayResults([]);
+      setOverlayOpen(false);
+      drawingRef.current = false;
+      setIsDrawing(false);
+    };
+    const unsubscribe = subscribeAuthInvalidation(clear);
+    window.addEventListener("works-visible-content-reset", clear);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("works-visible-content-reset", clear);
+      drawSequenceRef.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!worksV2Enabled || !historyUserId) return;
+    const controller = new AbortController();
+    const sequence = drawSequenceRef.current;
+    void restoreWorkDrawHistory(historyUserId, controller.signal).then(results => {
+      if (!controller.signal.aborted && drawSequenceRef.current === sequence) setHistoryResults(results);
+    });
+    return () => controller.abort();
+  }, [historyUserId]);
 
   // 持久化揭晓开关
   useEffect(() => {
@@ -199,7 +238,7 @@ export function DrawPage() {
     saveDrawRecipe(recipe);
   }, [recipe]);
 
-  const preferredChannelIds = preferenceContext?.preferredChannelIds || [];
+  const preferredChannelIds = useMemo(() => preferenceContext?.preferredChannelIds || [], [preferenceContext?.preferredChannelIds]);
   useEffect(() => {
     if (recipeInitializedRef.current || !preferences) return;
     recipeInitializedRef.current = true;
@@ -274,12 +313,15 @@ export function DrawPage() {
   const canDraw = recipe.scopeMode !== "custom" || recipe.channelIds.length > 0;
 
   const handleDraw = useCallback(async (count: number) => {
+    if (drawingRef.current || !canDraw) return;
+    drawingRef.current = true;
     const sequenceId = drawSequenceRef.current + 1;
     drawSequenceRef.current = sequenceId;
     skipRevealRef.current = false;
 
     try {
       setIsDrawing(true);
+      setLastDrawCount(count);
       setError(null);
       setOverlayResults([]);
       setOverlayRevealedCount(0);
@@ -305,7 +347,7 @@ export function DrawPage() {
       // 持久化到历史
       if (results.length > 0) {
         setHistoryResults(results);
-        saveDrawHistory(results);
+        saveDrawHistory(results, historyUserId);
       }
 
       if (!revealEnabled) {
@@ -331,6 +373,7 @@ export function DrawPage() {
 
       setOverlayPhase("revealing");
     } catch (err) {
+      if (drawSequenceRef.current !== sequenceId) return;
       console.error("Failed to draw randomly", err);
       setError("抽卡失败了，可能是由于网络波动或当前范围内内容不足。");
       if (revealEnabled) {
@@ -338,9 +381,12 @@ export function DrawPage() {
         setOverlayOpen(true);
       }
     } finally {
-      setIsDrawing(false);
+      if (drawSequenceRef.current === sequenceId) {
+        drawingRef.current = false;
+        setIsDrawing(false);
+      }
     }
-  }, [effectiveChannelIds, recipe.excludeTags, recipe.includeTags, recipe.tagLogic, revealEnabled]);
+  }, [historyUserId, canDraw, effectiveChannelIds, recipe.excludeTags, recipe.includeTags, recipe.tagLogic, revealEnabled]);
 
   const handleSkipOverlay = () => {
     skipRevealRef.current = true;
@@ -494,7 +540,7 @@ export function DrawPage() {
       )}
 
       {/* ─── 上次发现 (底部历史记录 · 统一横向滚动) ─── */}
-      <AnimatePresence>
+      <>
         {historyResults.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
@@ -517,7 +563,7 @@ export function DrawPage() {
                 onClick={() => {
                   setHistoryResults([]);
                   setHistoryActiveIndex(0);
-                  saveDrawHistory([]);
+                  saveDrawHistory([], historyUserId);
                 }}
                 className="text-xs text-(--od-text-tertiary) transition-colors hover:text-(--od-text-secondary)"
               >
@@ -558,7 +604,7 @@ export function DrawPage() {
             </div>
           </motion.section>
         )}
-      </AnimatePresence>
+      </>
 
       {/* ─── 空状态 (从未抽过卡) ─── */}
       {historyResults.length === 0 && !isDrawing && !error && (

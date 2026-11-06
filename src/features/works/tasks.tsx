@@ -13,6 +13,7 @@ export function WorkTasks({ workId }: { workId: string }) {
   useEffect(() => {
     if (finished) {
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'threads', workId] });
+      void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'cards', workId] });
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'detail', workId] });
       void queryClient.invalidateQueries({ queryKey: [...workKeys.all, 'presentation', workId] });
     }
