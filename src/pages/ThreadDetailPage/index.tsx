@@ -49,7 +49,7 @@ export function WorkPresentationPage() {
   const { workId = '' } = useParams();
   const navigate = useNavigate();
   const result = useWorkPresentation(workId);
-  if (result.isPending) return <PageStatusMessage>正在帮你加载作品...</PageStatusMessage>;
+  if (result.isValidating) return <PageStatusMessage>正在帮你加载作品...</PageStatusMessage>;
   if (result.error || !result.data) return <PageStatusMessage tone="error">作品不存在或当前不可访问</PageStatusMessage>;
   return <ThreadPreviewOverlay thread={workToThread(result.data)} onClose={() => navigate('/')} />;
 }

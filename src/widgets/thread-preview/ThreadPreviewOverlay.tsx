@@ -66,8 +66,8 @@ function WorkPreviewOverlay(props: ThreadPreviewOverlayProps) {
   const workId = props.thread.work!.id;
   const result = useWorkPresentation(workId);
   const author = useAuthorProfile(result.error ? undefined : result.data?.author_id || undefined);
-  // Search projections must never bypass a new permission check or failed refresh.
-  if (result.isPending || result.isFetching) return <div role="dialog" aria-label="加载作品" className="fixed inset-0 z-50 flex items-center justify-center gap-4 bg-(--od-surface-floating)"><p>正在帮你加载作品...</p><button onClick={props.onClose}>关闭</button></div>;
+  // Revalidate each opening, but keep mounted content during background refreshes.
+  if (result.isValidating) return <div role="dialog" aria-label="加载作品" className="fixed inset-0 z-50 flex items-center justify-center gap-4 bg-(--od-surface-floating)"><p>正在帮你加载作品...</p><button onClick={props.onClose}>关闭</button></div>;
   if (result.error || !result.data) return <div role="alert">作品不存在或当前不可访问<button onClick={props.onClose}>关闭</button></div>;
   const thread = workToThread(result.data);
   if (author.data && !author.error) thread.author = author.data;
