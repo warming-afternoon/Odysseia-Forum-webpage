@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NsfwPreferencesSection } from './NsfwPreferencesSection';
+import { V2PreferencesSection } from './V2PreferencesSection';
 import { worksApi } from '@/features/works/api';
 import { preferencesApi } from '../api/preferencesApi';
 import { fakeV2Preferences as basePreferences } from '../testFixtures';
@@ -23,12 +24,12 @@ const member: WorkMember = {
   can_view_abyss: false, can_speak: true, show_nsfw: false,
 };
 const checkbox = () => screen.getByRole('checkbox', { name: '显示 NSFW 作品' });
-function mount() {
+function mount(withDiscovery = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } } });
   client.setQueryData(['auth'], { loggedIn: true, user: { id: member.id } });
   client.setQueryData(['works-v2', 'me'], member);
   client.setQueryData(preferenceQueryKey('v2', captureAuthSession().generation, member.id), fakeV2Preferences);
-  const view = render(<QueryClientProvider client={client}><NsfwPreferencesSection /></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={client}><NsfwPreferencesSection />{withDiscovery && <V2PreferencesSection userId={member.id} />}</QueryClientProvider>);
   return { client, ...view };
 }
 beforeEach(() => {
@@ -101,4 +102,40 @@ it('native authority refetch updates the switch and removes stale projections', 
   await act(async () => { await client.invalidateQueries({ queryKey: ['user-preferences'] }); });
   await waitFor(() => expect(checkbox()).toBeChecked());
   expect(client.getQueryData(['works-v2', 'search'])).toBeUndefined();
+});
+
+it.each(['discovery', 'nsfw'] as const)('serializes both preference forms when %s saves first', async first => {
+  let resolveFirst!: (value: typeof fakeV2Preferences) => void;
+  const firstResponse = new Promise<typeof fakeV2Preferences>(resolve => { resolveFirst = resolve; });
+  const discovered = { ...fakeV2Preferences, include_keywords: 'changed' };
+  const enabled = { ...fakeV2Preferences, show_nsfw: true, nsfw_preference_version: 4 };
+  const combined = { ...discovered, show_nsfw: true, nsfw_preference_version: 4 };
+  const saveDiscovery = vi.spyOn(preferencesApi, 'updateByUserId')
+    .mockImplementation(() => first === 'discovery' ? firstResponse : Promise.resolve(combined));
+  const saveNsfw = vi.spyOn(worksApi, 'preferences')
+    .mockImplementation(() => first === 'nsfw' ? firstResponse : Promise.resolve(combined));
+  const { client } = mount(true);
+  await waitFor(() => expect(checkbox()).toBeEnabled());
+  fireEvent.change(screen.getByRole('textbox', { name: /包含关键词/ }), { target: { value: 'changed' } });
+  const submitDiscovery = () => fireEvent.click(screen.getByRole('button', { name: '保存偏好' }));
+  const submitNsfw = () => fireEvent.click(checkbox());
+  const firstSave = first === 'discovery' ? saveDiscovery : saveNsfw;
+  const secondSave = first === 'discovery' ? saveNsfw : saveDiscovery;
+  (first === 'discovery' ? submitDiscovery : submitNsfw)();
+  await waitFor(() => expect(firstSave).toHaveBeenCalledTimes(1));
+  (first === 'discovery' ? submitNsfw : submitDiscovery)();
+  // Pending UI covers the queued write, but its transport must not run yet.
+  await waitFor(() => {
+    expect(checkbox()).toBeDisabled();
+    expect(screen.getByRole('button', { name: '保存中…' })).toBeDisabled();
+  });
+  expect(secondSave).not.toHaveBeenCalled();
+  vi.mocked(preferencesApi.getByUserId).mockResolvedValue(combined);
+  await act(async () => resolveFirst(first === 'discovery' ? discovered : enabled));
+  await waitFor(() => expect(secondSave).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(checkbox()).toBeEnabled());
+  expect(checkbox()).toBeChecked();
+  expect(screen.getByRole('textbox', { name: /包含关键词/ })).toHaveValue('changed');
+  expect(client.getQueryData(preferenceQueryKey('v2', captureAuthSession().generation, member.id)))
+    .toMatchObject({ show_nsfw: true, nsfw_preference_version: 4, include_keywords: 'changed' });
 });

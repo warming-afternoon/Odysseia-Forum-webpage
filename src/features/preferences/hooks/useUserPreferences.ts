@@ -82,6 +82,8 @@ export function useUserPreferences(options: PreferencesApiOptions = {}) {
     staleTime: 60 * 1000,
   });
   const saveMutation = useMutation({
+    // NSFW and discovery writes must not replace newer snapshots with late responses.
+    scope: { id: JSON.stringify(queryKey) },
     onMutate: () => ({ session, queryKey }),
     mutationFn: async (payload: UserPreferencesUpdateRequest) => {
       if (!userId || !protocol || !isAuthSessionCurrent(session))

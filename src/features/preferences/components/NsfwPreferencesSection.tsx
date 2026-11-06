@@ -50,6 +50,8 @@ export function NsfwPreferencesSection() {
       ? snapshot
       : undefined;
   const preference = useMutation({
+    // Share the write queue with discovery preferences: both return a full document.
+    scope: { id: JSON.stringify(queryKey) },
     retry: false,
     onMutate: (input: NsfwMutationInput) => ({ session: input.session, queryKey }),
     mutationFn: (input: NsfwMutationInput) => {
