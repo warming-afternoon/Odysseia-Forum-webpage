@@ -43,7 +43,7 @@ for (const status of [401, 403, 404]) describe(`private cached UI after HTTP ${s
     const key = ['works-v2', 'me'] as const;
     const client = mount(<WorkMePage />, key, member);
     expect(screen.getByText('CACHED PRIVATE PROFILE')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /显示 NSFW 作品/ })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /显示 NSFW 作品/ })).not.toBeInTheDocument();
     await waitFor(() => expect(worksApi.me).toHaveBeenCalled());
     await act(async () => { rejectPending(errorFor(status)); });
     await waitFor(() => expect(client.getQueryState(key)?.status).toBe('error'));

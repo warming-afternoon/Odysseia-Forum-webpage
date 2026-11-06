@@ -1,3 +1,4 @@
+import { NsfwPreferencesSection } from '@/features/preferences/components/NsfwPreferencesSection';
 import { V2PreferencesSection } from '@/features/preferences/components/V2PreferencesSection';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -477,7 +478,10 @@ export function MePage() {
               <button onClick={() => void refetchPreferences()}>重新读取偏好</button>
             </div>
           ) : preferences?.is_first_time !== undefined ? (
-            <V2PreferencesSection key={user?.id} userId={user?.id} />
+            <>
+              <NsfwPreferencesSection key={`nsfw:${user?.id}`} />
+              <V2PreferencesSection key={user?.id} userId={user?.id} />
+            </>
           ) : (
             <MePreferencesSection
               availablePreferenceTags={availablePreferenceTags}
