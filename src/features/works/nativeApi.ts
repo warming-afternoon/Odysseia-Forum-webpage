@@ -20,6 +20,7 @@ nativeClient.interceptors.request.use(async config => {
   requestSessions.set(config, session);
   config.baseURL = auth.fluxer_api_url.replace(/\/$/, '');
   config.headers.Authorization = session.token;
+  config.headers.set('X-Fluxer-Features', 'channel_threads');
   return config;
 });
 nativeClient.interceptors.response.use(response => response, error => {
@@ -33,7 +34,7 @@ export const nativeMessagesApi = {
   get: async (channelId: string, messageId: string, signal?: AbortSignal) => (await nativeClient.get<NativeMessage>(`/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(messageId)}`, { signal })).data,
   updateThread: async (channelId: string, body: { name?: string; archived?: boolean }) => nativeClient.patch(`/channels/${encodeURIComponent(channelId)}`, body),
   list: async (channelId: string, before?: string, signal?: AbortSignal) => (await nativeClient.get<NativeMessage[]>(`/channels/${encodeURIComponent(channelId)}/messages`, { params: { limit: 50, before }, signal })).data,
-  send: async (channelId: string, content: string, nonce: string) => (await nativeClient.post<NativeMessage>(`/channels/${encodeURIComponent(channelId)}/messages`, { content, nonce, enforce_nonce: true })).data,
+  send: async (channelId: string, content: string, nonce: string) => (await nativeClient.post<NativeMessage>(`/channels/${encodeURIComponent(channelId)}/messages`, { content, nonce })).data,
   edit: async (channelId: string, messageId: string, content: string) => (await nativeClient.patch<NativeMessage>(`/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(messageId)}`, { content })).data,
   remove: async (channelId: string, messageId: string) => nativeClient.delete(`/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(messageId)}`),
 };

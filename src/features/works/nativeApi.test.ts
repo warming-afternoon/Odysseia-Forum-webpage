@@ -19,6 +19,14 @@ describe('direct Fluxer message transport', () => {
     } });
     expect(captured).toEqual({ base: 'https://chat.example/api/v1', authorization: 'flx_native', credentials: false });
   });
+  it.each(['https://chat.example/api', 'https://chat.example/api/v1'])('declares thread support without rewriting the configured API prefix: %s', async base => {
+    vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: 'fluxer', fluxer_api_url: base });
+    await nativeClient.get('/channels/1568143530856022016/messages', { adapter: async config => {
+      expect(config.baseURL).toBe(base);
+      expect(config.headers.get('X-Fluxer-Features')).toBe('channel_threads');
+      return { data: [], status: 200, statusText: 'OK', headers: {}, config };
+    } });
+  });
   it('rejects native reads in legacy mode instead of sending a token to an arbitrary URL', async () => {
     vi.mocked(getForumAuthConfig).mockResolvedValue({ mode: 'legacy', fluxer_api_url: null });
     const adapter = vi.fn();
@@ -28,6 +36,6 @@ describe('direct Fluxer message transport', () => {
   it('sends a reply to the referenced native channel with an idempotency nonce', async () => {
     const post = vi.spyOn(nativeClient, 'post').mockResolvedValue({ data: { id: '222' } });
     await nativeMessagesApi.send('9876543210987654321', '新的回复', 'once');
-    expect(post).toHaveBeenCalledExactlyOnceWith('/channels/9876543210987654321/messages', { content: '新的回复', nonce: 'once', enforce_nonce: true });
+    expect(post).toHaveBeenCalledExactlyOnceWith('/channels/9876543210987654321/messages', { content: '新的回复', nonce: 'once' });
   });
 });

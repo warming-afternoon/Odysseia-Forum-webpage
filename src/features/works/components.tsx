@@ -6,10 +6,29 @@ import type { Work } from './types';
 
 export function workError(error: unknown): string {
   if (isAxiosError(error)) {
-    if (error.response?.status === 404) return '作品不存在或当前不可见';
-    const detail: unknown = error.response?.data?.detail;
-    if (typeof detail === 'string') return detail;
-    if (detail && typeof detail === 'object' && 'message' in detail) return String(detail.message);
+    const data: unknown = error.response?.data;
+    if (data && typeof data === 'object') {
+      // Forum uses detail; Fluxer returns code/message and optional field errors.
+      const body = data as Record<string, unknown>;
+      if (typeof body.detail === 'string') return body.detail;
+      if (body.detail && typeof body.detail === 'object' && 'message' in body.detail && typeof body.detail.message === 'string') return body.detail.message;
+      if (typeof body.message === 'string' || typeof body.code === 'string') {
+        const code = typeof body.code === 'string' ? body.code : '';
+        const message = typeof body.message === 'string' ? body.message : '';
+        const hints: Record<number, string> = { 400: '请求参数无效', 403: '当前账号无权执行此操作', 404: '频道或消息不存在，或当前不可见', 429: '请求过于频繁，请稍后重试' };
+        const summary = [hints[error.response?.status ?? 0], message, code && code !== message ? `错误码：${code}` : ''].filter(Boolean);
+        if (Array.isArray(body.errors)) {
+          for (const field of body.errors) {
+            if (field && typeof field === 'object' && typeof field.message === 'string') {
+              summary.push([typeof field.path === 'string' ? field.path : '', field.message, typeof field.code === 'string' ? field.code : ''].filter(Boolean).join('：'));
+            }
+          }
+        }
+        if (error.response?.status === 429 && typeof body.retry_after === 'number' && Number.isFinite(body.retry_after) && body.retry_after >= 0) summary.push(`请在 ${Math.ceil(body.retry_after)} 秒后重试`);
+        return summary.filter(Boolean).join('；') || '请求失败，请重试';
+      }
+    }
+    if (error.response?.status === 404) return '内容不存在或当前不可见';
   }
   return error instanceof Error ? error.message : '请求失败，请重试';
 }

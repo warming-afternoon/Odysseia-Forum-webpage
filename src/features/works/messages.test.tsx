@@ -48,3 +48,25 @@ it('allows editing an own reply when composing is disabled but the thread is not
   fireEvent.click(screen.getByRole('button', { name: '保存消息' }));
   await waitFor(() => expect(nativeMessagesApi.edit).toHaveBeenCalledWith('222', '333', '自己的新回复'));
 });
+
+it('uses a 32-character nonce, reuses it after failure, and replaces it when the draft changes', async () => {
+  vi.mocked(nativeMessagesApi.send).mockReset();
+  vi.mocked(nativeMessagesApi.list).mockResolvedValue([message]);
+  vi.mocked(nativeMessagesApi.send).mockRejectedValue(new Error('暂时失败'));
+  renderThread();
+  await screen.findByText('原生主帖正文');
+  const input = screen.getByRole('textbox', { name: '回复' });
+  fireEvent.change(input, { target: { value: '回复一' } });
+  fireEvent.click(screen.getByRole('button', { name: '发送回复' }));
+  await screen.findByText('暂时失败');
+  const nonce = vi.mocked(nativeMessagesApi.send).mock.calls[vi.mocked(nativeMessagesApi.send).mock.calls.length - 1][2];
+  expect(nonce).toMatch(/^[0-9a-f]{32}$/);
+  fireEvent.click(screen.getByRole('button', { name: '发送回复' }));
+  await waitFor(() => expect(nativeMessagesApi.send).toHaveBeenCalledTimes(2));
+  expect(nativeMessagesApi.send).toHaveBeenLastCalledWith('222', '回复一', nonce);
+  await waitFor(() => expect(input).not.toBeDisabled());
+  fireEvent.change(input, { target: { value: '回复二' } });
+  fireEvent.click(screen.getByRole('button', { name: '发送回复' }));
+  await waitFor(() => expect(nativeMessagesApi.send).toHaveBeenLastCalledWith('222', '回复二', expect.any(String)));
+  expect(vi.mocked(nativeMessagesApi.send).mock.calls[vi.mocked(nativeMessagesApi.send).mock.calls.length - 1][2]).not.toBe(nonce);
+});

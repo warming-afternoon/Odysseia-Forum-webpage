@@ -34,7 +34,7 @@ export function NativeThreadMessages({ channelId, canReply, canEditMessages = ca
   } });
   function submit(event: FormEvent) {
     event.preventDefault();
-    const requestNonce = nonce || crypto.randomUUID(); setNonce(requestNonce);
+    const requestNonce = nonce || crypto.randomUUID().replace(/-/g, ''); setNonce(requestNonce);
     send.mutate({ text: content, requestNonce });
   }
   const messages = [...new Map(query.data?.pages.flat().map(message => [message.id, message]) || []).values()].reverse();
