@@ -1,3 +1,4 @@
+import { LegacyWorksSearchRedirect } from "@/features/works/LegacyWorksSearchRedirect";
 import { worksV2Enabled } from "@/shared/config/works";
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
@@ -87,20 +88,13 @@ const NotFoundPage = lazyPage(
 // 调试页只在 DEV / mock 模式下注册路由；作为独立 chunk 存在，生产环境永远不会被下载
 const TestPage = lazyPage(() => import("@/pages/TestPage"), "TestPage");
 
-const WorksLayout = lazyPage(() => import("@/features/works/layout"), "WorksLayout");
-const WorksSearchPage = lazyPage(() => import("@/features/works/browse"), "WorksSearchPage");
-const WorksDiscoverPage = lazyPage(() => import("@/features/works/browse"), "WorksDiscoverPage");
-const WorksCollectionPage = lazyPage(() => import("@/features/works/browse"), "WorksCollectionPage");
-const DeletedWorksAdminPage = lazyPage(() => import("@/features/works/moderation"), "DeletedWorksAdminPage");
 const WorkPresentationPage = lazyPage(() => import("@/pages/ThreadDetailPage"), "WorkPresentationPage");
 const WorkCardsPage = lazyPage(() => import("@/features/works/cards"), "WorkCardsPage");
+const WorkPageFrame = lazyPageWithProps<{ children: ReactNode }, "WorkPageFrame">(() => import("@/features/works/layout"), "WorkPageFrame");
 const WorkEditPage = lazyPage(() => import("@/features/works/editor"), "WorkEditPage");
 
-const WorkMePage = lazyPage(() => import("@/features/works/member"), "WorkMePage");
 
 const WorkCreatePage = lazyPage(() => import("@/features/works/editor"), "WorkCreatePage");
-const WorkFollowsPage = lazyPage(() => import("@/features/works/social"), "WorkFollowsPage");
-const WorkNotificationsPage = lazyPage(() => import("@/features/works/social"), "WorkNotificationsPage");
 
 const isDevToolsEnabled =
   import.meta.env.DEV || import.meta.env.VITE_API_MOCKING === "true";
@@ -138,18 +132,26 @@ const appChildren = [
     path: "works/booklists/:id",
     element: withSuspense(<BooklistDetailPage />),
   }, {
+    path: "works/:workId/edit",
+    element: withSuspense(<WorkPageFrame><WorkEditPage /></WorkPageFrame>),
+  }, {
     path: "works",
-    element: withSuspense(<WorksLayout />),
-    children: [
-      { index: true, element: withSuspense(<WorksSearchPage />) },
-      { path: "discover", element: withSuspense(<WorksDiscoverPage />) },
-      { path: "admin/deleted", element: withSuspense(<DeletedWorksAdminPage />) },
-      { path: "collection", element: withSuspense(<WorksCollectionPage />) },
-      { path: "me", element: withSuspense(<WorkMePage />) },
-      { path: "follows", element: withSuspense(<WorkFollowsPage />) },
-      { path: "notifications", element: withSuspense(<WorkNotificationsPage />) },
-      { path: ":workId/edit", element: withSuspense(<WorkEditPage />) },
-    ],
+    element: <LegacyWorksSearchRedirect />,
+  }, {
+    path: "works/discover",
+    element: <Navigate to="/" replace />,
+  }, {
+    path: "works/collection",
+    element: <Navigate to="/me?tab=booklists" replace />,
+  }, {
+    path: "works/me",
+    element: <Navigate to="/me?tab=preferences" replace />,
+  }, {
+    path: "works/follows",
+    element: <Navigate to="/me?tab=follows" replace />,
+  }, {
+    path: "works/notifications",
+    element: <Navigate to="/activity" replace />,
   }] : []),
   {
     index: true,

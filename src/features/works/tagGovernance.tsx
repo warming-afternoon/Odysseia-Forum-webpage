@@ -21,7 +21,7 @@ export function WorkTagGovernance({ workId, canManage }: { workId: string; canMa
   return <section className="my-6"><h3 className="mb-3 text-lg">标签</h3>
     <WorkStatus pending={snapshot.isPending} error={snapshot.error} />
     {snapshot.data && !snapshot.error && <><div className="flex flex-wrap gap-3">{snapshot.data.tags.map(tag => <div key={tag.id} className="rounded border p-3">
-      <Link className="underline" to={`/works?tag_id=${encodeURIComponent(tag.id)}`}>#{tag.name}</Link>
+      <Link className="underline" to={`/search?include_tag_ids=${encodeURIComponent(tag.id)}`}>#{tag.name}</Link>
       {tag.readonly ? <span className="ml-2 text-xs">来源标签</span> : <>
         {canManage && <button className="ml-3" aria-label={`移除标签 ${tag.name}`} disabled={mutation.isPending} onClick={() => mutation.mutate({ tagId: tag.id, remove: true })}>×</button>}
         {tag.binding_id && <div className="mt-2 flex gap-3 text-sm"><button aria-pressed={tag.my_vote === 1} disabled={mutation.isPending} onClick={() => mutation.mutate({ bindingId: tag.binding_id, vote: tag.my_vote === 1 ? 0 : 1 })}>赞同 {tag.upvotes || 0}</button><button aria-pressed={tag.my_vote === -1} disabled={mutation.isPending} onClick={() => mutation.mutate({ bindingId: tag.binding_id, vote: tag.my_vote === -1 ? 0 : -1 })}>反对 {tag.downvotes || 0}</button></div>}

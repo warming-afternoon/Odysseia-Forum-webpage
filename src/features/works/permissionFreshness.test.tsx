@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { WorksLayout } from './layout';
+import { WorkPageFrame } from './layout';
 import { useWorkMember } from './member';
 import { WorkThreads } from './threads';
 import { WorkAnnouncements } from './announcements';
@@ -20,14 +20,14 @@ async function fail(client:QueryClient,key:readonly unknown[]){await act(async()
 beforeEach(()=>{vi.restoreAllMocks();vi.spyOn(worksApi,'me').mockResolvedValue(member);});
 afterEach(cleanup);
 describe('交叉查询权限不依赖已被拒绝的旧快照',()=>{
- it('会员查询被拒绝后不暴露旧admin资格，且整个作品Outlet收起',async()=>{
+ it('会员查询被拒绝后不暴露旧admin资格',async()=>{
   let reject!:(reason:unknown)=>void;vi.mocked(worksApi.me).mockImplementation(()=>new Promise((_resolve,fail)=>{reject=fail;}));
   function Probe(){const me=useWorkMember();return <p>{me.data?.is_admin?'CACHED ADMIN':'NO ADMIN'}</p>;}
-  mount(<><Probe/><Routes><Route path="/booklists/1" element={<WorksLayout/>}><Route index element={<p>CACHED PRIVATE OUTLET</p>}/></Route></Routes></>,[[['works-v2','me'],member]]);
-  expect(screen.getByText('CACHED ADMIN')).toBeTruthy();expect(screen.getByText('CACHED PRIVATE OUTLET')).toBeTruthy();
+  mount(<><Probe/><WorkPageFrame><p>CACHED PRIVATE EDITOR</p></WorkPageFrame></>,[[['works-v2','me'],member]]);
+  expect(screen.getByText('CACHED ADMIN')).toBeTruthy();
   await waitFor(()=>expect(worksApi.me).toHaveBeenCalled());await act(async()=>reject(denied()));
   await waitFor(()=>expect(screen.queryByText('CACHED ADMIN')).toBeNull());
-  expect(screen.queryByText('CACHED PRIVATE OUTLET')).toBeNull();expect(screen.queryByRole('link',{name:'管理已隐藏作品'})).toBeNull();
+  expect(screen.queryByText('CACHED PRIVATE EDITOR')).toBeNull();
  });
  it('讨论列表被拒绝后关闭已展开的新建子帖表单',async()=>{
   const key=['works-v2','threads','1',true] as const;vi.spyOn(worksApi,'threads').mockRejectedValue(denied());
