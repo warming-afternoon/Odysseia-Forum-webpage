@@ -101,7 +101,7 @@ if (import.meta.env.DEV) {
 }
 
 export function App() {
-  const isAuthBootstrapPending = useAuthBootstrap(queryClient);
+  const authBootstrap = useAuthBootstrap(queryClient);
 
   useEffect(() => {
     bindThumbnailRepairQueryClient(queryClient);
@@ -134,11 +134,22 @@ export function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          {isAuthBootstrapPending ? (
+          {authBootstrap.pending ? (
             <div className="flex min-h-screen items-center justify-center bg-(--od-bg)">
               <div className="text-center">
                 <OmicronLoader className="mx-auto mb-4 h-12 w-12" />
                 <p className="text-sm text-(--od-text-secondary)">验证登录状态...</p>
+              </div>
+            </div>
+          ) : authBootstrap.verificationFailed ? (
+            <div className="flex min-h-screen items-center justify-center bg-(--od-bg)">
+              <div className="text-center">
+                <p className="mb-4 text-sm text-(--od-text-secondary)">
+                  暂时无法确认登录状态，请稍后重试。
+                </p>
+                <button type="button" onClick={authBootstrap.retry} className="text-(--od-text-primary) underline">
+                  重新验证
+                </button>
               </div>
             </div>
           ) : (
