@@ -38,6 +38,11 @@ export interface WorkInput {
   attachments?: WorkAttachment[];
   is_nsfw: boolean;
   is_abyss: boolean;
+  tag_ids?: string[];
+}
+export interface WorkTagPage {
+  items: { id: string; name: string; category_name?: string; aliases?: string[] }[];
+  has_more?: boolean;
 }
 export interface WorkQuery {
   q?: string;

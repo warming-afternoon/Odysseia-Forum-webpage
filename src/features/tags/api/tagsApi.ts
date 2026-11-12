@@ -1,53 +1,44 @@
-import { apiClient } from "@/shared/api/client";
+import { worksClient } from '@/features/works/api';
 
-/**
- * 标签在某个频道下的统计信息
- */
 export interface ChannelTagInfo {
+  platform: 'discord' | 'fluxer';
+  guild_id: string;
   channel_id: string;
-  channel_name?: string;
-  tag_id: string;
-  thread_count: number;
+  channel_name?: string | null;
+  work_count: number;
   is_virtual: boolean;
 }
 
-/**
- * 单个标签的聚合统计
- */
 export interface TagStatItem {
+  id: string;
   tag_name: string;
-  total_thread_count: number;
+  category?: number;
+  category_name?: string;
+  is_abyss?: boolean;
+  is_virtual: boolean;
+  total_work_count: number;
   channel_info: ChannelTagInfo[];
 }
 
-/**
- * /tags/stats 请求体
- */
 export interface TagStatsRequest {
-  guild_id?: number | null;
-  channel_ids?: Array<number | string> | null;
+  platform?: 'discord' | 'fluxer';
+  guild_id?: string | null;
+  channel_ids?: string[] | null;
   include_virtual?: boolean;
 }
 
-/**
- * /tags/stats 响应体
- */
 export interface TagStatsResponse {
-  total_threads: number;
+  total_works: number;
   items: TagStatItem[];
 }
 
 export const tagsApi = {
-  /**
-   * 聚合查询标签统计数据
-   * 一次请求替代之前 N+2 次 search 调用
-   */
-  getStats: async (params: TagStatsRequest = {}): Promise<TagStatsResponse> => {
-    const response = await apiClient.post<TagStatsResponse>("/tags/stats", {
-      guild_id: params.guild_id ?? null,
-      channel_ids: params.channel_ids ?? null,
+  /** 按作品统计标签，关联子卡与多来源绑定不重复计数。 */
+  getStats: async (params: TagStatsRequest = {}, signal?: AbortSignal): Promise<TagStatsResponse> => {
+    const response = await worksClient.post<TagStatsResponse>('/tags/stats', {
+      ...params,
       include_virtual: params.include_virtual ?? true,
-    });
+    }, { signal });
     return response.data;
   },
 };

@@ -21,6 +21,8 @@ export const searchKeys = {
         includeTagIds: params.includeTagIds,
         excludeTagIds: params.excludeTagIds,
         channel: params.channel,
+        platform: params.platform,
+        guildId: params.guildId,
         includeAuthors: params.includeAuthors,
         excludeAuthors: params.excludeAuthors,
         tagLogic: params.tagLogic,

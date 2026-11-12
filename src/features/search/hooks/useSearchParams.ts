@@ -31,6 +31,8 @@ export type SearchTargetType = "thread" | "booklist" | "tournament";
 export interface SearchParams {
   query: string;
   channel: string | null;
+  platform?: 'discord' | 'fluxer' | null;
+  guildId?: string | null;
   type: SearchTargetType;
   sortMethod: SortMethod;
   sortOrder: SortOrder;
@@ -128,6 +130,8 @@ export function parseParams(sp: URLSearchParams): SearchParams {
   return {
     query,
     channel: sp.get("channel") || rawTokenized.channels[0] || null,
+    platform: sp.get('platform') === 'fluxer' ? 'fluxer' : sp.get('platform') === 'discord' ? 'discord' : null,
+    guildId: /^[1-9][0-9]*$/.test(sp.get('guild_id') || '') ? sp.get('guild_id') : null,
     type,
     sortMethod,
     sortOrder,
@@ -152,6 +156,8 @@ export function serializeParams(
   const sp = new URLSearchParams();
   if (params.query) sp.set("q", normalizeQuery(params.query));
   if (params.channel) sp.set("channel", params.channel);
+  if (params.platform) sp.set('platform', params.platform);
+  if (params.guildId) sp.set('guild_id', params.guildId);
   if (params.type && params.type !== "thread") sp.set("type", params.type);
   if (params.sortMethod && params.sortMethod !== "last_active_desc") {
     sp.set("sort", params.sortMethod);
@@ -177,6 +183,8 @@ export function useSearchURLParams() {
         ((updates.includeTagIds !== undefined || updates.excludeTagIds !== undefined) ||
           (updates.query !== undefined && updates.query !== current.query) ||
           (updates.channel !== undefined && updates.channel !== current.channel) ||
+          (updates.platform !== undefined && updates.platform !== current.platform) ||
+          (updates.guildId !== undefined && updates.guildId !== current.guildId) ||
           (updates.type !== undefined && updates.type !== current.type) ||
           (updates.sortMethod !== undefined && updates.sortMethod !== current.sortMethod) ||
           (updates.sortOrder !== undefined && updates.sortOrder !== current.sortOrder) ||
@@ -186,6 +194,11 @@ export function useSearchURLParams() {
           (updates.reactionMin !== undefined && updates.reactionMin !== current.reactionMin) ||
           (updates.replyMin !== undefined && updates.replyMin !== current.replyMin));
       const nextUpdates = { ...updates };
+      // 旧频道选择入口不携带平台；更换频道时不要继承统计页的旧范围。
+      if (updates.channel !== undefined && updates.channel !== current.channel) {
+        if (updates.platform === undefined) nextUpdates.platform = null;
+        if (updates.guildId === undefined) nextUpdates.guildId = null;
+      }
       if (
         updates.query !== undefined &&
         updates.query !== current.query &&
@@ -219,6 +232,8 @@ export function useSearchURLParams() {
         updates.excludeTagIds !== undefined ||
         (updates.query !== undefined && updates.query !== current.query) ||
         (updates.channel !== undefined && updates.channel !== current.channel) ||
+        (updates.platform !== undefined && updates.platform !== current.platform) ||
+        (updates.guildId !== undefined && updates.guildId !== current.guildId) ||
         (updates.type !== undefined && updates.type !== current.type) ||
         (updates.sortMethod !== undefined && updates.sortMethod !== current.sortMethod) ||
         (updates.page !== undefined && updates.page !== current.page);
@@ -236,6 +251,8 @@ export function useSearchURLParams() {
     return !!(
       params.query ||
       params.channel ||
+      params.platform ||
+      params.guildId ||
       params.includeTags.length > 0 ||
       params.excludeTags.length > 0 ||
       (params.includeTagIds?.length ?? 0) > 0 ||

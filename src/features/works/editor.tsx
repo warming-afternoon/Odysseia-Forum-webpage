@@ -5,7 +5,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { worksApi } from './api';
 import { workKeys } from './layout';
 import { workError, WorkStatus } from './components';
-import type { Work, WorkInput } from './types';
+import type { Work, WorkInput, WorkTag } from './types';
+import { WorkTagPicker } from './tags';
 import { nativeMessagesApi, type NativeMessage } from './nativeApi';
 import { uploadWorkAttachments } from './attachmentUpload';
 import { WorkImageEditor, type WorkImageEntry } from './WorkImageEditor';
@@ -23,6 +24,7 @@ function WorkFields({ work, starter, save, pending }: { work?: Work; starter?: N
   const [nsfw, setNsfw] = useState(work?.is_nsfw || false);
   const [abyss, setAbyss] = useState(work?.is_abyss || false);
   const [error, setError] = useState('');
+  const [tags, setTags] = useState<WorkTag[]>([]);
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (entries.length > 10 || uploading || pending) return;
@@ -33,7 +35,7 @@ function WorkFields({ work, starter, save, pending }: { work?: Work; starter?: N
       const uploaded = await uploadWorkAttachments(target, files);
       let next = 0;
       const attachments = entries.map(entry => 'attachment' in entry ? { id: entry.attachment.id } : uploaded[next++]);
-      save({ title: title.trim(), ...(work && description === initialDescription ? {} : { description }), ...(work?.source_platform === 'discord' ? {} : { attachments }), is_nsfw: nsfw, is_abyss: abyss });
+      save({ title: title.trim(), ...(work && description === initialDescription ? {} : { description }), ...(work?.source_platform === 'discord' ? {} : { attachments }), is_nsfw: nsfw, is_abyss: abyss, ...(!work ? { tag_ids: tags.map(tag => tag.id) } : {}) });
     } catch (cause) { setError(workError(cause)); }
     finally { setUploading(false); }
   }
@@ -43,6 +45,14 @@ function WorkFields({ work, starter, save, pending }: { work?: Work; starter?: N
     {work?.source_platform === 'discord' && <p className="text-sm text-(--od-text-secondary)">Discord 来源的标题、正文和图片只从主讨论帖同步；本站仅可调整 NSFW 分类。</p>}
     {work?.source_platform !== 'discord' && <WorkImageEditor entries={entries} change={setEntries} disabled={pending || uploading} />}
 
+    {!work && <fieldset disabled={pending || uploading} className="rounded border border-(--od-border) p-4">
+      <legend className="px-1">作品标签</legend>
+      <p className="text-sm text-(--od-text-secondary)">从现有标签中选择，发布后立即生效。最多选择 12 个，可在作品中直接修改。</p>
+      <div className="mt-3 flex flex-wrap gap-2" aria-label="已选标签">
+        {tags.map(tag => <button key={tag.id} type="button" className="rounded-full border px-3 py-1 text-sm" aria-label={`取消选择标签 ${tag.name}`} onClick={() => setTags(current => current.filter(item => item.id !== tag.id))}>#{tag.name} ×</button>)}
+      </div>
+      <WorkTagPicker label="选择作品标签" pending={pending || uploading || tags.length >= 12} selectedIds={tags.map(tag => tag.id)} add={(_id, tag) => setTags(current => current.some(item => item.id === tag.id) || current.length >= 12 ? current : [...current, tag])} />
+    </fieldset>}
     <div className="flex gap-5"><label><input type="checkbox" checked={nsfw} onChange={event => setNsfw(event.target.checked)} /> NSFW</label><label><input type="checkbox" checked={abyss} disabled={work?.source_platform === 'discord'} onChange={event => setAbyss(event.target.checked)} /> 深渊</label></div>
     {work && <p className="text-sm text-(--od-text-secondary)">分类调整将在后台迁移频道，可在作品页查看进度。</p>}
     {error && <p role="alert">{error}</p>}
@@ -75,7 +85,7 @@ export function WorkCreatePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const mutation = useMutation({ mutationFn: worksApi.create, onSuccess: async result => {
-    await queryClient.invalidateQueries({ queryKey: workKeys.all });
+    await Promise.all([queryClient.invalidateQueries({ queryKey: workKeys.all }), queryClient.invalidateQueries({ queryKey: ['tags'] }), queryClient.invalidateQueries({ queryKey: ['search'] })]);
     navigate(`/works/${encodeURIComponent(result.work.id)}`);
   } });
   return <section className="mx-auto w-full max-w-6xl p-4 sm:p-6" aria-labelledby="publish-title"><h1 id="publish-title" className="mb-6 text-2xl font-semibold">发布作品</h1><WorkStatus pending={member.isPending} error={member.error} />{member.data && !member.error && (member.data.can_create_work && member.data.can_speak ? <WorkForm save={input => mutation.mutate(input)} pending={mutation.isPending} /> : <p>发布作品需要当前 Discord 正式成员身份及发言权限。</p>)}{mutation.error && <p role="alert">{workError(mutation.error)}</p>}</section>;

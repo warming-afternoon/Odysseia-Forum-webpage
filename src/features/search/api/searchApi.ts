@@ -43,7 +43,8 @@ export interface SearchUIRequest {
   reply_min?: number | null;
   limit?: number;
   offset?: number;
-  guild_id?: number;
+  guild_id?: number | string;
+  platform?: 'discord' | 'fluxer';
   search_by_collection?: boolean;
   author_name?: string;
   // 【权宜之计】排除已展示的帖子 ID 列表。
@@ -151,7 +152,7 @@ function buildKeywordString(text: string, includeAuthorNames: string[]) {
   return keywordParts.join(' ').trim() || null;
 }
 
-function buildSearchRequest(params: SearchUIRequest): ApiSearchParams {
+function buildSearchRequest(params: SearchUIRequest): ApiSearchParams & { platform?: 'discord' | 'fluxer' } {
   const tokenized = tokenizeSearchPayload(params.query || '');
 
   const channelIdsFromUrl = normalizeIdList(params.channel_ids);
@@ -175,7 +176,8 @@ function buildSearchRequest(params: SearchUIRequest): ApiSearchParams {
   const includeTagIds = dedupeStrings([...(params.include_tag_ids ?? []), ...tokenized.includeTagIds]);
   const excludeTagIds = dedupeStrings([...(params.exclude_tag_ids ?? []), ...tokenized.excludeTagIds]);
 
-  const requestBody: Partial<ApiSearchParams> = {
+  const requestBody: Partial<ApiSearchParams> & { platform?: 'discord' | 'fluxer' } = {
+    platform: params.platform,
     guild_id: params.guild_id,
     channel_ids: toApiIntIdList(channel_ids) || undefined,
     include_tags: includeTags.length > 0 ? includeTags : undefined,

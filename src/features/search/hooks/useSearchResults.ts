@@ -138,6 +138,8 @@ export function useSearchResults({
     excludeTags.length > 0 ||
     includeAuthors.length > 0 ||
     excludeAuthors.length > 0 ||
+    !!params.platform ||
+    !!params.guildId ||
     !!timeFrom ||
     !!timeTo ||
     reactionMin !== null ||
@@ -157,6 +159,8 @@ export function useSearchResults({
     params.excludeTagIds,
     query,
     selectedChannel,
+    params.platform,
+    params.guildId,
     includeTags,
     excludeTags,
     includeAuthors,
@@ -196,6 +200,8 @@ export function useSearchResults({
       return searchApi.search(
         {
           query: query || undefined,
+          platform: params.platform || undefined,
+          guild_id: params.guildId || undefined,
           channel_ids: selectedChannel ? [selectedChannel] : undefined,
           include_tags: includeTags.length > 0 ? includeTags : undefined,
           exclude_tags: excludeTags.length > 0 ? excludeTags : undefined,

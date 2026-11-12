@@ -20,6 +20,7 @@ import type {
   WorkBooklist,
   WorkBooklistDetail,
   WorkInput,
+  WorkTagPage,
   WorkMember,
   WorkQuery,
   WorkCardsQuery,
@@ -73,10 +74,10 @@ export const worksApi = {
         { params: { is_nsfw, is_abyss } },
       )
     ).data,
-  tags: async (q: string, signal?: AbortSignal) =>
+  tags: async (q: string, signal?: AbortSignal, offset = 0, limit = 100) =>
     (
-      await worksClient.get<{ items: { id: string; name: string }[] }>('/tags', {
-        params: { q },
+      await worksClient.get<WorkTagPage>('/tags', {
+        params: { q, offset, limit },
         signal,
       })
     ).data,
