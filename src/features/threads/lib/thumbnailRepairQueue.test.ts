@@ -47,4 +47,36 @@ describe('缩略图修复缓存更新', () => {
     });
     expect(queryClient.getQueryData(['auth'])).toBe(unrelatedCache);
   });
+
+  it('作品补图不会误改数字相同的Discord卡片', async () => {
+    const queryClient = new QueryClient();
+    const work = { id: '701', source_platform: 'fluxer', images: ['old.webp'] };
+    queryClient.setQueryData(['search', 'work-repair'], { results: [
+      { thread_id: '701', work, thumbnail_urls: ['old.webp'] },
+      { thread_id: '701', thumbnail_urls: ['discord.webp'] },
+    ] });
+    queryClient.setQueryData(['works-v2', 'detail', '701'], work);
+    bindThumbnailRepairQueryClient(queryClient);
+    vi.mocked(fetchImagesApi.refresh).mockResolvedValue({ results: [
+      { thread_id: 'work:701', thumbnail_urls: ['new.webp'], updated: true },
+    ] });
+    reportBrokenThreadThumbnail({ threadId: 'work:701' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(queryClient.getQueryData(['search', 'work-repair'])).toEqual({ results: [
+      { thread_id: '701', work: { ...work, images: ['new.webp'] }, thumbnail_urls: ['new.webp'] },
+      { thread_id: '701', thumbnail_urls: ['discord.webp'] },
+    ] });
+    expect(queryClient.getQueryData(['works-v2', 'detail', '701'])).toEqual({ ...work, images: ['new.webp'] });
+  });
+
+  it('单项失败和空结果也冷却，不立即反复补抓', async () => {
+    vi.mocked(fetchImagesApi.refresh).mockResolvedValue({ results: [
+      { thread_id: 'work:702', thumbnail_urls: [], updated: false, error: 'no_images' },
+    ] });
+    reportBrokenThreadThumbnail({ threadId: 'work:702' });
+    await vi.advanceTimersByTimeAsync(800);
+    reportBrokenThreadThumbnail({ threadId: 'work:702' });
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fetchImagesApi.refresh).toHaveBeenCalledTimes(1);
+  });
 });

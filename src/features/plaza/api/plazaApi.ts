@@ -1,9 +1,13 @@
+import { worksV2Enabled } from '@/shared/config/works';
+import { v2BooklistsApi } from '@/features/booklists/api/v2BooklistsApi';
 import type { Author } from "@/entities/thread/types";
 import type { Booklist } from "@/entities/booklist/types";
 import { bannerApi } from "@/features/banner/api/bannerApi";
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
 
 export interface PlazaBannerItem {
+  id?: string;
+  link?: string;
   thread_id: string;
   title: string;
   cover_image_url: string;
@@ -19,6 +23,8 @@ export const plazaApi = {
       channelIds.length > 0 ? channelIds : undefined,
     );
     return (items || []).map((item) => ({
+      id: item.id,
+      link: item.link,
       thread_id: String(item.thread_id ?? ""),
       title: String(item.title ?? ""),
       cover_image_url: String(item.cover_image_url ?? ""),
@@ -28,7 +34,7 @@ export const plazaApi = {
   },
 
   getFeaturedBooklists: async (): Promise<Booklist[]> => {
-    const response = await booklistsApi.listPublic({
+    const response = worksV2Enabled ? await v2BooklistsApi.list({ scope: "public", sortMethod: 3, sortOrder: "desc", pageIndex: 0, pageSize: 6, isTournament: false }) : await booklistsApi.listPublic({
       sortMethod: 3,
       sortOrder: "desc",
       pageIndex: 0,

@@ -1,5 +1,7 @@
 import { isAxiosError } from "axios";
 import { apiClient } from "@/shared/api/client";
+import { worksClient } from "@/features/works/api";
+import { worksV2Enabled } from "@/shared/config/works";
 import type { components } from "@/shared/types/openapi";
 
 type Schema = components["schemas"];
@@ -10,7 +12,10 @@ export type TargetTags = Schema["TargetTagsResponse"];
 export type CustomTagSnapshot = Schema["CustomTagSnapshotResponse-Output"];
 export type MergePreview = Schema["TagMergePreviewResponse"];
 export type TagTarget = { type: "thread" | "booklist"; id: string };
-const targetPath = (target: TagTarget) => `/tags/${target.type}/${encodeURIComponent(target.id)}`;
+const managementClient = worksV2Enabled ? worksClient : apiClient;
+const managementPath = worksV2Enabled ? "/tag-management" : "/tags";
+const targetClient = (target: TagTarget) => worksV2Enabled && target.type === "booklist" ? worksClient : apiClient;
+const targetPath = (target: TagTarget) => `${worksV2Enabled && target.type === "booklist" ? "/tag-management" : "/tags"}/${target.type}/${encodeURIComponent(target.id)}`;
 
 export function tagError(error: unknown): { code?: string; message: string } {
   if (isAxiosError(error)) {
@@ -24,35 +29,35 @@ export function tagError(error: unknown): { code?: string; message: string } {
 }
 
 export const customTagsApi = {
-  role: async () => (await apiClient.get<Schema["UserRole"]>("/meta/role")).data,
-  categories: async () => (await apiClient.get<Schema["TagCategoryResponse"][]>("/tags/categories")).data,
+  role: async () => (await managementClient.get<Schema["UserRole"]>(worksV2Enabled ? "/tag-management/role" : "/meta/role")).data,
+  categories: async () => (await managementClient.get<Schema["TagCategoryResponse"][]>(`${managementPath}/categories`)).data,
   pool: async (params: { q: string; category?: number; source?: "custom" | "discord"; selectable: boolean; include_deleted: boolean }, signal?: AbortSignal) =>
-    (await apiClient.get<TagPoolResponse>("/tags", { params, signal })).data,
-  relations: async () => (await apiClient.get<TagRelation[]>("/tags/relations")).data,
+    (await managementClient.get<TagPoolResponse>(managementPath, { params, signal })).data,
+  relations: async () => (await managementClient.get<TagRelation[]>(`${managementPath}/relations`)).data,
   mergePreview: async (id: string, target_tag_id: string) =>
-    (await apiClient.get<MergePreview>(`/tags/${id}/merge-preview`, { params: { target_tag_id } })).data,
+    (await managementClient.get<MergePreview>(`${managementPath}/${id}/merge-preview`, { params: { target_tag_id } })).data,
   merge: async (id: string, body: Schema["TagMergeRequest"]) =>
-    (await apiClient.post<Schema["TagResponse"]>(`/tags/${id}/merge`, body)).data,
-  create: async (body: Schema["TagCreateRequest"]) => (await apiClient.post<Schema["TagResponse"]>("/tags", body)).data,
-  update: async (id: string, body: Schema["TagUpdateRequest"]) => (await apiClient.patch<Schema["TagResponse"]>(`/tags/${id}`, body)).data,
-  aliases: async (id: string, aliases: string[]) => (await apiClient.put(`/tags/${id}/aliases`, { aliases })).data,
-  remove: async (id: string) => (await apiClient.delete(`/tags/${id}`)).data,
-  restore: async (id: string) => (await apiClient.post(`/tags/${id}/restore`)).data,
+    (await managementClient.post<Schema["TagResponse"]>(`${managementPath}/${id}/merge`, body)).data,
+  create: async (body: Schema["TagCreateRequest"]) => (await managementClient.post<Schema["TagResponse"]>(managementPath, body)).data,
+  update: async (id: string, body: Schema["TagUpdateRequest"]) => (await managementClient.patch<Schema["TagResponse"]>(`${managementPath}/${id}`, body)).data,
+  aliases: async (id: string, aliases: string[]) => (await managementClient.put(`${managementPath}/${id}/aliases`, { aliases })).data,
+  remove: async (id: string) => (await managementClient.delete(`${managementPath}/${id}`)).data,
+  restore: async (id: string) => (await managementClient.post(`${managementPath}/${id}/restore`)).data,
   addRelation: async (id: string, target_tag_id: string, kind: TagRelation["kind"]) =>
-    (await apiClient.post(`/tags/${id}/relations`, { target_tag_id, kind })).data,
+    (await managementClient.post(`${managementPath}/${id}/relations`, { target_tag_id, kind })).data,
   removeRelation: async (id: string, targetId: string, kind: TagRelation["kind"]) =>
-    (await apiClient.delete(`/tags/${id}/relations/${kind}/${targetId}`)).data,
-  target: async (target: TagTarget) => (await apiClient.get<TargetTags>(targetPath(target))).data,
+    (await managementClient.delete(`${managementPath}/${id}/relations/${kind}/${targetId}`)).data,
+  target: async (target: TagTarget) => (await targetClient(target).get<TargetTags>(targetPath(target))).data,
   replace: async (target: TagTarget, version: string, tag_ids: string[]) =>
-    (await apiClient.put<TargetTags>(targetPath(target), { version, tag_ids })).data,
+    (await targetClient(target).put<TargetTags>(targetPath(target), { version, tag_ids })).data,
   propose: async (target: TagTarget, tag_id: string) =>
-    (await apiClient.post<Schema["TagProposalResponse"]>(`${targetPath(target)}/proposals`, { tag_id })).data,
+    (await targetClient(target).post<Schema["TagProposalResponse"]>(`${targetPath(target)}/proposals`, { tag_id })).data,
   proposals: async (target: TagTarget, review_queue: boolean, offset: number) =>
-    (await apiClient.get<Schema["TagProposalResponse"][]>(`${targetPath(target)}/proposals`, { params: { review_queue, offset } })).data,
+    (await targetClient(target).get<Schema["TagProposalResponse"][]>(`${targetPath(target)}/proposals`, { params: { review_queue, offset } })).data,
   review: async (target: TagTarget, id: string, approve: boolean) =>
-    (await apiClient.put(`${targetPath(target)}/proposals/${id}`, { approve })).data,
+    (await targetClient(target).put(`${targetPath(target)}/proposals/${id}`, { approve })).data,
   vote: async (target: TagTarget, bindingId: string, vote: -1 | 0 | 1) =>
-    (await apiClient.put<TargetTags>(`${targetPath(target)}/votes/${bindingId}`, { vote })).data,
+    (await targetClient(target).put<TargetTags>(`${targetPath(target)}/votes/${bindingId}`, { vote })).data,
   audit: async (type: "tag" | TagTarget["type"], id: string, offset: number) =>
-    (await apiClient.get<Schema["TagAuditResponse-Output"][]>(`/tags/${type}/${id}/audit`, { params: { offset } })).data,
+    (await (worksV2Enabled && type !== "thread" ? worksClient : apiClient).get<Schema["TagAuditResponse-Output"][]>(`${worksV2Enabled && type !== "thread" ? "/tag-management" : "/tags"}/${type}/${id}/audit`, { params: { offset } })).data,
 };

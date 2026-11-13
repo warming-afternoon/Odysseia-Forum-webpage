@@ -49,7 +49,7 @@ export function useBooklistsList(params: {
       ownerId: params.ownerId,
     }),
     queryFn: async ({ signal }) => {
-      if (worksV2Enabled && !params.isTournament) {
+      if (worksV2Enabled) {
         return v2BooklistsApi.list({ ...params, scope: params.scope }, signal);
       }
       if (params.scope === "public") {
@@ -131,7 +131,7 @@ export function useMyTournamentsList() {
   return useQuery({
     queryKey: [...booklistKeys.mineLists(), "tournaments"],
     queryFn: ({ signal }) =>
-      booklistsApi.listMine({
+      worksV2Enabled ? v2BooklistsApi.list({ scope: "mine", pageIndex: 0, pageSize: 48, sortMethod: 5, isTournament: true }, signal) : booklistsApi.listMine({
         createByCurrentUser: true,
         pageIndex: 0,
         pageSize: 48,
@@ -266,7 +266,7 @@ export function usePublishBooklist(
 
   return useMutation({
     mutationFn: (payload: BooklistPublishRequest) =>
-      booklistsApi.publish(booklistId, payload),
+      worksV2Enabled ? v2BooklistsApi.publish(booklistId, payload) : booklistsApi.publish(booklistId, payload),
     onSuccess: () => {
       notifySuccess("讨论帖关联请求已提交");
       invalidateBooklists(booklistId);
@@ -281,7 +281,7 @@ export function useUnpublishBooklist(booklistId: number | string) {
   const invalidateBooklists = useInvalidateBooklists();
 
   return useMutation({
-    mutationFn: () => booklistsApi.unpublish(booklistId),
+    mutationFn: () => worksV2Enabled ? v2BooklistsApi.unpublish(booklistId) : booklistsApi.unpublish(booklistId),
     onSuccess: () => {
       notifySuccess("已解除讨论帖关联");
       invalidateBooklists(booklistId);

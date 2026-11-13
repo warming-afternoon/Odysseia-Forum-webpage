@@ -1,3 +1,4 @@
+import { worksV2Enabled } from '@/shared/config/works';
 import { useMemo, useState } from "react";
 import { useInfiniteScrollTrigger } from "@/shared/hooks/useInfiniteScrollTrigger";
 import { useListEntranceAnimation } from "@/shared/hooks/useListEntranceAnimation";
@@ -57,8 +58,8 @@ export function TournamentManagePage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<BooklistItem | null>(null);
 
-  const detailQuery = useBooklistDetail(normalizedBooklistId, false);
-  const itemsQuery = useBooklistItems(normalizedBooklistId, false);
+  const detailQuery = useBooklistDetail(normalizedBooklistId);
+  const itemsQuery = useBooklistItems(normalizedBooklistId);
   const loadMoreRef = useInfiniteScrollTrigger(itemsQuery);
   const animateIn = useListEntranceAnimation(
     detailQuery.isLoading || itemsQuery.isLoading,
@@ -73,15 +74,15 @@ export function TournamentManagePage() {
   );
 
   const updateMutation = useUpdateBooklist(Number(normalizedBooklistId), () =>
-    setShowEdit(false), false,
+    setShowEdit(false),
   );
-  const deleteMutation = useDeleteBooklist(() => navigate("/tournaments/mine"), false);
+  const deleteMutation = useDeleteBooklist(() => navigate("/tournaments/mine"));
   const addItemsMutation = useAddBooklistItems(normalizedBooklistId, () =>
-    setShowAdd(false), false,
+    setShowAdd(false),
   );
-  const removeItemMutation = useRemoveBooklistItems(normalizedBooklistId, false);
+  const removeItemMutation = useRemoveBooklistItems(normalizedBooklistId);
   const updateItemMutation = useUpdateBooklistItem(normalizedBooklistId, () =>
-    setEditingItem(null), false,
+    setEditingItem(null),
   );
 
   if (!normalizedBooklistId) {
@@ -233,7 +234,7 @@ export function TournamentManagePage() {
                     <button
                       type="button"
                       onClick={() =>
-                        removeItemMutation.mutate(String(item.thread_id))
+                        removeItemMutation.mutate(String(item.work?.id ?? item.thread_id))
                       }
                       className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-(--od-error) transition-colors hover:text-(--od-error)"
                     >
@@ -290,7 +291,8 @@ export function TournamentManagePage() {
       <AddThreadsToBooklistModal
         isOpen={showAdd}
         submitting={addItemsMutation.isPending}
-        title="添加参赛帖子"
+        workMode={worksV2Enabled}
+        title={worksV2Enabled ? "添加参赛作品" : "添加参赛帖子"}
         submitLabel="添加到赛事"
         commentLabel="统一参赛说明（可选）"
         enableTournamentFields
@@ -309,7 +311,7 @@ export function TournamentManagePage() {
         onSubmit={(payload) => {
           if (!editingItem) return;
           updateItemMutation.mutate({
-            threadId: String(editingItem.thread_id),
+            threadId: String(editingItem.work?.id ?? editingItem.thread_id),
             payload,
           });
         }}

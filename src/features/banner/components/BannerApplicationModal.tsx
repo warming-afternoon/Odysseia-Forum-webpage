@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { worksV2Enabled } from '@/shared/config/works';
 import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +15,8 @@ import { useChannels } from '@/shared/hooks/useChannels';
 import type { Thread } from '@/entities/thread/types';
 
 const bannerSchema = z.object({
-    thread_link: z.string().trim().min(17, '请输入帖子 ID 或 Discord 帖子链接').max(150, '帖子链接过长'),
+    thread_link: z.string().trim().min(1, '请输入作品 ID 或链接').max(250, '链接过长'),
+    target_kind: z.enum(['work', 'discord']),
     cover_image_url: z.string().trim().refine(
         (value) => value === '' || z.string().url().safeParse(value).success,
         '请输入有效的图片链接',
@@ -26,14 +29,20 @@ type BannerFormValues = z.infer<typeof bannerSchema>;
 interface BannerApplicationModalProps {
     isOpen: boolean;
     onClose: () => void;
-    initialThread?: Pick<Thread, 'thread_id' | 'title'>;
+    initialThread?: Pick<Thread, 'thread_id' | 'title' | 'work'>;
 }
 
 export function BannerApplicationModal({ isOpen, onClose, initialThread }: BannerApplicationModalProps) {
     const { user } = useAuth();
-    const channelsQuery = useChannels();
+    const channelsQuery = useChannels(isOpen && !worksV2Enabled);
+    const scopesQuery = useQuery({
+        queryKey: ['banner', 'scopes', user?.id],
+        queryFn: ({ signal }) => bannerApi.getScopes(signal),
+        enabled: isOpen && worksV2Enabled && Boolean(user),
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const submissionVersion = useRef(0);
 
     const {
         register,
@@ -43,13 +52,15 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
     } = useForm<BannerFormValues>({
         resolver: zodResolver(bannerSchema),
         defaultValues: {
-            thread_link: initialThread?.thread_id ?? '',
+            thread_link: initialThread?.work?.id ?? initialThread?.thread_id ?? '',
+            target_kind: initialThread && !initialThread.work ? 'discord' : 'work',
             cover_image_url: '',
             target_scope: 'global',
         },
     });
 
     const onSubmit = async (data: BannerFormValues) => {
+        if (isSubmitting) return;
         if (!user) {
             showMascotToast({
                 id: 'banner-login-required',
@@ -62,15 +73,19 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
         }
 
         setIsSubmitting(true);
+        const version = submissionVersion.current;
         try {
             const result = await bannerApi.apply({
                 ...data,
                 cover_image_url: data.cover_image_url || undefined,
             });
+            if (version !== submissionVersion.current) return;
             if (result.success) {
                 notifySuccess('Banner 申请已提交，请等待审核');
-                reset();
-                onClose();
+                if (dialogRef.current?.open) {
+                    reset();
+                    onClose();
+                }
             } else {
                 showMascotToast({
                     id: 'banner-apply-failed',
@@ -81,6 +96,7 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                 });
             }
         } catch (error) {
+            if (version !== submissionVersion.current) return;
             showMascotToast({
                 id: 'banner-apply-error',
                 emotion: 'error',
@@ -89,22 +105,27 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                 message: extractErrorMessage(error, '申请提交失败，请稍后重试'),
             });
         } finally {
-            setIsSubmitting(false);
+            if (version === submissionVersion.current) setIsSubmitting(false);
         }
     };
 
     useEffect(() => {
+        submissionVersion.current += 1;
+        setIsSubmitting(false);
         if (!isOpen) return;
         reset({
-            thread_link: initialThread?.thread_id ?? '',
+            thread_link: initialThread?.work?.id ?? initialThread?.thread_id ?? '',
+            target_kind: initialThread && !initialThread.work ? 'discord' : 'work',
             cover_image_url: '',
             target_scope: 'global',
         });
         const dialog = dialogRef.current;
-        if (!dialog || dialog.open) return;
-        if (typeof dialog.showModal === 'function') dialog.showModal();
-        else dialog.setAttribute('open', '');
-    }, [initialThread?.thread_id, isOpen, reset]);
+        if (dialog && !dialog.open) {
+            if (typeof dialog.showModal === 'function') dialog.showModal();
+            else dialog.setAttribute('open', '');
+        }
+        return () => { submissionVersion.current += 1; };
+    }, [initialThread?.thread_id, initialThread?.work?.id, isOpen, reset]);
 
     if (!isOpen) return null;
 
@@ -134,6 +155,7 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                     <button
                         type="button"
                         onClick={onClose}
+                        disabled={isSubmitting}
                         className="rounded-full p-1 text-(--od-text-tertiary) hover:bg-(--od-bg-tertiary) hover:text-(--od-text-primary) transition-colors"
                         aria-label="关闭 Banner 申请"
                     >
@@ -159,6 +181,15 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        {worksV2Enabled && !initialThread && (
+                            <div className="space-y-2">
+                                <label htmlFor="banner-target-kind" className="text-sm font-medium">申请目标</label>
+                                <select id="banner-target-kind" {...register('target_kind')} className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2">
+                                    <option value="work">作品 ID / 本站作品链接</option>
+                                    <option value="discord">Discord 帖子 / 赛事频道</option>
+                                </select>
+                            </div>
+                        )}
                         {/* Thread ID */}
                         {initialThread ? (
                             <div className="space-y-2">
@@ -183,18 +214,18 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                             <div className="space-y-2">
                                 <label htmlFor="banner-thread-link" className="flex items-center gap-2 text-sm font-medium text-(--od-text-secondary)">
                                     <Hash className="h-4 w-4" />
-                                    帖子 ID 或链接 <span className="text-(--od-error)">*</span>
+                                    作品 / 频道 ID 或链接 <span className="text-(--od-error)">*</span>
                                 </label>
                                 <input
                                     id="banner-thread-link"
                                     {...register('thread_link')}
-                                    placeholder="纯数字 ID 或 Discord 帖子链接"
+                                    placeholder={worksV2Enabled ? "按目标类型填写 ID 或链接" : "帖子 ID 或 Discord 链接"}
                                     className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) placeholder:text-(--od-text-tertiary) focus:border-(--od-accent) focus:outline-hidden focus:ring-1 focus:ring-(--od-accent)"
                                 />
                                 {errors.thread_link && (
                                     <p className="text-xs text-(--od-error)">{errors.thread_link.message}</p>
                                 )}
-                                <p className="text-xs text-(--od-text-tertiary)">只能为自己的帖子申请 Banner</p>
+                                <p className="text-xs text-(--od-text-tertiary)">作品只能由作者申请；频道赛事沿用原有申请规则</p>
                             </div>
                         )}
 
@@ -216,6 +247,7 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                             <p className="text-xs text-(--od-text-tertiary)">留空时由后端尝试使用当前作品首图；没有可用图片时会拒绝申请。</p>
                         </div>
 
+                        {worksV2Enabled && scopesQuery.isError && <p role="alert" className="text-sm text-(--od-error)">展示范围加载失败，请关闭后重试。</p>}
                         {/* Target Scope */}
                         <div className="space-y-2">
                             <label htmlFor="banner-target-scope" className="flex items-center gap-2 text-sm font-medium text-(--od-text-secondary)">
@@ -225,23 +257,27 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                             <select
                                 id="banner-target-scope"
                                 {...register('target_scope')}
-                                disabled={channelsQuery.isLoading}
+                                disabled={worksV2Enabled ? scopesQuery.isLoading : channelsQuery.isLoading}
                                 className="w-full rounded-lg border border-(--od-border) bg-(--od-bg-secondary) px-3 py-2 text-sm text-(--od-text-primary) focus:border-(--od-accent) focus:outline-hidden focus:ring-1 focus:ring-(--od-accent)"
                             >
-                                <option value="global">全频道</option>
-                                {channelsQuery.data?.source === 'api' && channelsQuery.data.channels.map((channel) => (
-                                    <option key={channel.id} value={channel.id}>{channel.name}</option>
-                                ))}
+                                {worksV2Enabled ? (scopesQuery.data || []).map(scope => (
+                                    <option key={scope.id} value={scope.id}>{scope.name}</option>
+                                )) : <>
+                                    <option value="global">全频道</option>
+                                    {channelsQuery.data?.source === 'api' && channelsQuery.data.channels.map(channel => (
+                                        <option key={channel.id} value={channel.id}>{channel.name}</option>
+                                    ))}
+                                </>}
                             </select>
                             {errors.target_scope && (
                                 <p className="text-xs text-(--od-error)">{errors.target_scope.message}</p>
                             )}
                             <p className="text-xs text-(--od-text-tertiary)">
-                                {channelsQuery.isLoading
-                                    ? '正在读取可申请频道…'
-                                    : channelsQuery.data?.source === 'api'
-                                        ? '全频道最多3个，单频道最多5个'
-                                        : '频道列表读取失败，目前只能申请全频道展示'}
+                                {worksV2Enabled
+                                    ? (scopesQuery.isLoading ? '正在读取可申请范围…' : '全频道最多3个，单频道最多8个')
+                                    : channelsQuery.isLoading ? '正在读取可申请频道…'
+                                        : channelsQuery.data?.source === 'api' ? '全频道最多3个，单频道最多8个'
+                                            : '频道列表读取失败，目前只能申请全频道展示'}
                             </p>
                         </div>
 
@@ -250,13 +286,14 @@ export function BannerApplicationModal({ isOpen, onClose, initialThread }: Banne
                             <button
                                 type="button"
                                 onClick={onClose}
+                        disabled={isSubmitting}
                                 className="rounded-lg px-4 py-2 text-sm font-medium text-(--od-text-secondary) hover:bg-(--od-bg-secondary) hover:text-(--od-text-primary) transition-colors"
                             >
                                 取消
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || (worksV2Enabled && (scopesQuery.isLoading || scopesQuery.isError))}
                                 className="flex items-center gap-2 rounded-lg bg-(--od-accent) px-4 py-2 text-sm font-medium text-white hover:bg-(--od-accent-hover) disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 {isSubmitting ? (

@@ -9,7 +9,7 @@ import type { WorkCardsQuery } from './types';
 
 export const cardSortOptions = [
   ['last_active', '最近活跃'], ['created_at', '最新发布'], ['reply_count', '回复数'],
-  ['reaction_count', '反应数'], ['comprehensive', '相关度'], ['reddit_hot', '热度'], ['collection_count', '收藏数'],
+  ['collection_count', '收藏数'],
 ] as const;
 export function parseCardParams(params: URLSearchParams): WorkCardsQuery {
   const raw = Number(params.get('offset') || 0);

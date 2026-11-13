@@ -240,7 +240,7 @@ export function BooklistDetailPage() {
                   <p className="mt-1 whitespace-pre-line text-sm text-(--od-text-secondary)">
                     {booklist.description || "暂无简介"}
                   </p>
-                  {!worksV2Enabled && customTagsEnabled && <div className="mt-3">
+                  {customTagsEnabled && <div className="mt-3">
                     <TargetTagSection key={String(booklist.id)} target={{ type: "booklist", id: String(booklist.id) }} ownerId={booklist.owner_id}
                       targetLabel={booklist.is_tournament ? "赛事" : "书单"}
                       onSearch={(tag) => navigate(`/search?${new URLSearchParams({ q: customTagSearchQuery(tag), type: booklist.is_tournament ? "tournament" : "booklist" })}`)} />
@@ -298,7 +298,7 @@ export function BooklistDetailPage() {
               <div className="flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:items-end">
                 {isOwner && (
                   <div className="order-1 flex w-full flex-wrap items-center justify-start gap-1 lg:w-auto lg:justify-end">
-                    {!worksV2Enabled && publishStatus !== 2 ? (
+                    {publishStatus !== 2 ? (
                       <button
                         type="button"
                         onClick={() => openPublishModal()}
@@ -358,7 +358,7 @@ export function BooklistDetailPage() {
                               role="menu"
                               className="od-floating-panel-solid absolute right-0 top-11 z-30 w-44 overflow-hidden rounded-xl border border-(--od-border) p-1.5 shadow-xl"
                             >
-                              {!worksV2Enabled && publishStatus === 2 && (
+                              {publishStatus === 2 && (
                                 <button
                                   type="button"
                                   role="menuitem"
@@ -370,7 +370,7 @@ export function BooklistDetailPage() {
                                 </button>
                               )}
                               <div className="my-1 border-t border-(--od-border)" />
-                              {!worksV2Enabled && canUnpublish && (
+                              {canUnpublish && (
                                 <button
                                   type="button"
                                   role="menuitem"

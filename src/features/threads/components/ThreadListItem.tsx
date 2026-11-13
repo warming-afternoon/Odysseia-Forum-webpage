@@ -91,8 +91,8 @@ function ThreadListItemImpl({
       : initialThumbnailUrls;
 
   useEffect(() => {
-    if (imageMode === "off" || thread.work) return;
-    return subscribeThreadThumbnailRepair(thread.thread_id, (urls) => {
+    if (imageMode === "off") return;
+    return subscribeThreadThumbnailRepair(thread.work ? `work:${thread.work.id}` : thread.thread_id, (urls) => {
       setRepairedThumbnailState({ threadId: thread.thread_id, urls });
     });
   }, [imageMode, thread.thread_id, thread.work]);
@@ -135,7 +135,7 @@ function ThreadListItemImpl({
                     src={thumbnails[0]}
                     alt={`${thread.title} 缩略图 1`}
                     className="h-full w-full object-cover"
-                    threadId={thread.work ? undefined : thread.thread_id}
+                    threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                     channelId={thread.channel_id}
                     imageIndex={0}
                     subscribeToRecovery={false}
@@ -151,7 +151,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.work ? undefined : thread.thread_id}
+                      threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -163,7 +163,7 @@ function ThreadListItemImpl({
                         src={thumbnails[1]}
                         alt={`${thread.title} 缩略图 2`}
                         className="h-full w-full object-cover"
-                        threadId={thread.work ? undefined : thread.thread_id}
+                        threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                         channelId={thread.channel_id}
                         index={index}
                         imageIndex={1}
@@ -181,7 +181,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.work ? undefined : thread.thread_id}
+                      threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -194,7 +194,7 @@ function ThreadListItemImpl({
                           src={thumbnails[1]}
                           alt={`${thread.title} 缩略图 2`}
                           className="h-full w-full object-cover"
-                          threadId={thread.work ? undefined : thread.thread_id}
+                          threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                           channelId={thread.channel_id}
                           index={index}
                           imageIndex={1}
@@ -206,7 +206,7 @@ function ThreadListItemImpl({
                           src={thumbnails[2]}
                           alt={`${thread.title} 缩略图 3`}
                           className="h-full w-full object-cover"
-                          threadId={thread.work ? undefined : thread.thread_id}
+                          threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                           channelId={thread.channel_id}
                           imageIndex={2}
                           subscribeToRecovery={false}
@@ -225,7 +225,7 @@ function ThreadListItemImpl({
                       src={thumbnails[0]}
                       alt={`${thread.title} 缩略图 1`}
                       className="h-full w-full object-cover"
-                      threadId={thread.work ? undefined : thread.thread_id}
+                      threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                       channelId={thread.channel_id}
                       imageIndex={0}
                       subscribeToRecovery={false}
@@ -241,7 +241,7 @@ function ThreadListItemImpl({
                           src={src}
                           alt={`${thread.title} 缩略图 ${idx + 2}`}
                           className="h-full w-full object-cover"
-                          threadId={thread.work ? undefined : thread.thread_id}
+                          threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                           channelId={thread.channel_id}
                           index={index}
                           imageIndex={idx + 1}
@@ -338,7 +338,7 @@ function ThreadListItemImpl({
                 </ContextMenuButton>
                 <ThreadActions
                   workId={thread.work?.id}
-                  threadId={thread.work ? undefined : thread.thread_id}
+                  threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                   channelId={thread.channel_id}
                   guildId={thread.guild_id}
                   size="md"

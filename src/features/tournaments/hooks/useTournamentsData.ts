@@ -1,3 +1,5 @@
+import { worksV2Enabled } from "@/shared/config/works";
+import { v2BooklistsApi } from "@/features/booklists/api/v2BooklistsApi";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { booklistsApi } from "@/features/booklists/api/booklistsApi";
@@ -33,7 +35,7 @@ export function useTournamentsList(params: {
   return useQuery({
     queryKey: booklistKeys.list(listParams),
     queryFn: ({ signal }) =>
-      booklistsApi.listPublic({
+      worksV2Enabled ? v2BooklistsApi.list(listParams, signal) : booklistsApi.listPublic({
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         sortMethod: params.sortMethod,
@@ -50,8 +52,8 @@ export function useTournamentDetail(booklistId: string | number) {
   const enabled = /^\d+$/.test(String(booklistId));
 
   return useQuery({
-    queryKey: booklistKeys.detail(booklistId),
-    queryFn: ({ signal }) => booklistsApi.getDetail(booklistId, signal),
+    queryKey: [...booklistKeys.detail(booklistId), worksV2Enabled ? "v2" : "v1"],
+    queryFn: ({ signal }) => worksV2Enabled ? v2BooklistsApi.detail(booklistId, signal) : booklistsApi.getDetail(booklistId, signal),
     enabled,
     staleTime: 60 * 1000,
   });
@@ -61,9 +63,9 @@ export function useTournamentItems(booklistId: string | number) {
   const enabled = /^\d+$/.test(String(booklistId));
 
   return useInfiniteQuery({
-    queryKey: booklistKeys.items(booklistId),
+    queryKey: [...booklistKeys.items(booklistId), worksV2Enabled ? "v2" : "v1"],
     queryFn: ({ pageParam, signal }) =>
-      booklistsApi.listItems(booklistId, {
+      worksV2Enabled ? v2BooklistsApi.items(booklistId, pageParam, signal) : booklistsApi.listItems(booklistId, {
         limit: TOURNAMENT_ITEMS_PAGE_SIZE,
         offset: pageParam as number,
       }, signal),

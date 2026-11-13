@@ -16,6 +16,7 @@ const FAILURE_COOLDOWN_MS = 30 * 1000;
 let boundQueryClient: QueryClient | null = null;
 let flushTimer: number | null = null;
 const pending = new Map<string, FetchImageItem>();
+const inFlight = new Set<string>();
 const repaired = new Map<string, string[]>();
 const failureCooldown = new Map<string, number>();
 const listeners = new Map<string, Set<ThumbnailListener>>();
@@ -28,6 +29,8 @@ const THREAD_CACHE_ROOTS = new Set([
   'plaza',
   'search',
   'search-discovery',
+  'works',
+  'works-v2',
 ]);
 
 function toThreadId(value: string | number): string {
@@ -59,8 +62,16 @@ function patchThreadThumbnailsInData(data: unknown, threadId: string, urls: stri
   let changed = false;
   const nextRecord: Record<string, unknown> = { ...record };
 
-  if (String(record.thread_id ?? '') === threadId) {
+  const workId = threadId.startsWith('work:') ? threadId.slice(5) : null;
+  const work = record.work as Record<string, unknown> | undefined;
+  if ((workId && work && String(work.id) === workId) ||
+      (!workId && !work && String(record.thread_id ?? '') === threadId)) {
     nextRecord.thumbnail_urls = urls;
+    changed = true;
+  }
+
+  if (workId && String(record.id) === workId && typeof record.source_platform === 'string' && Array.isArray(record.images)) {
+    nextRecord.images = urls;
     changed = true;
   }
 
@@ -108,13 +119,15 @@ async function flushQueue() {
   const items = Array.from(pending.values()).slice(0, MAX_BATCH_SIZE);
   for (const item of items) {
     pending.delete(String(item.thread_id));
+    inFlight.add(String(item.thread_id));
+    failureCooldown.set(String(item.thread_id), Date.now() + FAILURE_COOLDOWN_MS);
   }
 
   try {
     const response = await fetchImagesApi.refresh(items);
     for (const result of response.results || []) {
       const threadId = toThreadId(result.thread_id);
-      if (!result.thumbnail_urls || result.thumbnail_urls.length === 0) continue;
+      if (!items.some((item) => item.thread_id === threadId) || result.error || !result.updated || !result.thumbnail_urls?.length) continue;
       repaired.set(threadId, result.thumbnail_urls);
       patchQueryCaches(threadId, result.thumbnail_urls);
       notify(threadId, result.thumbnail_urls);
@@ -124,6 +137,11 @@ async function flushQueue() {
     for (const item of items) {
       failureCooldown.set(String(item.thread_id), cooldownUntil);
     }
+  }
+
+  for (const item of items) {
+    inFlight.delete(item.thread_id);
+    failureCooldown.set(item.thread_id, Date.now() + FAILURE_COOLDOWN_MS);
   }
 
   if (pending.size > 0) {
@@ -144,12 +162,12 @@ export function bindThumbnailRepairQueryClient(queryClient: QueryClient) {
 
 export function reportBrokenThreadThumbnail(payload: BrokenThumbnailPayload) {
   const threadId = toThreadId(payload.threadId);
-  if (!threadId || !/^\d+$/.test(threadId)) return;
+  if (!threadId || !/^(?:work:)?[1-9]\d{0,18}$/.test(threadId)) return;
 
   const cooldownUntil = failureCooldown.get(threadId) || 0;
   if (cooldownUntil > Date.now()) return;
 
-  if (pending.has(threadId)) return;
+  if (pending.has(threadId) || inFlight.has(threadId)) return;
 
   pending.set(threadId, {
     thread_id: threadId,

@@ -211,13 +211,13 @@ export function PlazaPage() {
           <BannerCarousel
             fullWidth={true}
             banners={bannersQuery.data.map((banner) => ({
-              id: banner.thread_id,
+              id: banner.id || banner.thread_id,
               image: banner.cover_image_url || '',
               title: banner.title,
               description: banner.author
                 ? `作者：${banner.author.display_name || banner.author.global_name || banner.author.name}`
                 : "点击可以直接探索原帖",
-              link: buildDiscordWebThreadUrl({
+              link: banner.link || buildDiscordWebThreadUrl({
                 guildId: banner.guild_id || GUILD_ID,
                 channelId: banner.channel_id,
                 threadId: banner.thread_id,

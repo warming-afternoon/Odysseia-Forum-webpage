@@ -139,19 +139,3 @@ export function WorkPagination({
     </div>
   );
 }
-
-export function WorkReactions({ reactions }: { reactions: Work['reactions'] }) {
-  return (
-    <div aria-label="作品反应" className="my-4 flex flex-wrap gap-3">
-      {reactions.map((reaction) => {
-        const emoji = typeof reaction.emoji === 'string' ? reaction.emoji : reaction.emoji.name;
-        const key = typeof reaction.emoji === 'string' ? emoji : reaction.emoji.id || emoji;
-        return (
-          <span key={key} className="rounded-full border px-3 py-1">
-            {emoji} {reaction.count}
-          </span>
-        );
-      })}
-    </div>
-  );
-}

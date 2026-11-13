@@ -130,8 +130,8 @@ function ThreadCardImpl({
   }, [initialThumbnail, thread.thread_id]);
 
   useEffect(() => {
-    if (imageMode === "off" || thread.work) return;
-    return subscribeThreadThumbnailRepair(thread.thread_id, (urls) => {
+    if (imageMode === "off") return;
+    return subscribeThreadThumbnailRepair(thread.work ? `work:${thread.work.id}` : thread.thread_id, (urls) => {
       if (urls.length > 0) setThumbnailSrc(urls[0]);
     });
   }, [thread.thread_id, imageMode, thread.work]);
@@ -228,7 +228,7 @@ function ThreadCardImpl({
                   src={thumbnailSrc}
                   alt={thread.title}
                   className="h-full w-full transition-transform duration-500 group-hover:scale-[1.015]"
-                  threadId={thread.work ? undefined : thread.thread_id}
+                  threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                   channelId={thread.channel_id}
                   index={index}
                   subscribeToRecovery={false}
@@ -257,7 +257,7 @@ function ThreadCardImpl({
               </ContextMenuButton>
               <ThreadActions
                   workId={thread.work?.id}
-                threadId={thread.work ? undefined : thread.thread_id}
+                threadId={thread.work ? `work:${thread.work.id}` : thread.thread_id}
                 channelId={thread.channel_id}
                 guildId={thread.guild_id}
                 variant="glass"

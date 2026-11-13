@@ -33,10 +33,10 @@ describe('booklist V2 page adapter', () => {
     await v2BooklistsApi.removeItem(1, work.id);
     expect(worksClient.delete).toHaveBeenCalledWith(`/booklists/1/works/${work.id}`);
   });
-  it('sends only existing item fields, never tournament fields to V2', async () => {
+  it('preserves tournament participation time in V2 updates', async () => {
     vi.mocked(worksClient.patch).mockResolvedValue({ data: {} });
     await v2BooklistsApi.updateItem(1, work.id, { comment: '', display_order: 0, tournament_participated_at: '2026-11-05' });
-    expect(worksClient.patch).toHaveBeenCalledWith(`/booklists/1/works/${work.id}`, { comment: '', display_order: 0 });
+    expect(worksClient.patch).toHaveBeenCalledWith(`/booklists/1/works/${work.id}`, { comment: '', display_order: 0, tournament_participated_at: '2026-11-05' });
   });
 });
 it('collects and uncollects canonical lists without a legacy request', async () => {

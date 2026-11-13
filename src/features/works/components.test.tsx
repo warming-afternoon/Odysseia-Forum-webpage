@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PreferencePreviewContext } from '@/features/preferences/lib/preferenceDisplay';
-import { WorkCard, WorkReactions } from './components';
+import { WorkCard } from './components';
 import { discordThreadUrl } from './threads';
 import type { Work } from './types';
 
@@ -26,14 +26,6 @@ describe('work presentation', () => {
     expect(discordThreadUrl({ ...ref, guild_id: '../bad' })).toBeNull();
   });
 });
-
-it('renders native emoji objects and legacy Unicode aggregates without treating an object as a React child', () => {
-  render(<WorkReactions reactions={[{ emoji: { id: null, name: '👍', animated: false }, count: 2 }, { emoji: { id: '9007199254740993123', name: 'party', animated: true }, count: 3 }, { emoji: '❤️', count: 1 }]} />);
-  expect(screen.getByText('👍 2')).toBeInTheDocument();
-  expect(screen.getByText('party 3')).toBeInTheDocument();
-  expect(screen.getByText('❤️ 1')).toBeInTheDocument();
-});
-
 
 it('honors none/full saved preview modes without changing work identity', () => {
   const { rerender } = render(<MemoryRouter><PreferencePreviewContext.Provider value="none"><WorkCard work={work} /></PreferencePreviewContext.Provider></MemoryRouter>);

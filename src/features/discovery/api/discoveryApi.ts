@@ -47,7 +47,7 @@ export const discoveryApi = {
     } = {},
   ): Promise<Thread[]> => {
     const channelIds = normalizeChannelIds(params.channel_ids);
-    const response = await apiClient.get<Thread[]>(`/discovery/rails/${key}`, {
+    const response = await (worksV2Enabled ? worksClient : apiClient).get<Thread[] | Work[]>(`/discovery/rails/${key}`, {
       params: {
         limit: params.limit ?? 12,
         days: params.days ?? 30,
@@ -57,7 +57,7 @@ export const discoveryApi = {
       },
       paramsSerializer: { indexes: null },
     });
-    return dedupeThreads(response.data || []);
+    return dedupeThreads(worksV2Enabled ? (response.data as Work[] || []).map(workToThread) : (response.data as Thread[] || []));
   },
 
   getRails: async (
@@ -69,7 +69,7 @@ export const discoveryApi = {
     } = {},
   ): Promise<DiscoveryRailsResponse> => {
     const channelIds = normalizeChannelIds(params.channel_ids);
-    const response = await apiClient.get<DiscoveryRailsResponse>(
+    const response = await (worksV2Enabled ? worksClient : apiClient).get<DiscoveryRailsResponse | Record<DiscoveryRailKey, Work[]>>(
       "/discovery/rails",
       {
         params: {
@@ -81,7 +81,14 @@ export const discoveryApi = {
         paramsSerializer: { indexes: null },
       },
     );
-    return response.data;
+    if (!worksV2Enabled) return response.data as DiscoveryRailsResponse;
+    const data = response.data as Record<DiscoveryRailKey, Work[]>;
+    return {
+      latest: (data.latest || []).map(workToThread),
+      reaction_surge: (data.reaction_surge || []).map(workToThread),
+      discussion_surge: (data.discussion_surge || []).map(workToThread),
+      collection_surge: (data.collection_surge || []).map(workToThread),
+    };
   },
 
   getRandomThreads: async (

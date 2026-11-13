@@ -83,11 +83,11 @@ function WorkThreadsContent({ workId, authorId, cards, onPageChange }: WorkThrea
       const externalUrl = discordThreadUrl(thread);
       return <article key={thread.id} className="my-4 rounded border p-4">
         <div className="mb-2 flex flex-wrap items-center gap-3"><h4 className="font-semibold">{thread.role === 'main' ? '主帖' : '子卡贴'}：{thread.title}</h4>{thread.initializing && <span role="status">正在同步权限，暂未开放</span>}{thread.locked && <span>已锁定</span>}{thread.archived && <span>已归档</span>}{thread.deleted_at && <span>已删除</span>}</div>
-        {cards && <><p className="line-clamp-3 whitespace-pre-wrap text-sm text-(--od-text-secondary)">{thread.body}</p><p className="my-2 text-xs text-(--od-text-secondary)">{thread.reply_count || 0} 回复 · {thread.reaction_count || 0} 反应 · {thread.collection_count || 0} 收藏</p></>}
+        {cards && <><p className="line-clamp-3 whitespace-pre-wrap text-sm text-(--od-text-secondary)">{thread.body}</p><p className="my-2 text-xs text-(--od-text-secondary)">{thread.reply_count || 0} 回复 · {thread.collection_count || 0} 收藏</p></>}
         {externalUrl ? <a className="underline" href={externalUrl} target="_blank" rel="noreferrer">在 Discord 查看 ↗</a> : editing === thread.id ? <ThreadBodyForm thread={thread} save={body => mutation.mutate({ threadId: thread.id, body })} pending={mutation.isPending} cancel={() => setEditing(null)} /> : null}
         {thread.platform === 'fluxer' && !thread.deleted_at && <>
           {thread.role === 'child' && <button className="my-2 underline" onClick={() => setExpanded(values => values.includes(thread.id) ? values.filter(value => value !== thread.id) : [...values, thread.id])}>{expanded.includes(thread.id) ? '收起讨论' : '查看讨论'}</button>}
-          {(thread.role === 'main' || expanded.includes(thread.id)) && <NativeThreadMessages channelId={thread.thread_id} editStarter={thread.role === 'child'} canEditMessages={!thread.locked && !thread.archived && !thread.initializing} canReply={!!member.data?.can_speak && !thread.locked && !thread.archived && !thread.initializing} />}
+          {(thread.role === 'main' || expanded.includes(thread.id)) && <NativeThreadMessages channelId={thread.thread_id} editStarter={thread.role === 'child'} hideStarterReactions={thread.role === 'child'} canEditMessages={!thread.locked && !thread.archived && !thread.initializing} canReply={!!member.data?.can_speak && !thread.locked && !thread.archived && !thread.initializing} />}
         </>}
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           {access.edit && <button className="underline" onClick={() => setEditing(thread.id)}>编辑</button>}

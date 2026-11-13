@@ -6,13 +6,15 @@ import { BannerApplicationModal } from "./BannerApplicationModal";
 
 const mocks = vi.hoisted(() => ({
   apply: vi.fn(),
+  getScopes: vi.fn(),
   notifySuccess: vi.fn(),
   showMascotToast: vi.fn(),
 }));
 
 vi.mock("@/features/banner/api/bannerApi", () => ({
-  bannerApi: { apply: mocks.apply },
+  bannerApi: { apply: mocks.apply, getScopes: mocks.getScopes },
 }));
+vi.mock("@/shared/config/works", () => ({ worksV2Enabled: true }));
 vi.mock("@/features/auth/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "123456789012345678" } }),
 }));
@@ -35,6 +37,7 @@ vi.mock("@/features/mascot/lib/mascotToast", () => ({
 describe("BannerApplicationModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getScopes.mockResolvedValue([{ id: 'global', name: '全频道' }, { id: '111111111111111111', name: '测试频道' }]);
     mocks.apply.mockResolvedValue({
       success: true,
       message: "申请已提交",
@@ -61,6 +64,7 @@ describe("BannerApplicationModal", () => {
       screen.queryByPlaceholderText("纯数字 ID 或 Discord 帖子链接"),
     ).not.toBeInTheDocument();
 
+    await screen.findByRole('option', { name: '测试频道' });
     fireEvent.change(screen.getByRole("combobox", { name: /展示范围/ }), {
       target: { value: "111111111111111111" },
     });
@@ -69,6 +73,7 @@ describe("BannerApplicationModal", () => {
     await waitFor(() =>
       expect(mocks.apply).toHaveBeenCalledWith({
         thread_link: "987654321098765432",
+        target_kind: 'discord',
         cover_image_url: undefined,
         target_scope: "111111111111111111",
       }),
@@ -83,7 +88,7 @@ describe("BannerApplicationModal", () => {
     render(<BannerApplicationModal isOpen onClose={vi.fn()} />);
 
     expect(
-      screen.getByPlaceholderText("纯数字 ID 或 Discord 帖子链接"),
+      screen.getByPlaceholderText("按目标类型填写 ID 或链接"),
     ).toBeInTheDocument();
   });
 });

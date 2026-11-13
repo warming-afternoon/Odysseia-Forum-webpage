@@ -55,9 +55,10 @@ export function buildChannelTagCatalog(
   }));
 }
 
-export function useChannels() {
+export function useChannels(enabled = true) {
   return useQuery({
     queryKey: ['meta', 'channels'],
+    enabled,
     queryFn: async () => {
       try {
         const response = await apiClient.get<ApiChannel[]>('/meta/channels');
