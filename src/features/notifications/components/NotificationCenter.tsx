@@ -14,15 +14,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { DynamicNotificationCard } from "@/features/notifications/components/DynamicNotificationCard";
+import { ForumNotificationCard } from "@/features/notifications/components/ForumNotificationCard";
 import { NotificationAnnouncementModal } from "@/features/notifications/components/NotificationAnnouncementModal";
 import {
-  useMarkAllNotificationsRead,
-  useNotificationPreview,
-  useNotificationUnreadCount,
-} from "@/features/notifications/hooks/useNotificationsData";
+  useForumReadAll,
+  useForumNotificationPreview,
+  useForumUnreadCount,
+  useForumRealtime,
+} from "@/features/notifications/hooks/useForumNotifications";
 import { useStaticNotificationState } from "@/features/notifications/hooks/useStaticNotificationState";
-import { threadFromNotification } from "@/features/notifications/lib/threadFromNotification";
 import {
   resolveStaticNotifications,
   type NotificationKind,
@@ -63,7 +63,8 @@ export function NotificationCenter({
   const { backgroundImageEnabled } = useThemeSettings();
   const setPreviewThread = usePreviewStore((state) => state.setPreviewThread);
   const { isAuthenticated } = useAuth();
-  const markAllRead = useMarkAllNotificationsRead();
+  const markAllRead = useForumReadAll();
+  const realtimeStatus = useForumRealtime(isAuthenticated);
   const {
     lastOpenedAt,
     dismissedIds,
@@ -75,12 +76,8 @@ export function NotificationCenter({
 
   const [selectedStaticId, setSelectedStaticId] = useState<string | null>(null);
 
-  const dynamicPreviewQuery = useNotificationPreview({
-    enabled: open && isAuthenticated,
-  });
-  const dynamicUnreadQuery = useNotificationUnreadCount({
-    enabled: isAuthenticated,
-  });
+  const dynamicPreviewQuery = useForumNotificationPreview(open && isAuthenticated);
+  const dynamicUnreadQuery = useForumUnreadCount(isAuthenticated);
   const staticQuery = useQuery({
     queryKey: ["release-notifications", APP_VERSION],
     queryFn: () =>
@@ -99,7 +96,7 @@ export function NotificationCenter({
       ),
     [dismissedIds, staticDefinitions],
   );
-  const dynamicNotifications = dynamicPreviewQuery.data?.results ?? [];
+  const dynamicNotifications = dynamicPreviewQuery.data?.items ?? [];
   const dynamicUnreadCount = dynamicUnreadQuery.data?.unread_count ?? 0;
 
   const pendingRequiredNotification = useMemo(
@@ -158,8 +155,10 @@ export function NotificationCenter({
   const totalUnreadCount = unreadStaticCount + dynamicUnreadCount;
 
   useEffect(() => {
-    onUnreadChange?.(totalUnreadCount);
-  }, [onUnreadChange, totalUnreadCount]);
+    if (!isAuthenticated || dynamicUnreadQuery.data || unreadStaticCount > 0) {
+      onUnreadChange?.(totalUnreadCount);
+    }
+  }, [onUnreadChange, totalUnreadCount, isAuthenticated, dynamicUnreadQuery.data, unreadStaticCount]);
 
   useEffect(() => {
     if (!open || staticNotifications.length === 0) return;
@@ -188,6 +187,10 @@ export function NotificationCenter({
 
   const handleMarkAllRead = async () => {
     if (markAllRead.isPending) return;
+    if (isAuthenticated && !dynamicUnreadQuery.data) {
+      notifyError("未读数暂不可用，请稍后重试");
+      return;
+    }
     const latest = staticNotifications.reduce(
       (current, notification) =>
         !current ||
@@ -231,6 +234,12 @@ export function NotificationCenter({
               <p className="mt-1 text-xs text-(--od-text-secondary)">
                 悬浮查看摘要，点击通知按钮进入完整动态页。
               </p>
+              {isAuthenticated && realtimeStatus === 'disconnected' && (
+                <p role="status" className="mt-1 text-xs text-(--od-text-secondary)">实时连接暂不可用，未读数会定期刷新</p>
+              )}
+              {isAuthenticated && dynamicUnreadQuery.isError && !dynamicUnreadQuery.data && (
+                <p role="status" className="mt-1 text-xs text-(--od-text-secondary)">未读数暂不可用</p>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {totalUnreadCount > 0 && (
@@ -306,23 +315,12 @@ export function NotificationCenter({
               ) : dynamicNotifications.length > 0 ? (
                 <div className="space-y-2">
                   {dynamicNotifications.map((notification) => (
-                    <DynamicNotificationCard
+                    <ForumNotificationCard
                       key={notification.id}
                       notification={notification}
-                      variant="compact"
-                      onTargetOpen={onClose}
-                      onAuthorOpen={() => {
-                        const authorId = notification.thread?.author?.id;
-                        if (authorId) navigate(`/u/${authorId}`);
-                        onClose();
-                      }}
-                      onOpen={() => {
-                        if (!notification.thread) return;
-                        setPreviewThread(
-                          threadFromNotification(notification.thread),
-                        );
-                        onClose();
-                      }}
+                      compact
+                      onPreview={setPreviewThread}
+                      onNavigate={onClose}
                     />
                   ))}
                 </div>

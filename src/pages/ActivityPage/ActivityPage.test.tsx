@@ -25,13 +25,18 @@ vi.mock("@/features/auth/hooks/useAuth", () => ({
 vi.mock("@/features/follows/hooks/useAuthorFollow", () => ({
   useAuthorFollowsList: mocks.useAuthorFollowsList,
 }));
-vi.mock("@/features/notifications/hooks/useNotificationsData", () => ({
-  useNotificationsList: mocks.useNotificationsList,
-  useNotificationUnreadCount: mocks.useNotificationUnreadCount,
-  useMarkAllNotificationsRead: () => ({
+vi.mock("@/features/notifications/hooks/useForumNotifications", () => ({
+  useForumNotificationList: mocks.useNotificationsList,
+  useForumAuthorFollows: mocks.useAuthorFollowsList,
+  useForumUnreadCount: mocks.useNotificationUnreadCount,
+  forumNotificationKeys: { all: ["forum-notifications-v2"] },
+  useForumReadAll: () => ({
     isPending: false,
     mutateAsync: mocks.markAllMutateAsync,
   }),
+}));
+vi.mock("@/features/notifications/api/notificationsV2Api", () => ({
+  notificationsV2Api: { read: vi.fn().mockResolvedValue(undefined) },
 }));
 vi.mock("@/features/notifications/notificationsConfig", () => ({
   resolveStaticNotifications: mocks.resolveStaticNotifications,
@@ -75,8 +80,20 @@ const author = {
 };
 
 const notification = {
-  id: 1,
+  id: "1",
   type: "thread_update",
+  work_id: "987654321098765432",
+  work_title: "作品更新标题",
+  work: {
+    id: "987654321098765432", title: "作品更新标题", description: "这是作品首楼摘要", images: [],
+    author_id: "123456789012345678", author: { id: "123456789012345678", username: "author", display_name: "测试作者", avatar_url: null },
+    source_platform: "discord", source_guild_id: "guild", source_channel_id: "channel", source_thread_id: "987654321098765432",
+    main_ref: null, is_nsfw: false, is_abyss: false, created_at: "2026-08-01T00:00:00Z", deleted_at: null,
+    statistics: { view_count: 56, collection_count: 4, reaction_count: 12, reply_count: 3 }, reactions: [], tags: [{id:"1",name:"奇幻"}],
+  },
+  author: { id: "123456789012345678", username: "author", display_name: "测试作者", avatar_url: null },
+  announcement_id: null, title: "v2", body: "新增了一章内容", withdrawn: false,
+  target_type: null, target_id: null, proposal_id: null,
   thread: {
     thread_id: "987654321098765432",
     channel_id: "channel",
@@ -141,13 +158,8 @@ describe("ActivityPage", () => {
       data: {
         pages: [
           {
-            results: [
-              {
-                author,
-                followed_at: "2026-08-28T00:00:00Z",
-                active: true,
-              },
-            ],
+            items: [{ id: author.id, username: author.name,
+              display_name: author.display_name, avatar_url: author.avatar_url }],
             total: 1,
             limit: 50,
             offset: 0,
@@ -165,7 +177,7 @@ describe("ActivityPage", () => {
       data: {
         pages: [
           {
-            results: [notification],
+            items: [notification],
             total: 1,
             unread_count: 1,
             limit: 20,
@@ -242,7 +254,7 @@ describe("ActivityPage", () => {
       data: {
         pages: [
           {
-            results: [
+            items: [
               { ...notification, read_at: "2026-08-28T10:00:00Z" },
             ],
             total: 1,
@@ -278,10 +290,11 @@ describe("ActivityPage", () => {
 
     expect(mocks.useNotificationsList).toHaveBeenLastCalledWith(
       {
+        limit: 20,
         unreadOnly: false,
         authorId: "123456789012345678",
       },
-      { enabled: true },
+      true,
     );
     expect(
       screen.getByRole("button", { name: "测试作者" }),
@@ -332,8 +345,8 @@ describe("ActivityPage", () => {
       ),
     );
     expect(mocks.useNotificationsList).toHaveBeenLastCalledWith(
-      { unreadOnly: false, authorId: undefined },
-      { enabled: false },
+      { limit: 20, unreadOnly: false, authorId: undefined },
+      false,
     );
     expect(screen.queryByText("作品更新标题")).not.toBeInTheDocument();
     expect(screen.getByText("关注喜欢的作者与作品")).toBeInTheDocument();
@@ -370,8 +383,8 @@ describe("ActivityPage", () => {
 
     await waitFor(() =>
       expect(mocks.useNotificationsList).toHaveBeenLastCalledWith(
-        { unreadOnly: true, authorId: undefined },
-        { enabled: true },
+        { limit: 20, unreadOnly: true, authorId: undefined },
+        true,
       ),
     );
     expect(screen.queryByText("关注喜欢的作者与作品")).not.toBeInTheDocument();

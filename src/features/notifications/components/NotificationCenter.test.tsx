@@ -12,13 +12,18 @@ const mocks = vi.hoisted(() => ({
   resolveStaticNotifications: vi.fn(),
 }));
 
-vi.mock("@/features/notifications/hooks/useNotificationsData", () => ({
-  useNotificationPreview: mocks.useNotificationPreview,
-  useNotificationUnreadCount: mocks.useNotificationUnreadCount,
-  useMarkAllNotificationsRead: () => ({
+vi.mock("@/features/notifications/hooks/useForumNotifications", () => ({
+  useForumNotificationPreview: mocks.useNotificationPreview,
+  useForumUnreadCount: mocks.useNotificationUnreadCount,
+  useForumRealtime: () => {},
+  forumNotificationKeys: { all: ["forum-notifications-v2"] },
+  useForumReadAll: () => ({
     isPending: false,
     mutateAsync: mocks.markAllMutateAsync,
   }),
+}));
+vi.mock("@/features/notifications/api/notificationsV2Api", () => ({
+  notificationsV2Api: { read: vi.fn().mockResolvedValue(undefined) },
 }));
 vi.mock("@/features/auth/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: true }),
@@ -85,40 +90,17 @@ const staticNotification = {
 } as const;
 
 const dynamicNotification = {
-  id: 1,
-  type: "thread_update",
-  thread: {
-    thread_id: "123456789012345678",
-    channel_id: "channel",
-    title: "作品更新标题",
-    created_at: "2026-08-01T00:00:00Z",
-    reaction_count: 0,
-    reply_count: 0,
-    collection_count: 0,
-    display_count: 0,
-    first_message_excerpt: "作品简介",
-    thumbnail_urls: [],
-    tags: [],
-    collected_flag: false,
-    is_tournament: false,
-    author: {
-      id: "author-1",
-      name: "author",
-      global_name: null,
-      display_name: "测试作者",
-      avatar_url: null,
-    },
-  },
-  update: {
-    id: 2,
-    description: "新增了一章内容",
-    version: "v2",
-    message_link: null,
-    source_message_at: "2026-08-28T09:00:00Z",
-    published_at: "2026-08-28T09:00:00Z",
-  },
-  created_at: "2026-08-28T09:00:00Z",
-  read_at: null,
+  id: "1", type: "thread_update", work_id: "123", work_title: "作品更新标题",
+  work: { id: "123", title: "作品更新标题", description: "作品简介", images: [],
+    author_id: "1234", author: { id: "1234", username: "author", display_name: "测试作者", avatar_url: null },
+    source_platform: "fluxer", source_guild_id: "1", source_channel_id: "2", source_thread_id: "3",
+    main_ref: null, is_nsfw: false, is_abyss: false, created_at: "2026-08-01T00:00:00Z",
+    deleted_at: null, statistics: { view_count: 0, collection_count: 0, reaction_count: 0, reply_count: 0 },
+    reactions: [], tags: [] },
+  author: { id: "1234", username: "author", display_name: "测试作者", avatar_url: null },
+  announcement_id: null, title: "v2", body: "新增了一章内容", withdrawn: false,
+  target_type: null, target_id: null, proposal_id: null,
+  created_at: "2026-08-28T09:00:00Z", read_at: null,
 } as const;
 
 describe("NotificationCenter", () => {
@@ -128,7 +110,7 @@ describe("NotificationCenter", () => {
     mocks.resolveStaticNotifications.mockResolvedValue([staticNotification]);
     mocks.useNotificationPreview.mockReturnValue({
       data: {
-        results: [dynamicNotification],
+        items: [dynamicNotification],
         total: 1,
         unread_count: 1,
         limit: 5,
@@ -152,32 +134,35 @@ describe("NotificationCenter", () => {
     ).toBeInTheDocument();
   });
 
-  it("点击动态条目打开作品预览", async () => {
+  it("点击动态条目打开 V2 作品并关闭面板", async () => {
     const onClose = vi.fn();
     render(<NotificationCenter open onClose={onClose} />);
-
-    const item = await screen.findByRole("button", {
-      name: "测试作者更新了作品：作品更新标题",
-    });
-    fireEvent.click(item);
-
-    expect(mocks.setPreviewThread).toHaveBeenCalledWith(
-      dynamicNotification.thread,
-    );
+    fireEvent.click(await screen.findByRole("button", { name: /作品更新标题/ }));
+    expect(mocks.setPreviewThread).toHaveBeenCalledWith(expect.objectContaining({ thread_id: "123" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("无帖子对象的标签审核通知独立展示并关闭通知面板", async () => {
+  it("书单标签审核可单独跳转并关闭面板", async () => {
     mocks.useNotificationPreview.mockReturnValue({
-      data: { results: [{ id: "12", type: "tag_review", thread: null, target_type: "thread", target_id: "123", proposal_id: "456", read_at: null }] },
+      data: { items: [{ ...dynamicNotification, id: "12", type: "tag_review",
+        work_id: null, work_title: null, work: null, title: "书单审核", target_type: "booklist", target_id: "123" }] },
       isLoading: false, isError: false,
     });
     const onClose = vi.fn();
     render(<NotificationCenter open onClose={onClose} />);
-    expect(await screen.findByText("未读 · 标签待审核")).toBeInTheDocument();
+    await screen.findByText("未读 · 书单审核");
     fireEvent.click(screen.getByRole("button", { name: "查看内容" }));
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mocks.setPreviewThread).not.toHaveBeenCalled();
+  });
+
+  it("未读数接口失败时明确提示而不是报告零", async () => {
+    mocks.useNotificationUnreadCount.mockReturnValue({ data: undefined, isError: true });
+    const onUnreadChange = vi.fn();
+    mocks.resolveStaticNotifications.mockResolvedValue([]);
+    render(<NotificationCenter open onClose={vi.fn()} onUnreadChange={onUnreadChange} />);
+    expect(await screen.findByText("未读数暂不可用")).toBeInTheDocument();
+    await waitFor(() => expect(mocks.resolveStaticNotifications).toHaveBeenCalled());
+    expect(onUnreadChange).not.toHaveBeenCalledWith(0);
   });
 
   it("popup 会自动弹出但不要求读到底，关闭后不会再次自动弹出", async () => {

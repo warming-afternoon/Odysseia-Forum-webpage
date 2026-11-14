@@ -10,22 +10,21 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useAuthorFollowsList } from "@/features/follows/hooks/useAuthorFollow";
-import type { DynamicNotification } from "@/features/notifications/api/notificationsApi";
-import { DynamicNotificationCard } from "@/features/notifications/components/DynamicNotificationCard";
+import type { ForumNotification } from "@/features/notifications/api/notificationsV2Api";
+import { ForumNotificationCard } from "@/features/notifications/components/ForumNotificationCard";
 import { NotificationAnnouncementModal } from "@/features/notifications/components/NotificationAnnouncementModal";
 import { SystemDynamicNotificationCard } from "@/features/notifications/components/SystemDynamicNotificationCard";
 import {
-  useMarkAllNotificationsRead,
-  useNotificationUnreadCount,
-  useNotificationsList,
-} from "@/features/notifications/hooks/useNotificationsData";
+  useForumReadAll,
+  useForumUnreadCount,
+  useForumNotificationList,
+  useForumAuthorFollows,
+} from "@/features/notifications/hooks/useForumNotifications";
 import { useStaticNotificationState } from "@/features/notifications/hooks/useStaticNotificationState";
-import { threadFromNotification } from "@/features/notifications/lib/threadFromNotification";
 import {
   resolveStaticNotifications,
   type StaticNotificationDefinition,
@@ -38,7 +37,7 @@ import { extractErrorMessage } from "@/shared/lib/notify";
 
 type ActivityFeedItem =
   | { kind: "system"; notification: StaticNotificationDefinition }
-  | { kind: "dynamic"; notification: DynamicNotification };
+  | { kind: "dynamic"; notification: ForumNotification };
 
 function isStaticNotificationUnread(
   notification: StaticNotificationDefinition,
@@ -52,7 +51,6 @@ function isStaticNotificationUnread(
 }
 
 export function ActivityPage() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const { openPreview } = usePreviewThread();
@@ -73,40 +71,35 @@ export function ActivityPage() {
     acknowledge,
   } = useStaticNotificationState();
 
-  const authorsQuery = useAuthorFollowsList({ enabled: isAuthenticated });
-  const notificationsQuery = useNotificationsList(
-    { unreadOnly, authorId: selectedAuthorId },
-    { enabled: isAuthenticated && !systemOnly },
+  const authorsQuery = useForumAuthorFollows(isAuthenticated);
+  const notificationsQuery = useForumNotificationList(
+    { limit: 20, unreadOnly, authorId: selectedAuthorId },
+    isAuthenticated && !systemOnly,
   );
-  const dynamicUnreadQuery = useNotificationUnreadCount({
-    enabled: isAuthenticated,
-  });
+  const dynamicUnreadQuery = useForumUnreadCount(isAuthenticated);
   const staticQuery = useQuery({
     queryKey: ["release-notifications", APP_VERSION],
     queryFn: () =>
       resolveStaticNotifications({ currentAppVersion: APP_VERSION }),
     staleTime: 5 * 60 * 1000,
   });
-  const { mutateAsync: markAllReadAsync, isPending: isMarkingAllRead } = useMarkAllNotificationsRead();
+  const { mutateAsync: markAllReadAsync, isPending: isMarkingAllRead } = useForumReadAll();
   const loadMoreRef = useInfiniteScrollTrigger(notificationsQuery, {
     rootMargin: "320px",
   });
 
   const followedAuthors = useMemo(() => {
-    const authors =
-      authorsQuery.data?.pages.flatMap((page) => page.results) ?? [];
-    return Array.from(
-      new Map(
-        authors
-          .filter((item) => item.active)
-          .map((item) => [String(item.author.id), item]),
-      ).values(),
-    );
+    const authors = authorsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+    return Array.from(new Map(authors.map((author) => [String(author.id), {
+      author: { id: author.id, name: author.username, global_name: author.display_name,
+        display_name: author.display_name || author.username, avatar_url: author.avatar_url },
+      active: true,
+    }])).values());
   }, [authorsQuery.data?.pages]);
 
   const notifications = useMemo(
     () =>
-      notificationsQuery.data?.pages.flatMap((page) => page.results) ?? [],
+      notificationsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [notificationsQuery.data?.pages],
   );
   const staticNotifications = useMemo(
@@ -222,6 +215,10 @@ export function ActivityPage() {
 
   const handleMarkAllRead = async () => {
     if (isMarkingAllRead || totalUnreadCount === 0) return;
+    if (isAuthenticated && !dynamicUnreadQuery.data) {
+      notifyError("未读数暂不可用，请稍后重试");
+      return;
+    }
     if (latestStaticTimestamp) markOpenedAt(latestStaticTimestamp);
     if (!isAuthenticated || globalDynamicUnreadCount === 0) {
       notifySuccess("当前通知已全部标记为已读");
@@ -323,7 +320,7 @@ export function ActivityPage() {
             <button
               type="button"
               onClick={() => void handleMarkAllRead()}
-              disabled={totalUnreadCount === 0 || isMarkingAllRead}
+              disabled={totalUnreadCount === 0 || isMarkingAllRead || (isAuthenticated && !dynamicUnreadQuery.data)}
               className="od-inline-action od-inline-action-soft disabled:pointer-events-none disabled:opacity-50"
             >
               {isMarkingAllRead ? (
@@ -491,6 +488,9 @@ export function ActivityPage() {
               <h2 id="recent-activity-title" className="od-text-title">
                 最近更新
               </h2>
+              {isAuthenticated && dynamicUnreadQuery.isError && !dynamicUnreadQuery.data && (
+                <span role="status" className="text-xs text-(--od-text-secondary)">未读数暂不可用</span>
+              )}
               {visibleUnreadCount > 0 && (
                 <span className="rounded-full bg-(--od-accent)/10 px-2 py-0.5 text-[11px] font-medium text-(--od-accent)">
                   {visibleUnreadCount} 条未读
@@ -571,16 +571,10 @@ export function ActivityPage() {
                     onOpen={() => handleStaticOpen(item.notification)}
                   />
                 ) : (
-                  <DynamicNotificationCard
+                  <ForumNotificationCard
                     key={`dynamic-${item.notification.id}`}
                     notification={item.notification}
-                    onOpen={() => {
-                      if (item.notification.thread) openPreview(threadFromNotification(item.notification.thread));
-                    }}
-                    onAuthorOpen={() => {
-                      const authorId = item.notification.thread?.author?.id;
-                      if (authorId) navigate(`/u/${authorId}`);
-                    }}
+                    onPreview={openPreview}
                   />
                 ),
               )}

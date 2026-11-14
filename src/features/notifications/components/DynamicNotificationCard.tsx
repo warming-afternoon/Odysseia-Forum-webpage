@@ -14,7 +14,7 @@ import { apiClient } from "@/shared/api/client";
 
 import { ThreadStatusBadges } from "@/entities/thread/ThreadStatusBadges";
 import { ThreadTournamentBadges } from "@/entities/thread/ThreadTournamentBadges";
-import type { ViewerFlag } from "@/entities/thread/types";
+import type { Thread, ViewerFlag } from "@/entities/thread/types";
 import { AuthorAvatar } from "@/entities/user/AuthorAvatar";
 import { QuickAddToBooklistModal } from "@/features/booklists/components/QuickAddToBooklistModal";
 import type { DynamicNotification } from "@/features/notifications/api/notificationsApi";
@@ -38,8 +38,8 @@ interface DynamicNotificationCardProps {
   variant?: "compact" | "feed";
 }
 
-function getAuthorName(notification: DynamicNotification) {
-  const author = notification.thread?.author;
+function getAuthorName(thread: Thread) {
+  const author = thread.author;
   return (
     author?.display_name ||
     author?.global_name ||
@@ -53,7 +53,13 @@ export function DynamicNotificationCard({
 }: DynamicNotificationCardProps) {
   if (notification.type === "tag_review") return <TagReviewNotification notification={notification} onOpen={props.onTargetOpen} />;
   if (!notification.thread) return <p className="p-3 text-sm text-(--od-text-secondary)">作品暂不可用</p>;
-  return <ThreadNotificationCard {...props} notification={{ ...notification, thread: notification.thread }} />;
+  return <ThreadNotificationView {...props} notification={{
+    type: notification.type,
+    thread: threadFromNotification(notification.thread),
+    update: notification.update,
+    created_at: notification.created_at,
+    read_at: notification.read_at,
+  }} />;
 }
 
 function TagReviewNotification({ notification, onOpen }: { notification: DynamicNotification; onOpen?: () => void }) {
@@ -75,18 +81,29 @@ function TagReviewNotification({ notification, onOpen }: { notification: Dynamic
   </article>;
 }
 
-function ThreadNotificationCard({
+export function ThreadNotificationView({
   notification,
   onOpen,
   onAuthorOpen,
   variant = "feed",
-}: Omit<DynamicNotificationCardProps, "notification"> & { notification: DynamicNotification & { thread: NonNullable<DynamicNotification["thread"]> } }) {
+}: {
+  notification: {
+    type: "thread_update" | "author_new_thread" | "work_announcement";
+    thread: Thread;
+    update?: { description?: string | null; version?: string | null } | null;
+    created_at: string;
+    read_at?: string | null;
+  };
+  onOpen: () => void;
+  onAuthorOpen: () => void;
+  variant?: "compact" | "feed";
+}) {
   const compact = variant === "compact";
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const thread = threadFromNotification(notification.thread);
+  const thread = notification.thread;
   const isUnread = notification.read_at == null;
   const isNewThread = notification.type === "author_new_thread";
-  const actionLabel = isNewThread ? "发布了新作品" : "更新了作品";
+  const actionLabel = isNewThread ? "发布了新作品" : notification.type === "work_announcement" ? "发布了作品公告" : "更新了作品";
   const updateSummary = isNewThread
     ? "这位作者发布了新的作品。"
     : notification.update?.description || "这部作品有新的更新。";
@@ -94,7 +111,7 @@ function ThreadNotificationCard({
     thread.first_message_excerpt ||
     (isNewThread ? "点击查看作品详情。" : updateSummary);
   const thumbnails = thread.thumbnail_urls.slice(0, 4);
-  const authorName = getAuthorName(notification);
+  const authorName = getAuthorName(thread);
   const allTags = Array.from(
     new Set([...(thread.tags ?? []), ...(thread.virtual_tags ?? [])]),
   );
@@ -153,7 +170,9 @@ function ThreadNotificationCard({
         </button>
 
         <ThreadActions
-          threadId={thread.thread_id}
+          workId={thread.work?.source_platform === "discord" ? undefined : thread.work?.id}
+          threadId={thread.work?.source_platform === "discord" ? thread.work.source_thread_id || thread.thread_id : thread.thread_id}
+          externalUrlOverride={thread.work?.source_platform === "discord" ? thread.work.main_ref : undefined}
           channelId={thread.channel_id}
           guildId={thread.guild_id}
           size="sm"
@@ -323,7 +342,9 @@ function ThreadNotificationCard({
                 <MoreHorizontal className="h-4 w-4" />
               </ContextMenuButton>
               <ThreadActions
-                threadId={thread.thread_id}
+                workId={thread.work?.source_platform === "discord" ? undefined : thread.work?.id}
+                threadId={thread.work?.source_platform === "discord" ? thread.work.source_thread_id || thread.thread_id : thread.thread_id}
+                externalUrlOverride={thread.work?.source_platform === "discord" ? thread.work.main_ref : undefined}
                 channelId={thread.channel_id}
                 guildId={thread.guild_id}
                 size="md"
@@ -345,6 +366,7 @@ function ThreadNotificationCard({
       <QuickAddToBooklistModal
         isOpen={quickAddOpen}
         threadId={thread.thread_id}
+        workId={thread.work?.id}
         threadTitle={thread.title}
         onClose={() => setQuickAddOpen(false)}
       />
